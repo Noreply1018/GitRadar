@@ -12,6 +12,9 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 - Project README
 - Product blueprint draft
 - Versioning and workflow documentation
+- Development workflow documentation
+- GitHub Actions CI for formatting, Markdown linting, YAML checks, and workflow linting
+- Node-based repository tooling for local and CI checks
 
 ## [0.1.0] - 2026-03-25
 

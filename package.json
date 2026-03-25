@@ -1,0 +1,15 @@
+{
+  "name": "gitradar",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Personal GitHub open-source discovery radar.",
+  "scripts": {
+    "format:check": "prettier --check .",
+    "lint:md": "markdownlint README.md CHANGELOG.md docs/**/*.md",
+    "lint:yaml": "prettier --check \"**/*.{yml,yaml}\""
+  },
+  "devDependencies": {
+    "markdownlint-cli": "0.48.0",
+    "prettier": "3.6.2"
+  }
+}
