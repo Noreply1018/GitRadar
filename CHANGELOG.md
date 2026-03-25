@@ -15,6 +15,7 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 - Development workflow documentation
 - GitHub Actions CI for formatting, Markdown linting, YAML checks, and workflow linting
 - Node-based repository tooling for local and CI checks
+- Initial repository folder layout for code, scripts, config, and data management
 
 ## [0.1.0] - 2026-03-25
 

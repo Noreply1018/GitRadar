@@ -44,6 +44,27 @@ GitRadar v1 是一个“每日精选开源项目雷达”：
 - [变更记录](./CHANGELOG.md)
 - [开发规范](./docs/development.md)
 
+## 目录结构
+
+```text
+GitRadar/
+├── .github/workflows/   # CI 工作流
+├── config/              # 配置模板与示例配置
+├── data/
+│   ├── cache/           # 本地缓存，默认不入库
+│   ├── exports/         # 导出结果，默认不入库
+│   ├── history/         # 历史归档说明和结构定义
+│   └── runtime/         # 运行期临时文件，默认不入库
+├── docs/                # 蓝图、规范、版本文档
+├── scripts/             # 手动触发和运维脚本入口
+├── src/                 # 业务实现代码
+├── CHANGELOG.md
+├── package.json
+└── README.md
+```
+
+当前仓库已经按这个结构预留目录，后续实现会沿着这个布局推进，避免脚本、配置和数据混放在根目录。
+
 ## 当前约束
 
 第一版优先考虑：

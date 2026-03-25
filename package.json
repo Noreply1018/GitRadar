@@ -5,7 +5,7 @@
   "description": "Personal GitHub open-source discovery radar.",
   "scripts": {
     "format:check": "prettier --check .",
-    "lint:md": "markdownlint README.md CHANGELOG.md docs/**/*.md",
+    "lint:md": "markdownlint README.md CHANGELOG.md docs/**/*.md config/**/*.md data/**/*.md scripts/**/*.md src/**/*.md",
     "lint:yaml": "prettier --check \"**/*.{yml,yaml}\""
   },
   "devDependencies": {

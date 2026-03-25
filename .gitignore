@@ -1,9 +1,11 @@
 # OS
 .DS_Store
+Thumbs.db
 
 # Logs
 *.log
 logs/
+*.pid
 
 # Environment files
 .env
@@ -15,6 +17,7 @@ node_modules/
 .next/
 dist/
 coverage/
+.cache/
 
 # Python
 __pycache__/
@@ -22,9 +25,27 @@ __pycache__/
 .venv/
 venv/
 
-# Local data
-data/
+# Build and reports
+reports/
+
+# Runtime and generated data
 tmp/
+runtime/
+data/history/*.json
+data/history/*.jsonl
+data/history/*.html
+data/history/*.md
+data/runtime/*
+!data/runtime/.gitkeep
+data/cache/*
+!data/cache/.gitkeep
+data/exports/*
+!data/exports/.gitkeep
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
 
 # IDE
 .idea/
