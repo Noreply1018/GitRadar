@@ -86,6 +86,37 @@ npm run send:wecom:sample
 
 如果未配置 webhook，命令会直接报错退出；只有在真实终端执行并在企业微信群看到消息后，才算完成真实发送验证。
 
+## 当前可运行数据链路
+
+当前已经支持一条完整的手动生成链路：
+
+- 抓取 GitHub Trending
+- 调 GitHub Search API 补充候选
+- 规则初筛到约 20 个候选项目
+- 调模型生成最终 `DailyDigest`
+- 写入 `data/history/YYYY-MM-DD.json`
+- 显式加 `--send` 时再推送到企业微信
+
+本地生成方式：
+
+```bash
+cp .env.example .env
+# 填入 GITHUB_TOKEN / GR_API_KEY / GR_BASE_URL / GR_MODEL
+npm run generate:digest
+```
+
+生成后可选发送：
+
+```bash
+npm run generate:digest -- --send
+```
+
+调试时如果需要把 GitHub Trending、GitHub API 或模型接口指到本地 mock 服务，可以使用：
+
+- `GR_GH_API_URL`
+- `GR_GH_TRENDING_URL`
+- `GR_BASE_URL`
+
 ## 当前约束
 
 第一版优先考虑：

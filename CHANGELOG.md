@@ -21,6 +21,7 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 - DailyDigest and Notifier abstractions
 - WeCom robot notifier and sample send command
 - Tests and CI checks for typecheck and notifier behavior
+- GitHub fetching, rule-based selection, LLM digest generation, and JSON archive output
 
 ## [0.1.0] - 2026-03-25
 
