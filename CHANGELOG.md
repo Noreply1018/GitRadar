@@ -11,6 +11,7 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 - Initial repository setup
 - Project README
 - Product blueprint draft
+- Push delivery strategy document
 - Versioning and workflow documentation
 - Development workflow documentation
 - GitHub Actions CI for formatting, Markdown linting, YAML checks, and workflow linting
