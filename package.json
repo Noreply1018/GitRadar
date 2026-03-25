@@ -4,12 +4,21 @@
   "private": true,
   "description": "Personal GitHub open-source discovery radar.",
   "scripts": {
+    "send:wecom:sample": "tsx src/commands/send-wecom-sample.ts",
     "format:check": "prettier --check .",
     "lint:md": "markdownlint README.md CHANGELOG.md docs/**/*.md config/**/*.md data/**/*.md scripts/**/*.md src/**/*.md",
-    "lint:yaml": "prettier --check \"**/*.{yml,yaml}\""
+    "lint:yaml": "prettier --check \"**/*.{yml,yaml}\"",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/node": "24.5.2",
+    "dotenv": "17.2.2",
     "markdownlint-cli": "0.48.0",
-    "prettier": "3.6.2"
+    "prettier": "3.6.2",
+    "tsx": "4.20.5",
+    "typescript": "5.9.2",
+    "undici": "7.24.5",
+    "vitest": "3.2.4"
   }
 }

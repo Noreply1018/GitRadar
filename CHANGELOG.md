@@ -17,6 +17,10 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 - GitHub Actions CI for formatting, Markdown linting, YAML checks, and workflow linting
 - Node-based repository tooling for local and CI checks
 - Initial repository folder layout for code, scripts, config, and data management
+- TypeScript runtime skeleton for GitRadar
+- DailyDigest and Notifier abstractions
+- WeCom robot notifier and sample send command
+- Tests and CI checks for typecheck and notifier behavior
 
 ## [0.1.0] - 2026-03-25
 

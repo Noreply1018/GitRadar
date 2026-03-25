@@ -66,6 +66,26 @@ GitRadar/
 
 当前仓库已经按这个结构预留目录，后续实现会沿着这个布局推进，避免脚本、配置和数据混放在根目录。
 
+## 当前可运行能力
+
+当前已经实现了企业微信群机器人的最小可用发送链路：
+
+- 统一的 `DailyDigest` 数据结构
+- `Notifier` 抽象
+- `WecomRobotNotifier` 实现
+- 示例日报手动发送命令
+- Markdown 长度控制和 webhook 脱敏日志
+
+本地试跑方式：
+
+```bash
+cp .env.example .env
+# 填入真实 webhook
+npm run send:wecom:sample
+```
+
+如果未配置 webhook，命令会直接报错退出；只有在真实终端执行并在企业微信群看到消息后，才算完成真实发送验证。
+
 ## 当前约束
 
 第一版优先考虑：

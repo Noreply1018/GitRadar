@@ -37,5 +37,11 @@ jobs:
       - name: Lint YAML
         run: npm run lint:yaml
 
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Run tests
+        run: npm run test
+
       - name: Lint GitHub Actions workflow
         uses: rhysd/actionlint@v1.7.11
