@@ -22,6 +22,8 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 - WeCom robot notifier and sample send command
 - Tests and CI checks for typecheck and notifier behavior
 - GitHub fetching, rule-based selection, LLM digest generation, and JSON archive output
+- Daily Digest GitHub Actions workflow with schedule, manual trigger, and WeCom failure alert
+- Clearer WeCom send logging and runtime documentation for real verification
 
 ## [0.1.0] - 2026-03-25
 

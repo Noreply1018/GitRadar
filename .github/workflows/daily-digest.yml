@@ -1,0 +1,84 @@
+name: Daily Digest
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-digest
+  cancel-in-progress: false
+
+jobs:
+  generate-and-send:
+    name: Generate And Send Daily Digest
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GR_API_KEY: ${{ secrets.GR_API_KEY }}
+      GR_BASE_URL: ${{ secrets.GR_BASE_URL }}
+      GR_MODEL: ${{ secrets.GR_MODEL }}
+      GITRADAR_WECOM_WEBHOOK_URL: ${{ secrets.GITRADAR_WECOM_WEBHOOK_URL }}
+      WORKFLOW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      GITRADAR_TRIGGER: ${{ github.event_name }}
+      GITRADAR_WORKFLOW_NAME: ${{ github.workflow }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6.3.0
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate and send digest
+        run: npm run generate:digest -- --send
+
+      - name: Notify WeCom on failure
+        if: failure() && env.GITRADAR_WECOM_WEBHOOK_URL != ''
+        run: |
+          node --input-type=module <<'EOF'
+          const webhook = process.env.GITRADAR_WECOM_WEBHOOK_URL;
+
+          if (!webhook) {
+            process.exit(0);
+          }
+
+          const lines = [
+            "# GitRadar 任务失败",
+            "",
+            `工作流：${process.env.GITRADAR_WORKFLOW_NAME ?? "Daily Digest"}`,
+            `触发方式：${process.env.GITRADAR_TRIGGER ?? "unknown"}`,
+            `失败时间：${new Date().toISOString()}`,
+            "详情：GitHub Actions 定时或手动运行失败。",
+            `查看日志：[GitHub Actions](${process.env.WORKFLOW_RUN_URL})`,
+          ];
+
+          const response = await fetch(webhook, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              msgtype: "markdown",
+              markdown: { content: lines.join("\n") },
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`WeCom notify request failed with status ${response.status}.`);
+          }
+
+          const body = await response.json();
+          if (body.errcode !== 0) {
+            throw new Error(
+              `WeCom notify responded with errcode=${body.errcode ?? "unknown"} errmsg=${body.errmsg ?? "unknown"}.`,
+            );
+          }
+          EOF

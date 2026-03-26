@@ -8,6 +8,8 @@ import type { DailyDigest } from "../src/core/digest";
 import {
   renderWecomMarkdown,
   renderWecomMarkdownPayload,
+  renderWecomWorkflowFailureMarkdown,
+  renderWecomWorkflowFailurePayload,
   WecomRobotNotifier,
 } from "../src/notifiers/wecom-robot";
 
@@ -79,6 +81,37 @@ describe("renderWecomMarkdown", () => {
 
     expect(Buffer.byteLength(content, "utf8")).toBeLessThanOrEqual(4096);
     expect(content).toContain("更多内容请查看 GitHub 或本地归档。");
+  });
+});
+
+describe("renderWecomWorkflowFailureMarkdown", () => {
+  it("renders a workflow failure alert payload", () => {
+    const payload = renderWecomWorkflowFailurePayload({
+      workflowName: "Daily Digest",
+      trigger: "schedule",
+      failedAt: "2026-03-26T00:00:00Z",
+      runUrl: "https://github.com/example/GitRadar/actions/runs/123",
+      details: "npm run generate:digest -- --send",
+    });
+
+    expect(payload.msgtype).toBe("markdown");
+    expect(payload.markdown.content).toContain("# GitRadar 任务失败");
+    expect(payload.markdown.content).toContain("工作流：Daily Digest");
+    expect(payload.markdown.content).toContain(
+      "[GitHub Actions](https://github.com/example/GitRadar/actions/runs/123)",
+    );
+  });
+
+  it("renders the markdown body directly", () => {
+    const content = renderWecomWorkflowFailureMarkdown({
+      workflowName: "Daily Digest",
+      trigger: "workflow_dispatch",
+      failedAt: "2026-03-26T00:00:00Z",
+      runUrl: "https://github.com/example/GitRadar/actions/runs/456",
+    });
+
+    expect(content).toContain("触发方式：workflow_dispatch");
+    expect(content).toContain("失败时间：2026-03-26T00:00:00Z");
   });
 });
 
@@ -166,5 +199,45 @@ describe("WecomRobotNotifier", () => {
     ).rejects.toThrow("WeCom robot responded with errcode=93000");
 
     server.close();
+  });
+
+  it("sends a workflow failure alert to the configured webhook", async () => {
+    let receivedBody = "";
+
+    const server = createServer((request, response) => {
+      request.on("data", (chunk) => {
+        receivedBody += chunk.toString();
+      });
+
+      request.on("end", () => {
+        response.writeHead(200, { "content-type": "application/json" });
+        response.end(JSON.stringify({ errcode: 0, errmsg: "ok" }));
+      });
+    });
+
+    await new Promise<void>((resolve) => server.listen(0, resolve));
+    const address = server.address();
+
+    if (!address || typeof address === "string") {
+      throw new Error("Failed to create test server.");
+    }
+
+    const notifier = new WecomRobotNotifier(
+      `http://127.0.0.1:${address.port}/webhook`,
+    );
+
+    await notifier.sendWorkflowFailureAlert({
+      workflowName: "Daily Digest",
+      trigger: "schedule",
+      failedAt: "2026-03-26T00:00:00Z",
+      runUrl: "https://github.com/example/GitRadar/actions/runs/789",
+      details: "npm run generate:digest -- --send",
+    });
+
+    server.close();
+
+    expect(receivedBody).toContain('"msgtype":"markdown"');
+    expect(receivedBody).toContain("GitRadar 任务失败");
+    expect(receivedBody).toContain("actions/runs/789");
   });
 });

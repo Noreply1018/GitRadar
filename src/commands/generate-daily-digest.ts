@@ -13,6 +13,11 @@ async function main(): Promise<void> {
   const wecom = shouldSend ? getWecomRobotConfigFromEnv() : undefined;
 
   console.log("Generating GitRadar daily digest...");
+  console.log(`WeCom send enabled: ${shouldSend ? "yes" : "no"}`);
+
+  if (shouldSend && wecom) {
+    console.log(`WeCom target: ${maskWebhookUrl(wecom.webhookUrl)}`);
+  }
 
   const result = await generateDailyDigest({
     github,
@@ -36,7 +41,7 @@ async function main(): Promise<void> {
 
   if (shouldSend && wecom) {
     console.log(
-      `WeCom robot send completed: ${maskWebhookUrl(wecom.webhookUrl)}`,
+      `WeCom robot send completed successfully: ${maskWebhookUrl(wecom.webhookUrl)}`,
     );
   }
 }

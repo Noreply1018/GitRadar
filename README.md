@@ -1,147 +1,149 @@
 # GitRadar
 
-GitRadar 是一个面向个人使用的开源项目发现工具。
+GitRadar 是一个面向个人使用的 GitHub 开源项目日报工具。
 
-目标是每天自动抓取 GitHub 上值得关注的开源项目，并以一种低维护、低噪音的方式呈现出来，帮助我快速判断今天有哪些项目值得看、值得收藏、值得后续跟进。
+它每天从 GitHub 抓取候选项目，做一轮规则筛选和模型摘要，产出少量值得深看的项目卡片，并把结果归档到本地，同时支持发送到企业微信群机器人。
 
-## 项目状态
+## 当前状态
 
-当前处于产品定义阶段，功能尚未开始实现。
+当前仓库已经不是“只有产品定义”的阶段，而是一个可运行的 `v0` 原型：
 
-已经确定的方向：
+- 支持手动生成当天日报
+- 支持把日报写入 `data/history/YYYY-MM-DD.json`
+- 支持显式加 `--send` 后发送到企业微信群机器人
+- 支持 GitHub Actions 手动触发和每天 `08:00` 中国时间定时触发
+- 定时任务失败时会向同一个企业微信群机器人发送失败告警
 
-- 面向个人使用，不做多用户产品
-- 第一版只看 `GitHub`
-- 追求 `少而准`，不是全量热门搬运
-- 每天推送 `5 个以内`
-- 推送通道优先级：`Telegram` 和 `企业微信`
-- 支持 `每天早上 8 点固定推送 + 手动触发补抓`
-- 至少保留 `本地历史归档`
-- 可接入模型 API 做摘要和筛选增强
+当前尚未完成的部分：
 
-## GitRadar v1 定义
+- `Telegram` 推送
+- 更细的失败重试与恢复策略
+- 更完善的候选缓存、重发和运营脚本
 
-GitRadar v1 是一个“每日精选开源项目雷达”：
+## 当前数据链路
 
-- 每天自动抓取 GitHub 候选项目
-- 自动筛出少量真正值得看的项目
-- 通过手机上方便查看的推送通道直接发给我
-- 每个项目除了链接，还要解释为什么值得看
-- 本地保存每天的历史结果，方便后续回看和演进
+GitRadar 当前的主流程如下：
 
-## 每条项目卡片要回答的问题
+1. 抓取 GitHub Trending 仓库
+2. 调 GitHub Search API 补充“最近更新”和“最近创建”的候选
+3. 按规则做一轮初筛和排序
+4. 读取 README 摘要补充上下文
+5. 调模型生成最终 `DailyDigest`
+6. 写入本地历史归档
+7. 显式开启发送时，把日报发到企业微信群机器人
 
-- 它是干什么的
-- 为什么值得看
-- 和别的项目相比新在哪
-- 我适不适合点进去深看
-- 最近热度是否明显上升
-
-## 文档索引
-
-- [产品蓝图](./docs/blueprint.md)
-- [推送方案](./docs/push-delivery.md)
-- [版本管理说明](./docs/versioning.md)
-- [变更记录](./CHANGELOG.md)
-- [开发规范](./docs/development.md)
+企业微信当前只支持“群机器人 webhook”方案，不是企业微信应用消息。
 
 ## 目录结构
 
 ```text
 GitRadar/
-├── .github/workflows/   # CI 工作流
-├── config/              # 配置模板与示例配置
+├── .github/workflows/   # CI 与日报自动化
+├── config/              # 配置说明
 ├── data/
-│   ├── cache/           # 本地缓存，默认不入库
-│   ├── exports/         # 导出结果，默认不入库
-│   ├── history/         # 历史归档说明和结构定义
-│   └── runtime/         # 运行期临时文件，默认不入库
-├── docs/                # 蓝图、规范、版本文档
-├── scripts/             # 手动触发和运维脚本入口
-├── src/                 # 业务实现代码
+│   ├── cache/           # 本地缓存，不入库
+│   ├── exports/         # 导出结果，不入库
+│   ├── history/         # 每日归档
+│   └── runtime/         # 运行期临时文件，不入库
+├── docs/                # 开发与版本文档
+├── scripts/             # 预留给运维和重发脚本
+├── src/                 # TypeScript 实现
+├── tests/               # 单元与集成测试
 ├── CHANGELOG.md
 ├── package.json
 └── README.md
 ```
 
-当前仓库已经按这个结构预留目录，后续实现会沿着这个布局推进，避免脚本、配置和数据混放在根目录。
+## 本地运行
 
-## 当前可运行能力
-
-当前已经实现了企业微信群机器人的最小可用发送链路：
-
-- 统一的 `DailyDigest` 数据结构
-- `Notifier` 抽象
-- `WecomRobotNotifier` 实现
-- 示例日报手动发送命令
-- Markdown 长度控制和 webhook 脱敏日志
-
-本地试跑方式：
+先准备 `.env`：
 
 ```bash
 cp .env.example .env
-# 填入真实 webhook
-npm run send:wecom:sample
 ```
 
-如果未配置 webhook，命令会直接报错退出；只有在真实终端执行并在企业微信群看到消息后，才算完成真实发送验证。
+需要填写的环境变量：
 
-## 当前可运行数据链路
+- `GITHUB_TOKEN`
+- `GR_API_KEY`
+- `GR_BASE_URL`
+- `GR_MODEL`
+- `GITRADAR_WECOM_WEBHOOK_URL`
 
-当前已经支持一条完整的手动生成链路：
+可选的本地调试覆盖：
 
-- 抓取 GitHub Trending
-- 调 GitHub Search API 补充候选
-- 规则初筛到约 20 个候选项目
-- 调模型生成最终 `DailyDigest`
-- 写入 `data/history/YYYY-MM-DD.json`
-- 显式加 `--send` 时再推送到企业微信
+- `GR_GH_API_URL`
+- `GR_GH_TRENDING_URL`
 
-本地生成方式：
+只生成日报并写入归档：
 
 ```bash
-cp .env.example .env
-# 填入 GITHUB_TOKEN / GR_API_KEY / GR_BASE_URL / GR_MODEL
 npm run generate:digest
 ```
 
-生成后可选发送：
+生成后直接发送到企业微信群机器人：
 
 ```bash
 npm run generate:digest -- --send
 ```
 
-调试时如果需要把 GitHub Trending、GitHub API 或模型接口指到本地 mock 服务，可以使用：
+如果只想单独验证企业微信机器人格式和 webhook 是否可用，也可以发送样例消息：
 
-- `GR_GH_API_URL`
-- `GR_GH_TRENDING_URL`
+```bash
+npm run send:wecom:sample
+```
+
+## 真实验证标准
+
+GitRadar 对“企业微信已跑通”的标准不是“测试通过”，而是下面三项都成立：
+
+- 代码已经改到位
+- 本地测试和质量检查通过
+- 在真实终端执行发送命令后，企业微信群里确实看到消息
+
+建议保留真实执行记录，至少包括：
+
+- 实际执行命令
+- 命令前提配置
+- 终端可见输出
+- 群里收到的日报或失败告警
+
+如果没有真实 webhook，就只能证明“代码已改”和“测试已过”，不能算真实发送验证完成。
+
+## GitHub Actions 自动化
+
+仓库内置了独立的日报工作流：
+
+- 支持 `workflow_dispatch` 手动触发
+- 支持每天 `08:00` 中国时间自动触发
+- 运行命令是 `npm run generate:digest -- --send`
+- 任务失败时会发送企业微信失败告警
+
+GitHub Actions 需要配置以下 secrets：
+
+- `GITHUB_TOKEN`
+- `GR_API_KEY`
 - `GR_BASE_URL`
+- `GR_MODEL`
+- `GITRADAR_WECOM_WEBHOOK_URL`
 
-## 当前约束
+本地 `.env` 和 GitHub Actions 运行时环境变量名保持一致，避免维护两套命名体系。
 
-第一版优先考虑：
+## 质量检查
 
-- 每日定时抓取
-- 基础筛选和排序
-- 生成少量高质量项目卡片
-- Telegram 推送
-- 企业微信群机器人推送
-- 本地历史归档
+本地和 CI 当前会跑这些检查：
 
-第一版暂不默认纳入：
+```bash
+npm run format:check
+npm run lint:md
+npm run lint:yaml
+npm run typecheck
+npm test
+```
 
-- 多用户系统
-- 社交互动
-- 复杂推荐算法
-- 大而全的数据平台
-- 过度依赖高成本外部服务
+## 文档索引
 
-## 下一步
-
-下一轮会继续明确这些实现细节：
-
-1. GitHub 候选项目的抓取口径
-2. “有意思”和“前沿”的实际筛选规则
-3. 推送消息的最终版式
-4. 本地历史归档的存储格式
-5. 模型 API 在流程里的具体位置
+- [推送方案](./docs/push-delivery.md)
+- [版本管理说明](./docs/versioning.md)
+- [开发规范](./docs/development.md)
+- [变更记录](./CHANGELOG.md)
