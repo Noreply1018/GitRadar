@@ -17,7 +17,7 @@ jobs:
     name: Generate And Send Daily Digest
     runs-on: ubuntu-latest
     env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITRADAR_GITHUB_TOKEN: ${{ secrets.GITRADAR_GITHUB_TOKEN }}
       GR_API_KEY: ${{ secrets.GR_API_KEY }}
       GR_BASE_URL: ${{ secrets.GR_BASE_URL }}
       GR_MODEL: ${{ secrets.GR_MODEL }}

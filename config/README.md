@@ -17,6 +17,7 @@
 
 - `GITRADAR_WECOM_WEBHOOK_URL`
 - `GITHUB_TOKEN`
+- `GITRADAR_GITHUB_TOKEN`（GitHub Actions 专用）
 - `GR_API_KEY`
 - `GR_BASE_URL`
 - `GR_MODEL`
@@ -26,4 +27,10 @@
 - `GR_GH_API_URL`
 - `GR_GH_TRENDING_URL`
 
-GitHub Actions 的 `Daily Digest` 工作流应复用这些环境变量名，避免维护单独一套 CI 专用命名。
+GitHub Actions 的 `Daily Digest` 工作流使用 `GITRADAR_GITHUB_TOKEN`，其余配置名与本地保持一致。
+
+当前已验证的关键点：
+
+- `GR_MODEL` 必须填写当前网关真实支持的模型名
+- 本地 `.env` 与 GitHub Actions secrets 应保持一致
+- 企业微信 webhook 只能放在本地私有配置或 GitHub Secrets 中，不能提交入库

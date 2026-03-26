@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -7,8 +7,12 @@ import {
   type IncomingMessage,
   type ServerResponse,
 } from "node:http";
+import type { DailyDigestArchive } from "../src/core/archive";
 
-import { generateDailyDigest } from "../src/digest/generate";
+import {
+  generateDailyDigest,
+  resendArchivedDigest,
+} from "../src/digest/generate";
 
 describe("generateDailyDigest", () => {
   let tempDir = "";
@@ -115,6 +119,66 @@ describe("generateDailyDigest", () => {
     });
 
     expect(wecomRequestCount).toBe(1);
+  });
+
+  it("resends an existing archive by date", async () => {
+    const wecomAddress = wecomServer.address();
+
+    if (!wecomAddress || typeof wecomAddress === "string") {
+      throw new Error("Failed to bind mock servers.");
+    }
+
+    const archive: DailyDigestArchive = {
+      generatedAt: "2026-03-26T00:00:00Z",
+      candidateCount: 10,
+      shortlistedCount: 5,
+      digest: {
+        date: "2026-03-20",
+        title: "GitRadar · 2026-03-20",
+        items: [
+          {
+            repo: "owner/replay-target",
+            url: "https://github.com/owner/replay-target",
+            summary: "用于验证重发功能的项目。",
+            whyItMatters: "能确认历史归档是否可直接重发。",
+            novelty: "不需要重新抓取即可补发。",
+            trend: "适合处理推送故障后的补发。",
+          },
+        ],
+      },
+    };
+
+    await writeArchive(tempDir, archive);
+
+    const result = await resendArchivedDigest({
+      rootDir: tempDir,
+      date: "2026-03-20",
+      wecom: {
+        webhookUrl: `http://127.0.0.1:${wecomAddress.port}/webhook`,
+      },
+    });
+
+    expect(result.archive.digest.date).toBe("2026-03-20");
+    expect(result.archivePath).toContain("2026-03-20.json");
+    expect(wecomRequestCount).toBe(1);
+  });
+
+  it("fails when the requested resend archive does not exist", async () => {
+    const wecomAddress = wecomServer.address();
+
+    if (!wecomAddress || typeof wecomAddress === "string") {
+      throw new Error("Failed to bind mock servers.");
+    }
+
+    await expect(
+      resendArchivedDigest({
+        rootDir: tempDir,
+        date: "2026-03-19",
+        wecom: {
+          webhookUrl: `http://127.0.0.1:${wecomAddress.port}/webhook`,
+        },
+      }),
+    ).rejects.toThrow("Daily digest archive not found for 2026-03-19");
   });
 });
 
@@ -235,4 +299,17 @@ function repository(repo: string, stars: number, description: string) {
     disabled: false,
     fork: false,
   };
+}
+
+async function writeArchive(
+  rootDir: string,
+  archive: DailyDigestArchive,
+): Promise<void> {
+  const historyDir = path.join(rootDir, "data", "history");
+  await mkdir(historyDir, { recursive: true });
+  await writeFile(
+    path.join(historyDir, `${archive.digest.date}.json`),
+    `${JSON.stringify(archive, null, 2)}\n`,
+    "utf8",
+  );
 }

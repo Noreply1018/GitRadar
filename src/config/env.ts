@@ -21,11 +21,11 @@ export interface WecomRobotConfig {
 export function getGitHubConfigFromEnv(
   env: NodeJS.ProcessEnv = process.env,
 ): GitHubConfig {
-  const token = env.GITHUB_TOKEN?.trim();
+  const token = env.GITHUB_TOKEN?.trim() || env.GITRADAR_GITHUB_TOKEN?.trim();
 
   if (!token) {
     throw new Error(
-      "Missing GITHUB_TOKEN. Set it in your environment or .env file.",
+      "Missing GITHUB_TOKEN. Set GITHUB_TOKEN or GITRADAR_GITHUB_TOKEN in your environment or .env file.",
     );
   }
 
