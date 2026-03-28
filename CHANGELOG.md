@@ -6,6 +6,22 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-03-28
+
+### Added
+
+- 归档新增候选列表、shortlist、LLM 候选池、入选原因、排除原因和规则元数据
+- 日报新增 `theme`、`whyNow` 和 `evidence` 字段，支持更可解释的推荐结果
+- 新增 `npm run analyze:digest -- --date YYYY-MM-DD` 归档分析命令
+- 新增模型输出校验与成熟项目保留约束，避免自由发挥式成稿
+
+### Changed
+
+- 候选筛选从单一排序升级为结构化评分、主题识别和多样性控制
+- 企业微信群消息渲染增加主题和证据摘要
+- 每日日报默认目标条数从 `3-5` 提高到 `6-8`
+- README 与开发文档已收口到证据化日报的当前产品形态
+
 ## [1.0.0] - 2026-03-26
 
 ### Added

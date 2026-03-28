@@ -81,7 +81,7 @@ describe("generateDailyDigest", () => {
     const archiveContent = await readFile(result.archivePath, "utf8");
     expect(archiveContent).toContain('"shortlistedCount"');
     expect(archiveContent).toContain('"generationMeta"');
-    expect(result.archive.digest.items.length).toBe(3);
+    expect(result.archive.digest.items.length).toBe(6);
     expect(result.archive.selection?.llmCandidateRepos.length).toBeGreaterThan(
       0,
     );
@@ -245,6 +245,9 @@ function handleGitHubRequest(
       <article><h2><a href="/owner/alpha-agent">alpha-agent</a></h2></article>
       <article><h2><a href="/owner/rust-observatory">rust-observatory</a></h2></article>
       <article><h2><a href="/owner/ui-lab">ui-lab</a></h2></article>
+      <article><h2><a href="/owner/data-scout">data-scout</a></h2></article>
+      <article><h2><a href="/owner/policy-guard">policy-guard</a></h2></article>
+      <article><h2><a href="/owner/cli-bridge">cli-bridge</a></h2></article>
     `);
     return;
   }
@@ -257,12 +260,18 @@ function handleGitHubRequest(
           repository("owner/alpha-agent", 4200, "一个 AI Agent 框架"),
           repository("owner/ui-lab", 2600, "实验性 Web UI 项目"),
           repository("owner/data-scout", 1800, "数据搜索工具"),
+          repository("owner/policy-guard", 1600, "安全策略校验工具"),
+          repository("owner/cli-bridge", 1500, "开发者 CLI 自动化桥接工具"),
+          repository("owner/runtime-mesh", 1400, "分布式运行时编排工具"),
         ]
       : [
           repository("owner/alpha-agent", 4200, "一个 AI Agent 框架"),
           repository("owner/rust-observatory", 3200, "Rust 性能观测工具"),
           repository("owner/ui-lab", 2600, "实验性 Web UI 项目"),
           repository("owner/data-scout", 1800, "数据搜索工具"),
+          repository("owner/policy-guard", 1600, "安全策略校验工具"),
+          repository("owner/cli-bridge", 1500, "开发者 CLI 自动化桥接工具"),
+          repository("owner/runtime-mesh", 1400, "分布式运行时编排工具"),
         ];
 
     response.writeHead(200, { "content-type": "application/json" });
@@ -316,7 +325,11 @@ function handleLlmRequest(_: IncomingMessage, response: ServerResponse): void {
                   summary: "一个面向自动化任务的 AI Agent 框架。",
                   whyItMatters: "抽象清晰，适合持续关注。",
                   whyNow: "多来源同时命中，且近期更新活跃。",
-                  evidence: ["GitHub Trending 命中", "最近 7 天更新活跃"],
+                  evidence: [
+                    "GitHub Trending 命中",
+                    "最近 7 天更新活跃",
+                    "最近 30 天新建仓库",
+                  ],
                   novelty: "把 agent runtime 做得很轻。",
                   trend: "今天热度增长明显。",
                 },
@@ -336,9 +349,55 @@ function handleLlmRequest(_: IncomingMessage, response: ServerResponse): void {
                   summary: "实验性 Web UI 项目。",
                   whyItMatters: "适合看前端表达方式。",
                   whyNow: "新项目仍在快速迭代，正处于出圈窗口。",
-                  evidence: ["GitHub Trending 命中", "最近 30 天新建仓库"],
+                  evidence: [
+                    "GitHub Trending 命中",
+                    "最近 7 天更新活跃",
+                    "最近 30 天新建仓库",
+                  ],
                   novelty: "动态视觉风格比较完整。",
                   trend: "本周在设计开发圈很热。",
+                },
+                {
+                  repo: "owner/data-scout",
+                  theme: "Data & Search",
+                  summary: "面向开发者知识库和检索场景的数据搜索工具。",
+                  whyItMatters: "适合跟踪 agent 时代的数据接入层。",
+                  whyNow: "多来源同时命中，且近期更新活跃。",
+                  evidence: [
+                    "GitHub Trending 命中",
+                    "最近 7 天更新活跃",
+                    "最近 30 天新建仓库",
+                  ],
+                  novelty: "把搜索接口和开发工作流结合得更直接。",
+                  trend: "最近在工具链方向讨论度上升。",
+                },
+                {
+                  repo: "owner/policy-guard",
+                  theme: "Observability & Security",
+                  summary: "用于运行时策略校验和风险审计的安全工具。",
+                  whyItMatters: "能补上 agent 进入生产环境后的风控缺口。",
+                  whyNow: "新项目仍在快速迭代，正处于出圈窗口。",
+                  evidence: [
+                    "GitHub Trending 命中",
+                    "最近 7 天更新活跃",
+                    "最近 30 天新建仓库",
+                  ],
+                  novelty: "把策略检查和工程化接入放在同一条链路里。",
+                  trend: "安全运行时相关项目最近持续升温。",
+                },
+                {
+                  repo: "owner/cli-bridge",
+                  theme: "Developer Tools",
+                  summary: "把本地工具和桌面应用统一暴露为 CLI 的桥接层。",
+                  whyItMatters: "很适合 agent 调用已有开发工具。",
+                  whyNow: "新项目仍在快速迭代，正处于出圈窗口。",
+                  evidence: [
+                    "GitHub Trending 命中",
+                    "最近 7 天更新活跃",
+                    "最近 30 天新建仓库",
+                  ],
+                  novelty: "以低接入成本把现有软件改造成可编排命令接口。",
+                  trend: "Anything-to-CLI 方向最近明显升温。",
                 },
               ],
             }),
@@ -355,6 +414,9 @@ function repository(repo: string, stars: number, description: string) {
     "owner/rust-observatory": ["observability", "profiling"],
     "owner/ui-lab": ["frontend", "design"],
     "owner/data-scout": ["data", "search"],
+    "owner/policy-guard": ["security", "policy"],
+    "owner/cli-bridge": ["cli", "developer"],
+    "owner/runtime-mesh": ["runtime", "orchestrator"],
   };
   const createdAt =
     repo === "owner/rust-observatory"

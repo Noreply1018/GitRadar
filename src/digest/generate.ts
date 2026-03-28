@@ -34,6 +34,8 @@ export interface GenerateDigestResult {
   sourceCounts: ReturnType<typeof emptySourceCounts>;
 }
 
+const DEFAULT_LLM_POOL_SIZE = 12;
+
 export async function generateDailyDigest(
   options: GenerateDigestOptions,
 ): Promise<GenerateDigestResult> {
@@ -46,7 +48,7 @@ export async function generateDailyDigest(
     options.github,
   );
   const shortlisted = selectCandidatesForDigest(enrichedCandidates, 20);
-  const llmPool = buildDigestCandidatePool(shortlisted, 8);
+  const llmPool = buildDigestCandidatePool(shortlisted, DEFAULT_LLM_POOL_SIZE);
   const date = getCurrentDigestDate();
   const digest = await generateDigestWithModel(
     llmPool.selected,

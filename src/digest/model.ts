@@ -27,6 +27,9 @@ interface ModelDigestResponse {
   items?: ModelDigestItem[];
 }
 
+const MIN_DIGEST_ITEMS = 6;
+const MAX_DIGEST_ITEMS = 8;
+
 export async function generateDigestWithModel(
   candidates: GitHubCandidateRepo[],
   date: string,
@@ -88,9 +91,9 @@ export async function generateDigestWithModel(
       seenRepos.add(item.repo);
       return true;
     })
-    .slice(0, 5);
+    .slice(0, MAX_DIGEST_ITEMS);
 
-  const minimumItems = Math.min(3, candidates.length);
+  const minimumItems = Math.min(MIN_DIGEST_ITEMS, candidates.length);
   if (!items || items.length < minimumItems) {
     throw new Error("LLM response did not include any valid digest items.");
   }
@@ -135,7 +138,7 @@ function buildPrompt(candidates: GitHubCandidateRepo[], date: string): string {
 
   return [
     `今天的日期是 ${date}。`,
-    "请从下面的候选项目中挑选 3 到 5 个最值得关注的项目，要求少而准、有意思、前沿，并保持主题多样性。",
+    `请从下面的候选项目中挑选 ${MIN_DIGEST_ITEMS} 到 ${MAX_DIGEST_ITEMS} 个最值得关注的项目，要求少而准、有意思、前沿，并保持主题多样性。`,
     "请严格只返回 JSON，结构为：",
     '{"items":[{"repo":"owner/repo","theme":"...","summary":"...","whyItMatters":"...","whyNow":"...","evidence":["..."],"novelty":"...","trend":"..."}]}',
     "repo 必须从候选列表里原样选择，不要自造项目。",
