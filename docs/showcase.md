@@ -4,6 +4,7 @@
 ![CI](https://img.shields.io/github/actions/workflow/status/Noreply1018/GitRadar/ci.yml?branch=main&label=CI)
 ![Repo](https://img.shields.io/badge/repo-Noreply1018%2FGitRadar-17324D)
 ![License](https://img.shields.io/badge/license-unlicensed-lightgrey)
+![Topics](https://img.shields.io/badge/topics-github%20radar%20%7C%20wecom%20%7C%20typescript-2F6B8A)
 
 ![GitRadar Showcase Hero](./assets/showcase-hero.svg)
 
@@ -66,6 +67,12 @@ GitRadar 试图回答四个问题：
 - 已通过 GitHub Actions CI
 - 已真实终端执行企业微信群机器人发送
 - 已有人眼确认企业微信群实际收到消息
+
+## 企业微信实发样例
+
+下面这张图基于已实际送达并由人工确认收到的企业微信样例消息整理而成：
+
+![WeCom Delivered Sample Digest](./assets/wecom-sample-digest.svg)
 
 ## 一个典型输出长什么样
 
@@ -138,6 +145,7 @@ npm run send:wecom:sample
 
 - [README](../README.md)
 - [传播文案](./promo-copy.md)
+- [企业微信样例展示图](./assets/wecom-sample-digest.svg)
 - [架构设计与版本路线](./architecture-roadmap.md)
 - [开发规范](./development.md)
 - [推送与交付设计](./push-delivery.md)

@@ -4,6 +4,7 @@
 ![CI](https://img.shields.io/github/actions/workflow/status/Noreply1018/GitRadar/ci.yml?branch=main&label=CI)
 ![Docs](https://img.shields.io/badge/docs-showcase-1f6feb)
 ![License](https://img.shields.io/badge/license-unlicensed-lightgrey)
+![Topics](https://img.shields.io/badge/topics-github%20radar%20%7C%20wecom%20%7C%20typescript-2F6B8A)
 
 ![GitRadar Showcase](./docs/assets/showcase-hero.svg)
 
@@ -64,6 +65,10 @@ GitRadar 当前采用固定流水线，不依赖 agent 自主搜索：
 - digest 规则配置已可通过单独命令校验
 - 企业微信群机器人发送链路已经真实终端执行
 - 样例 digest 已由人工确认在企业微信群中实际收到
+
+实发样例展示：
+
+![WeCom Digest Sample](./docs/assets/wecom-sample-digest.svg)
 
 GitRadar 对外汇报时严格区分：
 
@@ -177,6 +182,7 @@ npm test
 
 - [项目展示页](./docs/showcase.md)
 - [传播文案](./docs/promo-copy.md)
+- [企业微信样例展示图](./docs/assets/wecom-sample-digest.svg)
 - [架构设计与版本路线](./docs/architecture-roadmap.md)
 - [开发规范](./docs/development.md)
 - [推送与交付设计](./docs/push-delivery.md)

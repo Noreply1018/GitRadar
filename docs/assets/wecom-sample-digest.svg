@@ -1,0 +1,64 @@
+<svg width="1280" height="1640" viewBox="0 0 1280 1640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="1640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F3F7FB"/>
+      <stop offset="1" stop-color="#E6EEE8"/>
+    </linearGradient>
+    <filter id="shadow" x="48" y="64" width="1184" height="1520" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#20364E" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="1640" fill="url(#bg)"/>
+  <circle cx="118" cy="122" r="84" fill="#8AA17A" fill-opacity="0.18"/>
+  <circle cx="1148" cy="1474" r="120" fill="#6C96B8" fill-opacity="0.18"/>
+
+  <g filter="url(#shadow)">
+    <rect x="88" y="104" width="1104" height="1436" rx="34" fill="#FFFFFF"/>
+  </g>
+
+  <rect x="130" y="146" width="1020" height="72" rx="22" fill="#0D1F2D"/>
+  <circle cx="184" cy="182" r="16" fill="#29C76F"/>
+  <text x="220" y="192" fill="#F7FBFF" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="28" font-weight="700">企业微信实发样例 · GitRadar Sample Digest</text>
+
+  <text x="142" y="276" fill="#1D344A" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="34" font-weight="700">GitRadar Sample Digest</text>
+  <text x="142" y="320" fill="#45627D" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="22">日期：2026-03-25</text>
+  <text x="142" y="360" fill="#5C748A" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="18">下面内容根据已实际送达企业微信群的样例消息整理成展示图。</text>
+
+  <g>
+    <rect x="142" y="406" width="996" height="292" rx="24" fill="#F4F9FF"/>
+    <text x="172" y="452" fill="#17324D" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="28" font-weight="700">1. owner/alpha-agent</text>
+    <text x="172" y="490" fill="#34536D" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="20">主题：AI Agents</text>
+    <text x="172" y="528" fill="#34536D" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="20">做什么：一个面向自动化任务的 AI Agent 框架。</text>
+    <text x="172" y="566" fill="#34536D" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="20">为什么值得看：把复杂工具调用和工作流编排收进了统一抽象里。</text>
+    <text x="172" y="604" fill="#34536D" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="20">为什么是现在：多来源同时命中，且近期更新活跃。</text>
+    <text x="172" y="642" fill="#34536D" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="20">证据：GitHub Trending 命中；最近 7 天更新活跃；Star 4.2k</text>
+    <text x="172" y="676" fill="#55728D" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="18">新意：强调低样板代码的 agent runtime 设计。 热度：过去 24 小时星标增长明显。</text>
+  </g>
+
+  <g>
+    <rect x="142" y="728" width="996" height="292" rx="24" fill="#F8F5EE"/>
+    <text x="172" y="774" fill="#3E3423" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="28" font-weight="700">2. owner/rust-observatory</text>
+    <text x="172" y="812" fill="#5E5342" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="20">主题：Observability &amp; Security</text>
+    <text x="172" y="850" fill="#5E5342" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="20">做什么：用于分析 Rust 服务性能瓶颈的观测工具。</text>
+    <text x="172" y="888" fill="#5E5342" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="20">为什么值得看：定位线上问题的视角清晰，适合工程型项目关注。</text>
+    <text x="172" y="926" fill="#5E5342" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="20">为什么是现在：成熟项目近期恢复高频更新，值得重新关注。</text>
+    <text x="172" y="964" fill="#5E5342" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="20">证据：最近 7 天更新活跃；成熟项目近期再次升温；Star 3.2k</text>
+    <text x="172" y="998" fill="#786D5B" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="18">新意：把 profiling、trace 和 flamegraph 组合成一套更顺手的工作流。 热度：最近在性能工程圈内被频繁提及。</text>
+  </g>
+
+  <g>
+    <rect x="142" y="1050" width="996" height="292" rx="24" fill="#F4F8F0"/>
+    <text x="172" y="1096" fill="#29402B" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="28" font-weight="700">3. owner/ui-lab</text>
+    <text x="172" y="1134" fill="#49634C" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="20">主题：Frontend &amp; Design</text>
+    <text x="172" y="1172" fill="#49634C" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="20">做什么：一个强调交互实验和动态视觉效果的 Web UI 项目。</text>
+    <text x="172" y="1210" fill="#49634C" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="20">为什么值得看：不只是组件库，更像一个值得借鉴的前端表达样板。</text>
+    <text x="172" y="1248" fill="#49634C" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="20">为什么是现在：新项目仍在快速迭代，正处于出圈窗口。</text>
+    <text x="172" y="1286" fill="#49634C" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="20">证据：GitHub Trending 命中；一个月内新项目；近 7 天仍在推进</text>
+    <text x="172" y="1320" fill="#667E68" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="18">新意：把设计系统和实验性动效结合得比较自然。 热度：本周热度持续上升。</text>
+  </g>
+
+  <rect x="142" y="1388" width="996" height="98" rx="22" fill="#17324D"/>
+  <text x="174" y="1430" fill="#F8FBFF" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="24" font-weight="700">Verified delivery status</text>
+  <text x="174" y="1464" fill="#D5E5F4" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="18">真实终端发送成功，且已由人工确认在企业微信群实际收到。</text>
+</svg>
