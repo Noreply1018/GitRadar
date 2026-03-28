@@ -137,6 +137,10 @@ export function loadDigestRulesConfig(
   return parseDigestRulesConfig(parsed, filePath);
 }
 
+export function getDefaultDigestRulesConfigPath(): string {
+  return DEFAULT_DIGEST_RULES_PATH;
+}
+
 export function parseDigestRulesConfig(
   value: unknown,
   source = "digest rules config",

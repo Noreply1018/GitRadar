@@ -37,6 +37,9 @@ jobs:
       - name: Lint YAML
         run: npm run lint:yaml
 
+      - name: Validate Digest Rules Config
+        run: npm run validate:digest-rules -- --format json
+
       - name: Type check
         run: npm run typecheck
 

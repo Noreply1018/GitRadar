@@ -6,15 +6,23 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-03-28
+
 ### Added
 
+- 新增 `config/digest-rules.json` 仓库级 digest 规则配置文件，集中维护主题、黑名单、阈值和打分权重
+- 新增 `npm run validate:digest-rules` 规则配置校验命令，支持文本和 JSON 摘要输出
+- 新增规则配置结构校验，覆盖空主题、重复关键词、负阈值、非递增 bucket 和缺失权重字段
 - 新增 `schemaVersion` 归档模型和 `npm run migrate:archives` 迁移命令，用于批量升级历史归档
 - 新增 GitHub Trending 抓取重试、LLM 成稿重试、模板降级和运行期失败报告
 
 ### Changed
 
+- Digest 规则从代码常量升级为仓库级可编辑配置，并在加载时强制校验
+- CI 现在显式执行 digest 规则配置校验，不再依赖主流程间接暴露配置错误
 - 分析与重发主路径现在只接受当前归档 schema，旧归档需要先迁移再使用
 - 生成日报时现在会输出结构化日志，并把失败上下文写入 `data/runtime/failures/`
+- README 已重写为当前 `1.2.0` 产品形态
 - 重写项目规划文档，新增 `docs/architecture-roadmap.md` 作为当前主架构设计与版本路线
 - 更新开发规范、推送设计和版本管理文档，替代旧的早期阶段规划
 

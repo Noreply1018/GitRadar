@@ -1,41 +1,36 @@
 # GitRadar
 
-GitRadar 是一个面向个人和小团队的 GitHub 开源项目雷达。它每天抓取值得关注的仓库候选，做规则筛选、主题去重和证据整理，再生成 6 到 8 条中文日报，推送到企业微信群机器人，并把完整归档沉淀到本地。
+GitRadar 是一个面向个人和小团队的 GitHub 开源项目雷达。它每天抓取 GitHub Trending、最近更新、最近创建三类候选，结合规则筛选、主题多样性和结构化证据，生成 6 到 8 条中文日报，支持企业微信群机器人推送，并把完整过程归档到本地。
 
-当前版本的重点不是“尽量多抓项目”，而是“每条推荐都能解释为什么今天值得看”，同时把归档做成长期可复盘、可迁移、可重发的资产。
+当前版本已经收口到 `1.2.0` 的产品形态：规则从代码常量升级为仓库级配置文件，主流程支持失败证据留存与模板降级，归档可迁移、可重发、可分析，规则配置还可以单独校验。
 
 ## 核心能力
 
 - 每日抓取 GitHub Trending、最近更新、最近创建三类候选
-- 基于活跃度、新鲜度、成熟度和覆盖度做结构化打分
-- 自动推断主题并限制同主题过度堆叠
-- 为每条入选项目生成 `whyNow` 和证据摘要
-- 生成中文日报并支持企业微信群机器人发送
+- 读取 README 摘要补上下文，做多来源合并和去重
+- 基于动量、新鲜度、成熟度、覆盖度做结构化打分
+- 自动推断主题并限制同主题堆叠
+- 为每条入选项目保留 `whyNow`、证据摘要和规则版本
+- 生成中文日报，支持企业微信群机器人发送
 - 保存带 `schemaVersion` 的历史归档，支持迁移、分析和重发
-- 为 GitHub Trending 抓取和 LLM 成稿提供重试、降级和失败证据留存
-- 支持 GitHub Actions 定时运行、手动触发和失败告警
-
-当前仍然刻意保持轻量，不包含：
-
-- 多数据源聚合
-- 多 agent 编排
-- 数据库和任务队列
-- 复杂推荐反馈系统
+- 对 Trending 抓取和模型成稿提供重试、降级和失败报告
+- 将 digest 规则外置到 `config/digest-rules.json`，并支持单独校验
+- 支持 GitHub Actions 定时运行、手动触发和 CI 质量检查
 
 ## 工作流
 
-GitRadar 当前采用“脚本抓取 + 规则筛选 + 结构化证据 + 单次模型成稿”的流程：
+GitRadar 当前采用固定流程，不依赖 agent 自主搜索：
 
 1. 抓取 GitHub Trending 仓库
-2. 调 GitHub Search API 补充最近更新和最近创建候选
-3. 读取仓库 README 摘要补上下文
-4. 过滤低质量仓库并计算结构化评分
-5. 推断主题，做 shortlist 和 LLM 候选池去重
-6. 让模型只在候选池内生成 6 到 8 条中文摘要
+2. 通过 GitHub Search API 拉取最近更新和最近创建候选
+3. 读取仓库 README 摘要补足上下文
+4. 根据规则配置过滤低质量仓库并计算结构化评分
+5. 推断主题，构造 shortlist 和 LLM 候选池
+6. 让模型仅基于候选池生成 6 到 8 条中文日报
 7. 写入 `data/history/YYYY-MM-DD.json`
 8. 显式发送时推送到企业微信群机器人
 
-模型不是 agent，也不负责自行搜索。它只基于系统已经提供的候选、证据和主题信息做最后一轮中文编辑。
+模型只负责最终中文编辑，不负责额外检索、补采样或自行选题。
 
 ## 快速开始
 
@@ -58,9 +53,18 @@ cp .env.example .env
 - `GR_GH_API_URL`
 - `GR_GH_TRENDING_URL`
 
+建议先校验规则配置，再跑主流程：
+
+```bash
+npm run validate:digest-rules
+npm run generate:digest
+```
+
 ## 常用命令
 
 ```bash
+npm run validate:digest-rules
+npm run validate:digest-rules -- --format json
 npm run generate:digest
 npm run generate:digest -- --send
 npm run generate:digest -- --resend-date 2026-03-26
@@ -73,6 +77,8 @@ npm run send:wecom:sample
 
 命令说明：
 
+- `validate:digest-rules`：校验 `config/digest-rules.json` 并输出规则摘要
+- `validate:digest-rules -- --format json`：输出机器可读的规则校验结果
 - `generate:digest`：抓取、筛选、生成日报并写归档
 - `generate:digest -- --send`：在生成后发送企业微信
 - `generate:digest -- --resend-date YYYY-MM-DD`：重发已有归档，不重新抓取或调用模型
@@ -83,9 +89,30 @@ npm run send:wecom:sample
 
 如果历史归档还是旧结构，需要先执行 `migrate:archives`，再使用 `analyze:digest` 或 `--resend-date`。
 
-## 归档设计
+## 规则配置
 
-每个归档文件当前都会保存这些信息：
+Digest 规则配置文件位于 `config/digest-rules.json`，加载和校验逻辑位于 `src/config/digest-rules.ts`。
+
+当前配置集中维护：
+
+- 主题定义和关键词
+- 描述、README 和 topic 黑名单
+- shortlist 与候选池的主题配额
+- 推送时间、新建时间、成熟项目等阈值
+- 打分权重和 bucket 分段
+
+当前已做的配置有效性校验：
+
+- 主题名不能为空
+- 同一主题内关键词不能重复
+- 同一关键词最多复用到 2 个主题
+- 阈值必须是非负数
+- bucket 的 `maxDays` 必须严格递增
+- 权重字段缺失或类型错误时立即报错
+
+## 归档与失败报告
+
+每个归档文件当前都会保存：
 
 - `schemaVersion`
 - 生成时间
@@ -97,27 +124,20 @@ npm run send:wecom:sample
 - LLM 候选池
 - 每个入选项目的原因和证据
 - 被排除项目的原因
-- 本次规则版本和来源统计
+- 规则版本和来源统计
 
 运行期失败信息不会写入 `history/`，而是落到 `data/runtime/failures/`，用于保留：
 
 - 失败阶段
 - 错误信息和堆栈
-- 当时的候选池、候选来源和降级上下文
-- 是否已经启用模板降级或其他回退路径
-
-这让 GitRadar 不只是“发一条日报”，也能回答：
-
-- 为什么今天选了这几个项目
-- 为什么另一些项目没有入选
-- 这条结论基于哪些硬信号
-- 某次结构升级后历史归档是否已经完成迁移
+- 当时的候选池、来源和降级上下文
+- 是否启用模板降级或其他回退路径
 
 ## 自动化运行
 
 仓库内置两个 GitHub Actions workflow：
 
-- `CI`：格式、Markdown、YAML、类型检查、测试、workflow lint
+- `CI`：格式、Markdown、YAML、规则配置校验、类型检查、测试、workflow lint
 - `Daily Digest`：每天 `08:17` 中国时间自动生成并发送日报，也支持手动触发
 
 `Daily Digest` 需要以下 GitHub Secrets：
@@ -158,6 +178,7 @@ GitRadar 对外汇报时必须明确区分：
 npm run format:check
 npm run lint:md
 npm run lint:yaml
+npm run validate:digest-rules
 npm run typecheck
 npm test
 ```
@@ -167,7 +188,7 @@ npm test
 ```text
 GitRadar/
 ├── .github/workflows/   # CI 与日报自动化
-├── config/              # 配置说明
+├── config/              # 仓库级静态配置与说明
 ├── data/
 │   ├── cache/           # 本地缓存，不入库
 │   ├── exports/         # 导出结果，不入库
