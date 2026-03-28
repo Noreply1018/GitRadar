@@ -1,5 +1,12 @@
 # GitRadar
 
+![Release](https://img.shields.io/github/v/release/Noreply1018/GitRadar?display_name=tag&label=release)
+![CI](https://img.shields.io/github/actions/workflow/status/Noreply1018/GitRadar/ci.yml?branch=main&label=CI)
+![Docs](https://img.shields.io/badge/docs-showcase-1f6feb)
+![License](https://img.shields.io/badge/license-unlicensed-lightgrey)
+
+![GitRadar Showcase](./docs/assets/showcase-hero.svg)
+
 GitRadar 是一个面向个人和小团队的 GitHub 开源项目雷达。它每天从 GitHub Trending、最近更新、最近创建三类信号里挑出值得关注的仓库，经过规则筛选、主题去重和证据整理后，生成 6 到 8 条中文日报，支持企业微信群机器人发送，并把完整过程归档到本地。
 
 它不是“再做一个排行榜脚本”，而是一个强调可解释性的发现引擎。GitRadar 关心的不只是“什么项目热”，更是“为什么今天值得看”。
@@ -123,6 +130,7 @@ npm run send:wecom:sample
 如果你想把 GitRadar 发给别人看，优先用这份页面：
 
 - [项目展示页](./docs/showcase.md)
+- [传播文案](./docs/promo-copy.md)
 
 它更适合对外介绍，包括产品定位、版本亮点、演示链路和适用场景。
 
@@ -168,6 +176,7 @@ npm test
 ## 文档索引
 
 - [项目展示页](./docs/showcase.md)
+- [传播文案](./docs/promo-copy.md)
 - [架构设计与版本路线](./docs/architecture-roadmap.md)
 - [开发规范](./docs/development.md)
 - [推送与交付设计](./docs/push-delivery.md)

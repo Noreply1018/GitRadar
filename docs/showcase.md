@@ -1,5 +1,12 @@
 # GitRadar 展示页
 
+![Release](https://img.shields.io/github/v/release/Noreply1018/GitRadar?display_name=tag&label=release)
+![CI](https://img.shields.io/github/actions/workflow/status/Noreply1018/GitRadar/ci.yml?branch=main&label=CI)
+![Repo](https://img.shields.io/badge/repo-Noreply1018%2FGitRadar-17324D)
+![License](https://img.shields.io/badge/license-unlicensed-lightgrey)
+
+![GitRadar Showcase Hero](./assets/showcase-hero.svg)
+
 ## 一句话介绍
 
 GitRadar 是一个面向个人和小团队的 GitHub 开源项目发现雷达。它每天从多类 GitHub 信号中筛出值得关注的仓库，生成带证据的中文日报，并支持企业微信分发、历史归档、复盘分析和规则配置化管理。
@@ -130,6 +137,7 @@ npm run send:wecom:sample
 ## 仓库入口
 
 - [README](../README.md)
+- [传播文案](./promo-copy.md)
 - [架构设计与版本路线](./architecture-roadmap.md)
 - [开发规范](./development.md)
 - [推送与交付设计](./push-delivery.md)
