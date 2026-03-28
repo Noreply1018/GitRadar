@@ -103,7 +103,7 @@ npm run send:wecom:sample
 仓库内置两个 GitHub Actions workflow：
 
 - `CI`：格式、Markdown、YAML、类型检查、测试、workflow lint
-- `Daily Digest`：每天 `08:00` 中国时间自动生成并发送日报，也支持手动触发
+- `Daily Digest`：每天 `08:17` 中国时间自动生成并发送日报，也支持手动触发
 
 `Daily Digest` 需要以下 GitHub Secrets：
 

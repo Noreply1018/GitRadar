@@ -50,7 +50,7 @@ GitRadar 当前处于“稳定日用 + 可复盘增强”阶段。
 
 ## 运行约定
 
-- 日报默认每天 `08:00` 中国时间触发一次
+- 日报默认每天 `08:17` 中国时间触发一次
 - 也支持 GitHub Actions 手动触发
 - 本地主入口是 `npm run generate:digest`
 - 真实发送入口是 `npm run generate:digest -- --send`
