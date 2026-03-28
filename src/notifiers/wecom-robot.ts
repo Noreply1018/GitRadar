@@ -179,10 +179,19 @@ export function renderWecomWorkflowFailureMarkdown(
 }
 
 function renderItem(index: number, item: DigestItem): string {
+  const evidence = item.evidence ?? [];
+  const evidenceLine =
+    evidence.length > 0
+      ? `证据：${evidence.map(normalizeLine).join("；")}`
+      : "证据：待补充";
+
   return [
     `## ${index}. [${normalizeLine(item.repo)}](${item.url})`,
+    `主题：${normalizeLine(item.theme ?? "General OSS")}`,
     `做什么：${normalizeLine(item.summary)}`,
     `为什么值得看：${normalizeLine(item.whyItMatters)}`,
+    `为什么是现在：${normalizeLine(item.whyNow ?? "未记录")}`,
+    evidenceLine,
     `新意：${normalizeLine(item.novelty)}`,
     `热度：${normalizeLine(item.trend)}`,
   ].join("\n");

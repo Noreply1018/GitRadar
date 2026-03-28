@@ -1,70 +1,51 @@
 # GitRadar
 
-GitRadar 是一个面向个人使用的 GitHub 开源项目日报工具，目标是每天自动抓取值得关注的项目，筛出少量真正值得点进去看的仓库，生成中文摘要，并直接推送到企业微信群机器人。
+GitRadar 是一个面向个人和小团队的 GitHub 开源项目雷达。它每天抓取值得关注的仓库候选，做规则筛选、主题去重和证据整理，再生成 3 到 5 条中文日报，推送到企业微信群机器人，并把完整归档落到本地。
 
-`1.0.0` 版本已经满足“个人可稳定日用”的标准：
+当前版本的重点不是“尽量多抓项目”，而是“每条推荐都能解释为什么今天值得看”。日报不只保留最终文案，也保留候选、shortlist、LLM 候选池、入选理由和被排除原因，便于复盘和持续调参。
 
-- 支持手动生成当天日报
-- 支持手动重发指定日期的已有归档
-- 支持企业微信群机器人真实发送
-- 支持 GitHub Actions 手动触发和每天 `08:00` 中国时间自动触发
-- 支持失败告警、历史归档和基础质量检查
+## 核心能力
+
+- 每日抓取 GitHub Trending、最近更新、最近创建三类候选
+- 基于活跃度、新鲜度、成熟度和覆盖度做结构化打分
+- 自动推断主题并限制同主题过度堆叠
+- 为每条入选项目生成 `whyNow` 和证据摘要
+- 生成中文日报并支持企业微信群机器人发送
+- 保存可复盘的历史归档，支持按日期重发旧归档
+- 提供归档分析命令，方便回看某天为什么这么选
+- 支持 GitHub Actions 定时运行、手动触发和失败告警
 
 当前仍然刻意保持轻量，不包含：
 
-- `Telegram` 推送
 - 多数据源聚合
-- agent 化搜索与审稿
-- 复杂推荐系统
+- 多 agent 编排
+- 数据库和任务队列
+- 复杂推荐反馈系统
 
-## 工作方式
+## 工作流
 
-GitRadar 当前采用“脚本抓取 + 规则筛选 + 单次模型编辑”的结构：
+GitRadar 当前采用“脚本抓取 + 规则筛选 + 结构化证据 + 单次模型成稿”的流程：
 
 1. 抓取 GitHub Trending 仓库
-2. 调 GitHub Search API 补充“最近更新”和“最近创建”的候选
-3. 读取候选仓库 README 摘要补充上下文
-4. 用规则做一轮过滤、打分和排序
-5. 调模型从 shortlist 里选出 3 到 5 个项目并生成中文卡片
-6. 写入 `data/history/YYYY-MM-DD.json`
-7. 显式发送时推送到企业微信群机器人
+2. 调 GitHub Search API 补充最近更新和最近创建候选
+3. 读取仓库 README 摘要补上下文
+4. 过滤低质量仓库并计算结构化评分
+5. 推断主题，做 shortlist 和 LLM 候选池去重
+6. 让模型只在候选池内生成 3 到 5 条中文摘要
+7. 写入 `data/history/YYYY-MM-DD.json`
+8. 显式发送时推送到企业微信群机器人
 
-模型当前不负责自主搜索，也不是 agent。它只负责在已抓好的候选里做最后一轮编辑和摘要。
+模型不是 agent，也不负责自行搜索。它只基于系统已经提供的候选、证据和主题信息做最后一轮中文编辑。
 
-## 当前能力
+## 日常命令
 
-### 日报生成
-
-- 入口命令：`npm run generate:digest`
-- 输出结果：`data/history/YYYY-MM-DD.json`
-- 归档内容包含生成时间、候选数量、shortlist 数量和最终 digest
-
-### 企业微信发送
-
-- 即时发送：`npm run generate:digest -- --send`
-- 样例消息：`npm run send:wecom:sample`
-- 历史重发：`npm run generate:digest -- --resend-date YYYY-MM-DD`
-
-`--resend-date` 的语义是“重发已有归档”，不会重新抓 GitHub，也不会重新调用模型。
-
-### GitHub Actions 自动化
-
-仓库内置 `Daily Digest` workflow：
-
-- `workflow_dispatch`：手动触发
-- `schedule`：每天 `08:00` 中国时间自动触发
-- 执行命令：`npm run generate:digest -- --send`
-- 失败时发送企业微信告警
-
-## 本地运行
-
-先准备本地配置：
+准备本地配置：
 
 ```bash
 cp .env.example .env
 ```
 
-需要填写：
+必填环境变量：
 
 - `GITHUB_TOKEN`
 - `GR_API_KEY`
@@ -83,12 +64,48 @@ cp .env.example .env
 npm run generate:digest
 npm run generate:digest -- --send
 npm run generate:digest -- --resend-date 2026-03-26
+npm run analyze:digest -- --date 2026-03-26
+npm run analyze:digest -- --date 2026-03-26 --format json
 npm run send:wecom:sample
 ```
 
-## GitHub Actions Secrets
+命令说明：
 
-`Daily Digest` workflow 需要以下 secrets：
+- `generate:digest`：抓取、筛选、生成日报并写归档
+- `generate:digest -- --send`：在生成后发送企业微信
+- `generate:digest -- --resend-date YYYY-MM-DD`：重发已有归档，不重新抓取或调用模型
+- `analyze:digest -- --date YYYY-MM-DD`：输出某天归档的候选池、入选理由和排除原因
+- `send:wecom:sample`：发送样例消息，验证机器人链路
+
+## 归档内容
+
+每个归档文件默认保存这些信息：
+
+- 生成时间
+- 候选总数
+- shortlist 数量
+- 最终 digest
+- 完整候选列表
+- shortlist 列表
+- LLM 候选池
+- 每个入选项目的原因和证据
+- 被排除项目的原因
+- 本次规则版本和来源统计
+
+这让 GitRadar 不只是“发一条日报”，也能回答：
+
+- 为什么今天选了这几个项目
+- 为什么另一些项目没有入选
+- 这条结论基于哪些硬信号
+
+## 自动化运行
+
+仓库内置两个 GitHub Actions workflow：
+
+- `CI`：格式、Markdown、YAML、类型检查、测试、workflow lint
+- `Daily Digest`：每天 `08:00` 中国时间自动生成并发送日报，也支持手动触发
+
+`Daily Digest` 需要以下 GitHub Secrets：
 
 - `GITRADAR_GITHUB_TOKEN`
 - `GR_API_KEY`
@@ -100,14 +117,14 @@ npm run send:wecom:sample
 
 ## 真实验证标准
 
-GitRadar 对“已跑通”的判断必须拆开看：
+GitRadar 对外汇报时必须明确区分：
 
 - 代码已改
 - 测试已过
 - 真实终端已验证
-- 用户在企业微信群里实际看到消息
+- 企业微信群内已实际收到
 
-只有前三项都成立，且最后一项也有人肉确认时，才算这条链路真正完成。
+只有前三项成立，且最后一项也被人确认时，才能把一条用户可见链路视为真正完成。
 
 建议保留这些证据：
 
@@ -115,7 +132,7 @@ GitRadar 对“已跑通”的判断必须拆开看：
 - 终端可见输出
 - 归档文件路径
 - GitHub Actions run 链接
-- 企业微信群内实际收到的消息
+- 企业微信群里的可见消息
 
 ## 质量检查
 
@@ -151,7 +168,7 @@ GitRadar/
 
 ## 文档索引
 
+- [开发规范](./docs/development.md)
 - [推送方案](./docs/push-delivery.md)
 - [版本管理说明](./docs/versioning.md)
-- [开发规范](./docs/development.md)
 - [变更记录](./CHANGELOG.md)

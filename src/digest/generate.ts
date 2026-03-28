@@ -13,7 +13,11 @@ import {
   fetchGitHubCandidates,
 } from "../github/candidates";
 import { WecomRobotNotifier } from "../notifiers/wecom-robot";
-import { selectCandidatesForDigest } from "./rules";
+import {
+  buildDigestCandidatePool,
+  getRulesVersion,
+  selectCandidatesForDigest,
+} from "./rules";
 import { generateDigestWithModel } from "./model";
 
 export interface GenerateDigestOptions {
@@ -42,13 +46,42 @@ export async function generateDailyDigest(
     options.github,
   );
   const shortlisted = selectCandidatesForDigest(enrichedCandidates, 20);
+  const llmPool = buildDigestCandidatePool(shortlisted, 8);
   const date = getCurrentDigestDate();
-  const digest = await generateDigestWithModel(shortlisted, date, options.llm);
+  const digest = await generateDigestWithModel(
+    llmPool.selected,
+    date,
+    options.llm,
+  );
 
   const archive: DailyDigestArchive = {
     generatedAt: getIsoTimestamp(),
     candidateCount: candidates.length,
     shortlistedCount: shortlisted.length,
+    candidates: enrichedCandidates,
+    shortlisted,
+    selection: {
+      llmCandidateRepos: llmPool.selected.map((candidate) => candidate.repo),
+      selected: llmPool.selected.map((candidate) => ({
+        repo: candidate.repo,
+        theme: candidate.theme ?? "General OSS",
+        reason:
+          candidate.selectionHints?.selectionReason ??
+          "综合评分和主题代表性更强。",
+        evidence: candidate.selectionHints?.evidence ?? [],
+      })),
+      rejected: llmPool.rejected.map(({ candidate, reason }) => ({
+        repo: candidate.repo,
+        theme: candidate.theme ?? "General OSS",
+        reason,
+        evidence: candidate.selectionHints?.evidence ?? [],
+      })),
+    },
+    generationMeta: {
+      sourceCounts,
+      llmCandidateCount: llmPool.selected.length,
+      rulesVersion: getRulesVersion(),
+    },
     digest,
   };
   const archivePath = await writeDailyDigestArchive(archive, rootDir);

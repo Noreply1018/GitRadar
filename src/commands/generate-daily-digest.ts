@@ -57,6 +57,9 @@ async function main(): Promise<void> {
   );
   console.log(`Merged candidates: ${result.archive.candidateCount}`);
   console.log(`Shortlisted candidates: ${result.archive.shortlistedCount}`);
+  console.log(
+    `LLM candidate pool: ${result.archive.selection?.llmCandidateRepos.length ?? 0}`,
+  );
   console.log(`Digest items: ${result.archive.digest.items.length}`);
   console.log(`Archive written to: ${result.archivePath}`);
 

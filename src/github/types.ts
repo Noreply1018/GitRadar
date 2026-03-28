@@ -3,6 +3,23 @@ export type CandidateSource =
   | "search_recently_updated"
   | "search_recently_created";
 
+export interface CandidateScoreBreakdown {
+  momentum: number;
+  novelty: number;
+  maturity: number;
+  coverage: number;
+  penalties: number;
+  total: number;
+}
+
+export interface CandidateSelectionHints {
+  whyNow: string;
+  evidence: string[];
+  matureMomentum: boolean;
+  sourceSummary: string;
+  selectionReason: string;
+}
+
 export interface GitHubCandidateRepo {
   repo: string;
   url: string;
@@ -19,6 +36,9 @@ export interface GitHubCandidateRepo {
   fork: boolean;
   sources: CandidateSource[];
   readmeExcerpt?: string | null;
+  theme?: string;
+  scoreBreakdown?: CandidateScoreBreakdown;
+  selectionHints?: CandidateSelectionHints;
   ruleScore?: number;
 }
 

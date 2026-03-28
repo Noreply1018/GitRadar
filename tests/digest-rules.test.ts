@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { selectCandidatesForDigest } from "../src/digest/rules";
+import {
+  buildDigestCandidatePool,
+  selectCandidatesForDigest,
+} from "../src/digest/rules";
 import type { GitHubCandidateRepo } from "../src/github/types";
 
 function createCandidate(
@@ -40,12 +43,37 @@ describe("selectCandidatesForDigest", () => {
   });
 
   it("limits the shortlisted candidates", () => {
-    const candidates = Array.from({ length: 30 }, (_, index) =>
-      createCandidate({
+    const themes = [
+      {
+        description: "AI agent orchestration runtime for developers.",
+        topics: ["ai", "agent"],
+      },
+      {
+        description: "CLI automation layer for local developer workflows.",
+        topics: ["cli", "developer"],
+      },
+      {
+        description: "Observability toolkit for profiling Rust services.",
+        topics: ["observability", "profiling"],
+      },
+      {
+        description: "Experimental frontend design system for web animation.",
+        topics: ["frontend", "design"],
+      },
+      {
+        description: "Search and retrieval stack for data-heavy products.",
+        topics: ["search", "data"],
+      },
+    ];
+    const candidates = Array.from({ length: 30 }, (_, index) => {
+      const theme = themes[index % themes.length];
+      return createCandidate({
         repo: `owner/repo-${index}`,
+        description: theme.description,
+        topics: theme.topics,
         stars: 2000 - index,
-      }),
-    );
+      });
+    });
 
     expect(selectCandidatesForDigest(candidates, 20)).toHaveLength(20);
   });
@@ -91,5 +119,64 @@ describe("selectCandidatesForDigest", () => {
 
     expect(selected).toHaveLength(1);
     expect(selected[0].repo).toBe("owner/real-project");
+  });
+
+  it("annotates selected candidates with theme and structured scoring", () => {
+    const selected = selectCandidatesForDigest([
+      createCandidate({
+        repo: "owner/agent-runtime",
+        description: "AI agent orchestration runtime with workflow memory.",
+        topics: ["agent", "workflow"],
+      }),
+    ]);
+
+    expect(selected[0].theme).toBe("AI Agents");
+    expect(selected[0].scoreBreakdown?.total).toBeGreaterThan(0);
+    expect(selected[0].selectionHints?.evidence.length).toBeGreaterThan(0);
+  });
+});
+
+describe("buildDigestCandidatePool", () => {
+  it("keeps a mature momentum project in the final candidate pool", () => {
+    const candidates = [
+      createCandidate({
+        repo: "owner/new-agent-1",
+        description: "AI agent orchestration runtime for autonomous workflows.",
+        topics: ["ai", "agent"],
+        sources: ["trending", "search_recently_created"],
+      }),
+      createCandidate({
+        repo: "owner/new-agent-2",
+        description: "AI agent toolkit with workflow planning support.",
+        topics: ["ai", "agent"],
+        sources: ["trending", "search_recently_updated"],
+      }),
+      createCandidate({
+        repo: "owner/new-agent-3",
+        description: "AI agent runtime focused on tool calling and memory.",
+        topics: ["ai", "agent"],
+        sources: ["trending"],
+      }),
+      createCandidate({
+        repo: "owner/mature-observability",
+        description: "Observability toolkit for profiling production systems.",
+        topics: ["observability", "profiling"],
+        sources: ["search_recently_updated"],
+        stars: 22000,
+        createdAt: "2021-01-01T00:00:00Z",
+        pushedAt: "2026-03-25T00:00:00Z",
+        readmeExcerpt:
+          "Production observability runtime for traces and profiling.",
+      }),
+    ];
+
+    const shortlisted = selectCandidatesForDigest(candidates, 4);
+    const pool = buildDigestCandidatePool(shortlisted, 3);
+
+    expect(
+      pool.selected.some(
+        (candidate) => candidate.repo === "owner/mature-observability",
+      ),
+    ).toBe(true);
   });
 });

@@ -39,8 +39,11 @@ describe("renderWecomMarkdown", () => {
       {
         repo: "owner/project-one",
         url: "https://github.com/owner/project-one",
+        theme: "AI Agents",
         summary: "一个测试项目。",
         whyItMatters: "值得关注。",
+        whyNow: "多来源同时命中，且近期更新活跃。",
+        evidence: ["GitHub Trending 命中", "最近 7 天更新活跃"],
         novelty: "有新意。",
         trend: "增长明显。",
       },
@@ -53,6 +56,10 @@ describe("renderWecomMarkdown", () => {
     expect(payload.msgtype).toBe("markdown");
     expect(payload.markdown.content).toContain("# GitRadar Digest");
     expect(payload.markdown.content).toContain("## 1. [owner/project-one]");
+    expect(payload.markdown.content).toContain("主题：AI Agents");
+    expect(payload.markdown.content).toContain(
+      "证据：GitHub Trending 命中；最近 7 天更新活跃",
+    );
   });
 
   it("rejects a digest without items", () => {
@@ -70,8 +77,11 @@ describe("renderWecomMarkdown", () => {
       items: Array.from({ length: 6 }, (_, index) => ({
         repo: `owner/project-${index}`,
         url: `https://github.com/owner/project-${index}`,
+        theme: "AI Agents",
         summary: "很长的内容".repeat(280),
         whyItMatters: "很长的内容".repeat(280),
+        whyNow: "很长的内容".repeat(280),
+        evidence: ["很长的内容".repeat(60), "很长的内容".repeat(60)],
         novelty: "很长的内容".repeat(280),
         trend: "很长的内容".repeat(280),
       })),
@@ -148,8 +158,11 @@ describe("WecomRobotNotifier", () => {
         {
           repo: "owner/project-one",
           url: "https://github.com/owner/project-one",
+          theme: "AI Agents",
           summary: "一个测试项目。",
           whyItMatters: "值得关注。",
+          whyNow: "多来源同时命中，且近期更新活跃。",
+          evidence: ["GitHub Trending 命中", "最近 7 天更新活跃"],
           novelty: "有新意。",
           trend: "增长明显。",
         },
@@ -189,8 +202,11 @@ describe("WecomRobotNotifier", () => {
           {
             repo: "owner/project-one",
             url: "https://github.com/owner/project-one",
+            theme: "AI Agents",
             summary: "一个测试项目。",
             whyItMatters: "值得关注。",
+            whyNow: "多来源同时命中，且近期更新活跃。",
+            evidence: ["GitHub Trending 命中", "最近 7 天更新活跃"],
             novelty: "有新意。",
             trend: "增长明显。",
           },

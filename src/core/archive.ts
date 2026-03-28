@@ -2,12 +2,36 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import type { DailyDigest } from "./digest";
+import type { CandidateSource, GitHubCandidateRepo } from "../github/types";
+
+export interface ArchiveSelectionEntry {
+  repo: string;
+  theme: string;
+  reason: string;
+  evidence: string[];
+}
+
+export interface DailyDigestSelection {
+  llmCandidateRepos: string[];
+  selected: ArchiveSelectionEntry[];
+  rejected: ArchiveSelectionEntry[];
+}
+
+export interface DailyDigestGenerationMeta {
+  sourceCounts: Record<CandidateSource, number>;
+  llmCandidateCount: number;
+  rulesVersion: string;
+}
 
 export interface DailyDigestArchive {
   generatedAt: string;
   candidateCount: number;
   shortlistedCount: number;
   digest: DailyDigest;
+  candidates?: GitHubCandidateRepo[];
+  shortlisted?: GitHubCandidateRepo[];
+  selection?: DailyDigestSelection;
+  generationMeta?: DailyDigestGenerationMeta;
 }
 
 export async function writeDailyDigestArchive(
@@ -55,7 +79,7 @@ export async function readDailyDigestArchive(
     );
   }
 
-  return parsed;
+  return normalizeDailyDigestArchive(parsed);
 }
 
 export function getDailyDigestArchivePath(
@@ -91,4 +115,44 @@ function isDailyDigestArchive(value: unknown): value is DailyDigestArchive {
     typeof (digest as Record<string, unknown>).title === "string" &&
     Array.isArray(items)
   );
+}
+
+function normalizeDailyDigestArchive(
+  archive: DailyDigestArchive,
+): DailyDigestArchive {
+  const digest = {
+    ...archive.digest,
+    items: archive.digest.items.map((item) => ({
+      ...item,
+      theme: item.theme ?? "General OSS",
+      whyNow: item.whyNow ?? "未记录",
+      evidence: item.evidence ?? [],
+    })),
+  };
+
+  return {
+    ...archive,
+    digest,
+    candidates: archive.candidates ?? [],
+    shortlisted: archive.shortlisted ?? [],
+    selection: archive.selection ?? {
+      llmCandidateRepos: digest.items.map((item) => item.repo),
+      selected: digest.items.map((item) => ({
+        repo: item.repo,
+        theme: item.theme,
+        reason: item.whyNow || item.whyItMatters,
+        evidence: item.evidence,
+      })),
+      rejected: [],
+    },
+    generationMeta: archive.generationMeta ?? {
+      sourceCounts: {
+        trending: 0,
+        search_recently_updated: 0,
+        search_recently_created: 0,
+      },
+      llmCandidateCount: digest.items.length,
+      rulesVersion: "legacy",
+    },
+  };
 }
