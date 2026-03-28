@@ -11,16 +11,31 @@ permissions:
   contents: read
 
 jobs:
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: zricethezav/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   quality:
     name: Repo Quality Checks
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6.3.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: 20
           cache: npm
@@ -47,4 +62,4 @@ jobs:
         run: npm run test
 
       - name: Lint GitHub Actions workflow
-        uses: rhysd/actionlint@v1.7.11
+        uses: rhysd/actionlint@393031adb9afb225ee52ae2ccd7a5af5525e03e8

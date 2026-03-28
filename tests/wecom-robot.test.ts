@@ -16,12 +16,16 @@ import {
 } from "../src/notifiers/wecom-robot";
 
 describe("maskWebhookUrl", () => {
-  it("masks the middle of a long webhook URL", () => {
+  it("keeps only the safe endpoint shape for a webhook URL", () => {
     expect(
       maskWebhookUrl(
         "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=1234567890",
       ),
-    ).toBe("https:***7890");
+    ).toBe("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?***");
+  });
+
+  it("falls back to a generic marker for an invalid URL", () => {
+    expect(maskWebhookUrl("not-a-url")).toBe("[masked webhook]");
   });
 });
 

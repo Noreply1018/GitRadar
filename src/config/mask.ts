@@ -1,7 +1,14 @@
 export function maskWebhookUrl(value: string): string {
-  if (value.length <= 10) {
-    return `${value.slice(0, 2)}***${value.slice(-2)}`;
-  }
+  try {
+    const url = new URL(value);
+    const endpoint = `${url.origin}${url.pathname}`;
 
-  return `${value.slice(0, 6)}***${value.slice(-4)}`;
+    if (!url.search && !url.hash) {
+      return endpoint;
+    }
+
+    return `${endpoint}?***`;
+  } catch {
+    return "[masked webhook]";
+  }
 }
