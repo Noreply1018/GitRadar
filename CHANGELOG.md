@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 
 ## [Unreleased]
 
+### Changed
+
+- 重写项目规划文档，新增 `docs/architecture-roadmap.md` 作为当前主架构设计与版本路线
+- 更新开发规范、推送设计和版本管理文档，替代旧的早期阶段规划
+
 ## [1.1.1] - 2026-03-28
 
 ### Fixed

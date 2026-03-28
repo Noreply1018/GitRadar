@@ -168,7 +168,8 @@ GitRadar/
 
 ## 文档索引
 
+- [架构设计与版本路线](./docs/architecture-roadmap.md)
 - [开发规范](./docs/development.md)
-- [推送方案](./docs/push-delivery.md)
+- [推送与交付设计](./docs/push-delivery.md)
 - [版本管理说明](./docs/versioning.md)
 - [变更记录](./CHANGELOG.md)
