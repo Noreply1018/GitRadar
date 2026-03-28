@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import { DIGEST_RULES_CONFIG } from "../src/config/digest-rules";
 import {
   buildDigestCandidatePool,
+  getRulesVersion,
   selectCandidatesForDigest,
 } from "../src/digest/rules";
 import type { GitHubCandidateRepo } from "../src/github/types";
@@ -78,6 +80,26 @@ describe("selectCandidatesForDigest", () => {
     expect(selectCandidatesForDigest(candidates, 20)).toHaveLength(20);
   });
 
+  it("caps same-theme candidates by the configured shortlist quota", () => {
+    const candidates = Array.from({ length: 6 }, (_, index) =>
+      createCandidate({
+        repo: `owner/agent-${index}`,
+        description: "AI agent orchestration runtime with workflow memory.",
+        topics: ["agent", "workflow"],
+        stars: 5000 - index,
+      }),
+    );
+
+    const selected = selectCandidatesForDigest(candidates, 20);
+
+    expect(selected).toHaveLength(
+      DIGEST_RULES_CONFIG.selection.shortlistMaxPerTheme,
+    );
+    expect(selected.every((candidate) => candidate.theme === "AI Agents")).toBe(
+      true,
+    );
+  });
+
   it("prefers multi-source and recently active projects over stale mature ones", () => {
     const selected = selectCandidatesForDigest([
       createCandidate({
@@ -121,6 +143,19 @@ describe("selectCandidatesForDigest", () => {
     expect(selected[0].repo).toBe("owner/real-project");
   });
 
+  it("filters repositories beyond the configured pushed-at threshold", () => {
+    const selected = selectCandidatesForDigest([
+      createCandidate({ repo: "owner/fresh" }),
+      createCandidate({
+        repo: "owner/stale",
+        pushedAt: "2025-09-01T00:00:00Z",
+      }),
+    ]);
+
+    expect(selected).toHaveLength(1);
+    expect(selected[0].repo).toBe("owner/fresh");
+  });
+
   it("annotates selected candidates with theme and structured scoring", () => {
     const selected = selectCandidatesForDigest([
       createCandidate({
@@ -133,6 +168,10 @@ describe("selectCandidatesForDigest", () => {
     expect(selected[0].theme).toBe("AI Agents");
     expect(selected[0].scoreBreakdown?.total).toBeGreaterThan(0);
     expect(selected[0].selectionHints?.evidence.length).toBeGreaterThan(0);
+  });
+
+  it("reads the rules version from the externalized config", () => {
+    expect(getRulesVersion()).toBe(DIGEST_RULES_CONFIG.version);
   });
 });
 

@@ -1,132 +1,14 @@
 import { getDaysSince } from "../core/date";
+import {
+  DIGEST_DESCRIPTION_BLACKLIST,
+  DIGEST_README_BLACKLIST,
+  DIGEST_RULES_CONFIG,
+  DIGEST_TOPIC_BLACKLIST,
+} from "../config/digest-rules";
 import type {
   CandidateScoreBreakdown,
   GitHubCandidateRepo,
 } from "../github/types";
-
-const DESCRIPTION_BLACKLIST =
-  /\b(awesome|curated list|leetcode|dotfiles|personal website|boilerplate|template|starter|tutorial|cookbook|cheatsheet)\b/i;
-const README_BLACKLIST =
-  /\b(awesome list|curated list|boilerplate|template|starter|tutorial|getting started|course|cookbook)\b/i;
-const TOPIC_BLACKLIST = new Set([
-  "awesome",
-  "boilerplate",
-  "cheatsheet",
-  "course",
-  "starter",
-  "template",
-  "tutorial",
-]);
-
-const RULES_VERSION = "2026-03-evidence-v1";
-
-const THEME_DEFINITIONS = [
-  {
-    theme: "AI Agents",
-    keywords: [
-      "agent",
-      "agentic",
-      "assistant",
-      "copilot",
-      "workflow",
-      "orchestration",
-      "autonomous",
-      "tool calling",
-      "multi-agent",
-      "openshell",
-    ],
-  },
-  {
-    theme: "AI Research",
-    keywords: [
-      "research",
-      "training",
-      "paper",
-      "benchmark",
-      "evaluation",
-      "citation",
-      "finetune",
-      "fine-tune",
-      "self-evolving",
-      "model",
-    ],
-  },
-  {
-    theme: "Infra & Runtime",
-    keywords: [
-      "runtime",
-      "scheduler",
-      "sandbox",
-      "orchestrator",
-      "deployment",
-      "kubernetes",
-      "server",
-      "distributed",
-      "operating system",
-      "platform",
-    ],
-  },
-  {
-    theme: "Developer Tools",
-    keywords: [
-      "cli",
-      "terminal",
-      "developer",
-      "tooling",
-      "editor",
-      "git",
-      "automation",
-      "productivity",
-      "electron",
-      "command line",
-    ],
-  },
-  {
-    theme: "Data & Search",
-    keywords: [
-      "search",
-      "retrieval",
-      "rag",
-      "vector",
-      "database",
-      "data",
-      "analytics",
-      "index",
-      "crawler",
-      "knowledge",
-    ],
-  },
-  {
-    theme: "Observability & Security",
-    keywords: [
-      "observability",
-      "monitoring",
-      "trace",
-      "profiling",
-      "security",
-      "audit",
-      "policy",
-      "compliance",
-      "risk",
-      "guardrail",
-    ],
-  },
-  {
-    theme: "Frontend & Design",
-    keywords: [
-      "ui",
-      "frontend",
-      "design",
-      "component",
-      "animation",
-      "css",
-      "web",
-      "visual",
-      "interaction",
-      "design system",
-    ],
-  },
-] as const;
 
 interface DiversityOptions {
   maxPerTheme: number;
@@ -151,15 +33,21 @@ export function selectCandidatesForDigest(
       (candidate) =>
         !candidate.archived && !candidate.disabled && !candidate.fork,
     )
-    .filter((candidate) => getDaysSince(candidate.pushedAt) <= 180)
-    .filter((candidate) => !DESCRIPTION_BLACKLIST.test(candidate.description))
+    .filter(
+      (candidate) =>
+        getDaysSince(candidate.pushedAt) <=
+        DIGEST_RULES_CONFIG.thresholds.maxPushedDays,
+    )
+    .filter(
+      (candidate) => !DIGEST_DESCRIPTION_BLACKLIST.test(candidate.description),
+    )
     .filter((candidate) => !hasBlacklistedTopic(candidate.topics))
     .filter((candidate) => !hasBlacklistedReadme(candidate.readmeExcerpt))
     .map(annotateCandidate)
     .sort(compareCandidates);
 
   return applyDiversity(annotated, limit, {
-    maxPerTheme: 4,
+    maxPerTheme: DIGEST_RULES_CONFIG.selection.shortlistMaxPerTheme,
   }).selected;
 }
 
@@ -168,13 +56,13 @@ export function buildDigestCandidatePool(
   limit = 8,
 ): CandidateSelectionResult {
   return applyDiversity(candidates, limit, {
-    maxPerTheme: 2,
-    ensureMatureMomentum: true,
+    maxPerTheme: DIGEST_RULES_CONFIG.selection.poolMaxPerTheme,
+    ensureMatureMomentum: DIGEST_RULES_CONFIG.selection.ensureMatureMomentum,
   });
 }
 
 export function getRulesVersion(): string {
-  return RULES_VERSION;
+  return DIGEST_RULES_CONFIG.version;
 }
 
 function annotateCandidate(
@@ -200,8 +88,14 @@ function scoreCandidate(
   const pushedDays = getDaysSince(candidate.pushedAt);
   const createdDays = getDaysSince(candidate.createdAt);
   const hasReadme = Boolean(candidate.readmeExcerpt?.trim());
-  const isVeryMature = createdDays > 365 && candidate.stars >= 20000;
-  const sustainedMomentum = createdDays > 365 && pushedDays <= 7;
+  const thresholds = DIGEST_RULES_CONFIG.thresholds;
+  const weights = DIGEST_RULES_CONFIG.weights;
+  const isVeryMature =
+    createdDays > thresholds.veryMatureAgeDays &&
+    candidate.stars >= thresholds.veryMatureMinStars;
+  const sustainedMomentum =
+    createdDays > thresholds.sustainedMomentumAgeDays &&
+    pushedDays <= thresholds.sustainedMomentumPushDays;
   let momentum = 0;
   let novelty = 0;
   let maturity = 0;
@@ -209,78 +103,79 @@ function scoreCandidate(
   let penalties = 0;
 
   if (candidate.sources.includes("trending")) {
-    momentum += 20;
-    novelty += 10;
+    momentum += weights.sourceSignals.trending.momentum;
+    novelty += weights.sourceSignals.trending.novelty;
   }
   if (candidate.sources.includes("search_recently_updated")) {
-    momentum += 18;
+    momentum += weights.sourceSignals.searchRecentlyUpdated.momentum;
   }
   if (candidate.sources.includes("search_recently_created")) {
-    novelty += 18;
+    novelty += weights.sourceSignals.searchRecentlyCreated.novelty;
   }
 
-  if (sourceCount >= 3) {
-    momentum += 12;
-    coverage += 12;
-  } else if (sourceCount === 2) {
-    momentum += 6;
-    coverage += 6;
+  if (sourceCount >= thresholds.sourceOverlapHighWatermark) {
+    momentum += weights.sourceOverlap.high.momentum;
+    coverage += weights.sourceOverlap.high.coverage;
+  } else if (sourceCount >= thresholds.sourceOverlapMediumWatermark) {
+    momentum += weights.sourceOverlap.medium.momentum;
+    coverage += weights.sourceOverlap.medium.coverage;
   }
 
-  maturity += Math.min(22, Math.log10(candidate.stars + 1) * 9);
-  maturity += Math.min(8, Math.log10(candidate.forks + 1) * 3);
-  coverage += Math.min(8, candidate.topics.length * 1.5);
+  maturity += Math.min(
+    weights.maturity.starCap,
+    Math.log10(candidate.stars + 1) * weights.maturity.starLogMultiplier,
+  );
+  maturity += Math.min(
+    weights.maturity.forkCap,
+    Math.log10(candidate.forks + 1) * weights.maturity.forkLogMultiplier,
+  );
+  coverage += Math.min(
+    weights.coverage.topicCap,
+    candidate.topics.length * weights.coverage.topicMultiplier,
+  );
 
-  if (candidate.description.length >= 30) {
-    coverage += 8;
-  } else if (candidate.description.length >= 12) {
-    coverage += 4;
+  if (candidate.description.length >= thresholds.strongDescriptionLength) {
+    coverage += weights.coverage.strongDescription;
+  } else if (
+    candidate.description.length >= thresholds.mediumDescriptionLength
+  ) {
+    coverage += weights.coverage.mediumDescription;
   }
 
-  if (pushedDays <= 3) {
-    momentum += 26;
-  } else if (pushedDays <= 7) {
-    momentum += 20;
-  } else if (pushedDays <= 14) {
-    momentum += 14;
-  } else if (pushedDays <= 30) {
-    momentum += 7;
-  } else if (pushedDays <= 90) {
-    momentum += 2;
-  }
+  momentum += getBucketScore(
+    pushedDays,
+    DIGEST_RULES_CONFIG.thresholds.recentPushMomentum,
+  );
 
-  if (createdDays <= 14) {
-    novelty += 18;
-  } else if (createdDays <= 30) {
-    novelty += 14;
-  } else if (createdDays <= 90) {
-    novelty += 6;
-  }
+  novelty += getBucketScore(
+    createdDays,
+    DIGEST_RULES_CONFIG.thresholds.recentCreationNovelty,
+  );
 
   if (
     candidate.sources.includes("search_recently_created") &&
-    pushedDays <= 7
+    pushedDays <= thresholds.recentCreatedPushBonusDays
   ) {
-    novelty += 6;
+    novelty += weights.sourceSignals.searchRecentlyCreated.recentPushBonus;
   }
 
   if (sustainedMomentum) {
-    momentum += 8;
-    maturity += 4;
+    momentum += weights.maturity.sustainedMomentumBonus.momentum;
+    maturity += weights.maturity.sustainedMomentumBonus.maturity;
   }
 
   if (isVeryMature && sourceCount === 1) {
-    penalties -= 10;
+    penalties += weights.maturity.veryMatureSingleSourcePenalty;
   }
 
   if (hasReadme) {
-    coverage += 4;
+    coverage += weights.coverage.readme;
   } else {
-    penalties -= 5;
+    penalties += weights.coverage.missingReadmePenalty;
   }
 
   if (candidate.language) {
-    coverage += 2;
+    coverage += weights.coverage.language;
   }
 
   return {
@@ -311,11 +206,13 @@ function compareCandidates(
 }
 
 function hasBlacklistedTopic(topics: string[]): boolean {
-  return topics.some((topic) => TOPIC_BLACKLIST.has(topic.toLowerCase()));
+  return topics.some((topic) =>
+    DIGEST_TOPIC_BLACKLIST.has(topic.toLowerCase()),
+  );
 }
 
 function hasBlacklistedReadme(readmeExcerpt?: string | null): boolean {
-  return Boolean(readmeExcerpt && README_BLACKLIST.test(readmeExcerpt));
+  return Boolean(readmeExcerpt && DIGEST_README_BLACKLIST.test(readmeExcerpt));
 }
 
 function inferTheme(candidate: GitHubCandidateRepo): string {
@@ -331,7 +228,7 @@ function inferTheme(candidate: GitHubCandidateRepo): string {
   let bestTheme = "General OSS";
   let bestScore = 0;
 
-  for (const definition of THEME_DEFINITIONS) {
+  for (const definition of DIGEST_RULES_CONFIG.themes) {
     const score = definition.keywords.reduce((count, keyword) => {
       return haystack.includes(keyword.toLowerCase()) ? count + 1 : count;
     }, 0);
@@ -352,8 +249,11 @@ function buildSelectionHints(
   const sourceCount = candidate.sources.length;
   const pushedDays = getDaysSince(candidate.pushedAt);
   const createdDays = getDaysSince(candidate.createdAt);
+  const thresholds = DIGEST_RULES_CONFIG.thresholds;
   const matureMomentum =
-    createdDays > 365 && pushedDays <= 7 && candidate.stars >= 1000;
+    createdDays > thresholds.matureMomentumAgeDays &&
+    pushedDays <= thresholds.matureMomentumPushDays &&
+    candidate.stars >= thresholds.matureMomentumMinStars;
   const evidence = collectEvidence(candidate, matureMomentum);
 
   return {
@@ -376,6 +276,7 @@ function collectEvidence(
 ): string[] {
   const pushedDays = getDaysSince(candidate.pushedAt);
   const createdDays = getDaysSince(candidate.createdAt);
+  const thresholds = DIGEST_RULES_CONFIG.thresholds;
   const evidence: string[] = [];
 
   if (candidate.sources.includes("trending")) {
@@ -393,19 +294,19 @@ function collectEvidence(
   if (candidate.sources.length >= 2) {
     evidence.push("多来源同时命中");
   }
-  if (candidate.stars >= 10000) {
+  if (candidate.stars >= thresholds.evidenceHighStarCount) {
     evidence.push(`Star ${formatCompactNumber(candidate.stars)}`);
-  } else if (candidate.stars >= 1000) {
+  } else if (candidate.stars >= thresholds.evidenceMediumStarCount) {
     evidence.push(`Star ${formatCompactNumber(candidate.stars)}`);
   }
-  if (pushedDays <= 3) {
+  if (pushedDays <= thresholds.evidenceVeryRecentPushDays) {
     evidence.push("近 3 天仍在推进");
-  } else if (pushedDays <= 7) {
+  } else if (pushedDays <= thresholds.evidenceRecentPushDays) {
     evidence.push("近 7 天仍在推进");
   }
-  if (createdDays <= 14) {
+  if (createdDays <= thresholds.evidenceVeryNewProjectDays) {
     evidence.push("两周内新项目");
-  } else if (createdDays <= 30) {
+  } else if (createdDays <= thresholds.evidenceNewProjectDays) {
     evidence.push("一个月内新项目");
   }
 
@@ -580,4 +481,13 @@ function formatCompactNumber(value: number): string {
   }
 
   return String(value);
+}
+
+function getBucketScore(
+  days: number,
+  buckets: ReadonlyArray<{ maxDays: number; score: number }>,
+): number {
+  const matchedBucket = buckets.find((bucket) => days <= bucket.maxDays);
+
+  return matchedBucket?.score ?? 0;
 }
