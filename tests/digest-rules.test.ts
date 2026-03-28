@@ -1,6 +1,14 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
-import { DIGEST_RULES_CONFIG } from "../src/config/digest-rules";
+import {
+  DIGEST_RULES_CONFIG,
+  loadDigestRulesConfig,
+  parseDigestRulesConfig,
+} from "../src/config/digest-rules";
 import {
   buildDigestCandidatePool,
   getRulesVersion,
@@ -217,5 +225,90 @@ describe("buildDigestCandidatePool", () => {
         (candidate) => candidate.repo === "owner/mature-observability",
       ),
     ).toBe(true);
+  });
+});
+
+describe("digest rules config", () => {
+  it("loads the editable repo config file", () => {
+    const loaded = loadDigestRulesConfig();
+
+    expect(loaded.version).toBe(DIGEST_RULES_CONFIG.version);
+    expect(loaded.themes).toHaveLength(DIGEST_RULES_CONFIG.themes.length);
+  });
+
+  it("rejects themes with empty names", () => {
+    expect(() =>
+      parseDigestRulesConfig({
+        ...DIGEST_RULES_CONFIG,
+        themes: [
+          {
+            theme: "   ",
+            keywords: ["agent"],
+          },
+        ],
+      }),
+    ).toThrow(/themes\[0\]\.theme must be a non-empty string/i);
+  });
+
+  it("rejects overly reused keywords across themes", () => {
+    expect(() =>
+      parseDigestRulesConfig({
+        ...DIGEST_RULES_CONFIG,
+        themes: [
+          { theme: "A", keywords: ["shared"] },
+          { theme: "B", keywords: ["shared"] },
+          { theme: "C", keywords: ["shared"] },
+        ],
+      }),
+    ).toThrow(/reuses keyword "shared" across 3 themes/i);
+  });
+
+  it("rejects negative thresholds", () => {
+    expect(() =>
+      parseDigestRulesConfig({
+        ...DIGEST_RULES_CONFIG,
+        thresholds: {
+          ...DIGEST_RULES_CONFIG.thresholds,
+          maxPushedDays: -1,
+        },
+      }),
+    ).toThrow(/thresholds\.maxPushedDays must be a non-negative number/i);
+  });
+
+  it("rejects buckets that are not strictly increasing", () => {
+    expect(() =>
+      parseDigestRulesConfig({
+        ...DIGEST_RULES_CONFIG,
+        thresholds: {
+          ...DIGEST_RULES_CONFIG.thresholds,
+          recentPushMomentum: [
+            { maxDays: 7, score: 20 },
+            { maxDays: 7, score: 14 },
+          ],
+        },
+      }),
+    ).toThrow(/recentPushMomentum maxDays must be strictly increasing/i);
+  });
+
+  it("rejects configs with missing weight fields", () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gitradar-rules-"));
+    const configPath = path.join(tempDir, "digest-rules.json");
+    const invalidConfig = {
+      ...DIGEST_RULES_CONFIG,
+      weights: {
+        ...DIGEST_RULES_CONFIG.weights,
+        coverage: {
+          ...DIGEST_RULES_CONFIG.weights.coverage,
+        },
+      },
+    } as Record<string, unknown>;
+
+    delete (invalidConfig.weights as { coverage?: Record<string, unknown> })
+      .coverage?.language;
+    fs.writeFileSync(configPath, JSON.stringify(invalidConfig), "utf8");
+
+    expect(() => loadDigestRulesConfig(configPath)).toThrow(
+      /weights\.coverage\.language must be a valid number/i,
+    );
   });
 });

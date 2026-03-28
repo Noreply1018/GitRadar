@@ -1,0 +1,228 @@
+{
+  "version": "2026-03-evidence-v1",
+  "themes": [
+    {
+      "theme": "AI Agents",
+      "keywords": [
+        "agent",
+        "agentic",
+        "assistant",
+        "copilot",
+        "workflow",
+        "orchestration",
+        "autonomous",
+        "tool calling",
+        "multi-agent",
+        "openshell"
+      ]
+    },
+    {
+      "theme": "AI Research",
+      "keywords": [
+        "research",
+        "training",
+        "paper",
+        "benchmark",
+        "evaluation",
+        "citation",
+        "finetune",
+        "fine-tune",
+        "self-evolving",
+        "model"
+      ]
+    },
+    {
+      "theme": "Infra & Runtime",
+      "keywords": [
+        "runtime",
+        "scheduler",
+        "sandbox",
+        "orchestrator",
+        "deployment",
+        "kubernetes",
+        "server",
+        "distributed",
+        "operating system",
+        "platform"
+      ]
+    },
+    {
+      "theme": "Developer Tools",
+      "keywords": [
+        "cli",
+        "terminal",
+        "developer",
+        "tooling",
+        "editor",
+        "git",
+        "automation",
+        "productivity",
+        "electron",
+        "command line"
+      ]
+    },
+    {
+      "theme": "Data & Search",
+      "keywords": [
+        "search",
+        "retrieval",
+        "rag",
+        "vector",
+        "database",
+        "data",
+        "analytics",
+        "index",
+        "crawler",
+        "knowledge"
+      ]
+    },
+    {
+      "theme": "Observability & Security",
+      "keywords": [
+        "observability",
+        "monitoring",
+        "trace",
+        "profiling",
+        "security",
+        "audit",
+        "policy",
+        "compliance",
+        "risk",
+        "guardrail"
+      ]
+    },
+    {
+      "theme": "Frontend & Design",
+      "keywords": [
+        "ui",
+        "frontend",
+        "design",
+        "component",
+        "animation",
+        "css",
+        "web",
+        "visual",
+        "interaction",
+        "design system"
+      ]
+    }
+  ],
+  "blacklists": {
+    "descriptionKeywords": [
+      "awesome",
+      "curated list",
+      "leetcode",
+      "dotfiles",
+      "personal website",
+      "boilerplate",
+      "template",
+      "starter",
+      "tutorial",
+      "cookbook",
+      "cheatsheet"
+    ],
+    "readmeKeywords": [
+      "awesome list",
+      "curated list",
+      "boilerplate",
+      "template",
+      "starter",
+      "tutorial",
+      "getting started",
+      "course",
+      "cookbook"
+    ],
+    "topics": [
+      "awesome",
+      "boilerplate",
+      "cheatsheet",
+      "course",
+      "starter",
+      "template",
+      "tutorial"
+    ]
+  },
+  "selection": {
+    "shortlistMaxPerTheme": 4,
+    "poolMaxPerTheme": 2,
+    "ensureMatureMomentum": true
+  },
+  "thresholds": {
+    "maxPushedDays": 180,
+    "sourceOverlapHighWatermark": 3,
+    "sourceOverlapMediumWatermark": 2,
+    "strongDescriptionLength": 30,
+    "mediumDescriptionLength": 12,
+    "veryMatureAgeDays": 365,
+    "veryMatureMinStars": 20000,
+    "sustainedMomentumAgeDays": 365,
+    "sustainedMomentumPushDays": 7,
+    "matureMomentumAgeDays": 365,
+    "matureMomentumPushDays": 7,
+    "matureMomentumMinStars": 1000,
+    "recentCreatedPushBonusDays": 7,
+    "recentPushMomentum": [
+      { "maxDays": 3, "score": 26 },
+      { "maxDays": 7, "score": 20 },
+      { "maxDays": 14, "score": 14 },
+      { "maxDays": 30, "score": 7 },
+      { "maxDays": 90, "score": 2 }
+    ],
+    "recentCreationNovelty": [
+      { "maxDays": 14, "score": 18 },
+      { "maxDays": 30, "score": 14 },
+      { "maxDays": 90, "score": 6 }
+    ],
+    "evidenceHighStarCount": 10000,
+    "evidenceMediumStarCount": 1000,
+    "evidenceVeryRecentPushDays": 3,
+    "evidenceRecentPushDays": 7,
+    "evidenceVeryNewProjectDays": 14,
+    "evidenceNewProjectDays": 30
+  },
+  "weights": {
+    "sourceSignals": {
+      "trending": {
+        "momentum": 20,
+        "novelty": 10
+      },
+      "searchRecentlyUpdated": {
+        "momentum": 18
+      },
+      "searchRecentlyCreated": {
+        "novelty": 18,
+        "recentPushBonus": 6
+      }
+    },
+    "sourceOverlap": {
+      "high": {
+        "momentum": 12,
+        "coverage": 12
+      },
+      "medium": {
+        "momentum": 6,
+        "coverage": 6
+      }
+    },
+    "maturity": {
+      "starLogMultiplier": 9,
+      "starCap": 22,
+      "forkLogMultiplier": 3,
+      "forkCap": 8,
+      "sustainedMomentumBonus": {
+        "momentum": 8,
+        "maturity": 4
+      },
+      "veryMatureSingleSourcePenalty": -10
+    },
+    "coverage": {
+      "topicMultiplier": 1.5,
+      "topicCap": 8,
+      "strongDescription": 8,
+      "mediumDescription": 4,
+      "readme": 4,
+      "missingReadmePenalty": -5,
+      "language": 2
+    }
+  }
+}
