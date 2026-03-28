@@ -5,7 +5,6 @@ import { maskWebhookUrl } from "../config/mask";
 import type { Notifier } from "./notifier";
 
 const WECOM_MARKDOWN_LIMIT_BYTES = 4096;
-const WECOM_FOOTER = "\n\n更多内容请查看 GitHub 或本地归档。";
 
 interface WecomRobotPayload {
   msgtype: "markdown";
@@ -31,7 +30,9 @@ export class WecomRobotNotifier implements Notifier {
   constructor(private readonly webhookUrl: string) {}
 
   async sendDailyDigest(digest: DailyDigest): Promise<void> {
-    await this.sendPayload(renderWecomMarkdownPayload(digest));
+    for (const payload of renderWecomMarkdownPayloads(digest)) {
+      await this.sendPayload(payload);
+    }
   }
 
   async sendWorkflowFailureAlert(
@@ -72,61 +73,48 @@ export class WecomRobotNotifier implements Notifier {
 export function renderWecomMarkdownPayload(
   digest: DailyDigest,
 ): WecomRobotPayload {
-  return {
-    msgtype: "markdown",
-    markdown: {
-      content: renderWecomMarkdown(digest),
-    },
-  };
+  return renderWecomMarkdownPayloads(digest)[0];
 }
 
-export function renderWecomWorkflowFailurePayload(
-  alert: WecomWorkflowFailureAlert,
-): WecomRobotPayload {
-  return {
+export function renderWecomMarkdownPayloads(
+  digest: DailyDigest,
+): WecomRobotPayload[] {
+  return renderWecomMarkdownPages(digest).map((content) => ({
     msgtype: "markdown",
     markdown: {
-      content: renderWecomWorkflowFailureMarkdown(alert),
+      content,
     },
-  };
+  }));
 }
 
 export function renderWecomMarkdown(digest: DailyDigest): string {
+  return renderWecomMarkdownPages(digest)[0];
+}
+
+export function renderWecomMarkdownPages(digest: DailyDigest): string[] {
   if (digest.items.length === 0) {
     throw new Error("Cannot render a digest without items.");
   }
 
-  const header = [
-    `# ${normalizeLine(digest.title)}`,
-    "",
-    `日期：${normalizeLine(digest.date)}`,
-  ].join("\n");
-
-  let content = header;
+  const pages: string[] = [];
+  let pageNumber = 1;
+  let content = renderPageHeader(digest, pageNumber);
   let includedItems = 0;
-  let hasOverflow = false;
 
   for (const [index, item] of digest.items.entries()) {
     const block = renderItem(index + 1, item);
-    const isLastItem = index === digest.items.length - 1;
-    const reservedFooter = isLastItem ? 0 : utf8ByteLength(WECOM_FOOTER);
 
     if (
-      utf8ByteLength(`${content}\n\n${block}`) + reservedFooter <=
-      WECOM_MARKDOWN_LIMIT_BYTES
+      utf8ByteLength(`${content}\n\n${block}`) <= WECOM_MARKDOWN_LIMIT_BYTES
     ) {
       content = `${content}\n\n${block}`;
       includedItems += 1;
       continue;
     }
 
-    hasOverflow = true;
-
     if (includedItems === 0) {
       const availableBytes =
-        WECOM_MARKDOWN_LIMIT_BYTES -
-        utf8ByteLength(`${content}\n\n`) -
-        utf8ByteLength(WECOM_FOOTER);
+        WECOM_MARKDOWN_LIMIT_BYTES - utf8ByteLength(`${content}\n\n`);
 
       if (availableBytes <= 0) {
         throw new Error(
@@ -141,21 +129,54 @@ export function renderWecomMarkdown(digest: DailyDigest): string {
       }
 
       content = `${content}\n\n${truncatedBlock}`;
-      includedItems = 1;
+      pages.push(content);
+      pageNumber += 1;
+      content = renderPageHeader(digest, pageNumber);
+      includedItems = 0;
+      continue;
     }
 
-    break;
+    pages.push(content);
+    pageNumber += 1;
+    content = renderPageHeader(digest, pageNumber);
+    includedItems = 0;
+
+    if (utf8ByteLength(`${content}\n\n${block}`) > WECOM_MARKDOWN_LIMIT_BYTES) {
+      const availableBytes =
+        WECOM_MARKDOWN_LIMIT_BYTES - utf8ByteLength(`${content}\n\n`);
+      const truncatedBlock = truncateUtf8(block, availableBytes);
+
+      if (!truncatedBlock.trim()) {
+        throw new Error("Digest item is too long to fit within WeCom limits.");
+      }
+
+      content = `${content}\n\n${truncatedBlock}`;
+      pages.push(content);
+      pageNumber += 1;
+      content = renderPageHeader(digest, pageNumber);
+      continue;
+    }
+
+    content = `${content}\n\n${block}`;
+    includedItems = 1;
   }
 
-  if (hasOverflow) {
-    content = appendFooterWithinLimit(content, WECOM_FOOTER);
+  if (includedItems > 0) {
+    pages.push(content);
   }
 
-  if (utf8ByteLength(content) > WECOM_MARKDOWN_LIMIT_BYTES) {
-    throw new Error("Rendered markdown exceeds WeCom robot message limit.");
-  }
+  return pages;
+}
 
-  return content;
+export function renderWecomWorkflowFailurePayload(
+  alert: WecomWorkflowFailureAlert,
+): WecomRobotPayload {
+  return {
+    msgtype: "markdown",
+    markdown: {
+      content: renderWecomWorkflowFailureMarkdown(alert),
+    },
+  };
 }
 
 export function renderWecomWorkflowFailureMarkdown(
@@ -197,18 +218,13 @@ function renderItem(index: number, item: DigestItem): string {
   ].join("\n");
 }
 
-function appendFooterWithinLimit(content: string, footer: string): string {
-  if (
-    utf8ByteLength(content) + utf8ByteLength(footer) <=
-    WECOM_MARKDOWN_LIMIT_BYTES
-  ) {
-    return `${content}${footer}`;
-  }
+function renderPageHeader(digest: DailyDigest, pageNumber: number): string {
+  const title =
+    pageNumber === 1
+      ? normalizeLine(digest.title)
+      : `${normalizeLine(digest.title)}（第 ${pageNumber} 页）`;
 
-  const availableBytes = WECOM_MARKDOWN_LIMIT_BYTES - utf8ByteLength(footer);
-
-  const trimmedContent = truncateUtf8(content, availableBytes);
-  return `${trimmedContent}${footer}`;
+  return [`# ${title}`, "", `日期：${normalizeLine(digest.date)}`].join("\n");
 }
 
 function truncateUtf8(input: string, maxBytes: number): string {

@@ -7,7 +7,9 @@ import { maskWebhookUrl } from "../src/config/mask";
 import type { DailyDigest } from "../src/core/digest";
 import {
   renderWecomMarkdown,
+  renderWecomMarkdownPages,
   renderWecomMarkdownPayload,
+  renderWecomMarkdownPayloads,
   renderWecomWorkflowFailureMarkdown,
   renderWecomWorkflowFailurePayload,
   WecomRobotNotifier,
@@ -71,7 +73,7 @@ describe("renderWecomMarkdown", () => {
     ).toThrow("Cannot render a digest without items.");
   });
 
-  it("appends a footer when content exceeds the limit", () => {
+  it("splits oversized digests into multiple markdown pages", () => {
     const oversizedDigest: DailyDigest = {
       ...baseDigest,
       items: Array.from({ length: 6 }, (_, index) => ({
@@ -87,10 +89,36 @@ describe("renderWecomMarkdown", () => {
       })),
     };
 
-    const content = renderWecomMarkdown(oversizedDigest);
+    const pages = renderWecomMarkdownPages(oversizedDigest);
 
-    expect(Buffer.byteLength(content, "utf8")).toBeLessThanOrEqual(4096);
-    expect(content).toContain("更多内容请查看 GitHub 或本地归档。");
+    expect(pages.length).toBeGreaterThan(1);
+    pages.forEach((page) => {
+      expect(Buffer.byteLength(page, "utf8")).toBeLessThanOrEqual(4096);
+    });
+    expect(pages[0]).toContain("# GitRadar Digest");
+    expect(pages[1]).toContain("第 2 页");
+  });
+
+  it("renders multiple payloads when a digest spans multiple pages", () => {
+    const oversizedDigest: DailyDigest = {
+      ...baseDigest,
+      items: Array.from({ length: 6 }, (_, index) => ({
+        repo: `owner/project-${index}`,
+        url: `https://github.com/owner/project-${index}`,
+        theme: "AI Agents",
+        summary: "很长的内容".repeat(280),
+        whyItMatters: "很长的内容".repeat(280),
+        whyNow: "很长的内容".repeat(280),
+        evidence: ["很长的内容".repeat(60), "很长的内容".repeat(60)],
+        novelty: "很长的内容".repeat(280),
+        trend: "很长的内容".repeat(280),
+      })),
+    };
+
+    const payloads = renderWecomMarkdownPayloads(oversizedDigest);
+
+    expect(payloads.length).toBeGreaterThan(1);
+    expect(payloads[0].msgtype).toBe("markdown");
   });
 });
 
@@ -173,6 +201,56 @@ describe("WecomRobotNotifier", () => {
 
     expect(receivedBody).toContain('"msgtype":"markdown"');
     expect(receivedBody).toContain("owner/project-one");
+  });
+
+  it("sends multiple webhook requests when the digest spans multiple pages", async () => {
+    const receivedBodies: string[] = [];
+
+    const server = createServer((request, response) => {
+      let body = "";
+
+      request.on("data", (chunk) => {
+        body += chunk.toString();
+      });
+
+      request.on("end", () => {
+        receivedBodies.push(body);
+        response.writeHead(200, { "content-type": "application/json" });
+        response.end(JSON.stringify({ errcode: 0, errmsg: "ok" }));
+      });
+    });
+
+    await new Promise<void>((resolve) => server.listen(0, resolve));
+    const address = server.address();
+
+    if (!address || typeof address === "string") {
+      throw new Error("Failed to create test server.");
+    }
+
+    const notifier = new WecomRobotNotifier(
+      `http://127.0.0.1:${address.port}/webhook`,
+    );
+
+    await notifier.sendDailyDigest({
+      date: "2026-03-25",
+      title: "GitRadar Digest",
+      items: Array.from({ length: 6 }, (_, index) => ({
+        repo: `owner/project-${index}`,
+        url: `https://github.com/owner/project-${index}`,
+        theme: "AI Agents",
+        summary: "很长的内容".repeat(280),
+        whyItMatters: "很长的内容".repeat(280),
+        whyNow: "很长的内容".repeat(280),
+        evidence: ["很长的内容".repeat(60), "很长的内容".repeat(60)],
+        novelty: "很长的内容".repeat(280),
+        trend: "很长的内容".repeat(280),
+      })),
+    });
+
+    server.close();
+
+    expect(receivedBodies.length).toBeGreaterThan(1);
+    expect(receivedBodies[0]).toContain('"msgtype":"markdown"');
   });
 
   it("throws when the remote API responds with an error", async () => {
