@@ -2,6 +2,7 @@ import path from "node:path";
 
 import type { DailyDigestArchive } from "../core/archive";
 import {
+  CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION,
   getDailyDigestArchivePath,
   readDailyDigestArchive,
   writeDailyDigestArchive,
@@ -57,6 +58,7 @@ export async function generateDailyDigest(
   );
 
   const archive: DailyDigestArchive = {
+    schemaVersion: CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION,
     generatedAt: getIsoTimestamp(),
     candidateCount: candidates.length,
     shortlistedCount: shortlisted.length,

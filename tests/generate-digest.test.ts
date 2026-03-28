@@ -7,7 +7,10 @@ import {
   type IncomingMessage,
   type ServerResponse,
 } from "node:http";
-import type { DailyDigestArchive } from "../src/core/archive";
+import {
+  CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION,
+  type DailyDigestArchive,
+} from "../src/core/archive";
 
 import {
   generateDailyDigest,
@@ -79,6 +82,9 @@ describe("generateDailyDigest", () => {
     });
 
     const archiveContent = await readFile(result.archivePath, "utf8");
+    expect(archiveContent).toContain(
+      `"schemaVersion": ${CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION}`,
+    );
     expect(archiveContent).toContain('"shortlistedCount"');
     expect(archiveContent).toContain('"generationMeta"');
     expect(result.archive.digest.items.length).toBe(6);
@@ -134,6 +140,7 @@ describe("generateDailyDigest", () => {
     }
 
     const archive: DailyDigestArchive = {
+      schemaVersion: CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION,
       generatedAt: "2026-03-26T00:00:00Z",
       candidateCount: 10,
       shortlistedCount: 5,
@@ -153,6 +160,29 @@ describe("generateDailyDigest", () => {
             trend: "适合处理推送故障后的补发。",
           },
         ],
+      },
+      candidates: [],
+      shortlisted: [],
+      selection: {
+        llmCandidateRepos: ["owner/replay-target"],
+        selected: [
+          {
+            repo: "owner/replay-target",
+            theme: "General OSS",
+            reason: "历史归档重发时需要保留旧结构兼容能力。",
+            evidence: ["历史归档兼容读取"],
+          },
+        ],
+        rejected: [],
+      },
+      generationMeta: {
+        sourceCounts: {
+          trending: 0,
+          search_recently_updated: 0,
+          search_recently_created: 0,
+        },
+        llmCandidateCount: 1,
+        rulesVersion: "2026-03-evidence-v1",
       },
     };
 
@@ -198,16 +228,15 @@ describe("generateDailyDigest", () => {
       },
     } as DailyDigestArchive);
 
-    const result = await resendArchivedDigest({
-      rootDir: tempDir,
-      date: "2026-03-21",
-      wecom: {
-        webhookUrl: `http://127.0.0.1:${wecomAddress.port}/webhook`,
-      },
-    });
-
-    expect(result.archive.selection?.selected[0].theme).toBe("General OSS");
-    expect(result.archive.generationMeta?.rulesVersion).toBe("legacy");
+    await expect(
+      resendArchivedDigest({
+        rootDir: tempDir,
+        date: "2026-03-21",
+        wecom: {
+          webhookUrl: `http://127.0.0.1:${wecomAddress.port}/webhook`,
+        },
+      }),
+    ).rejects.toThrow('Run "npm run migrate:archives"');
   });
 
   it("fails when the requested resend archive does not exist", async () => {

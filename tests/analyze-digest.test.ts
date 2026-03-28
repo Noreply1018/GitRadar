@@ -4,7 +4,11 @@ import {
   parseAnalyzeDigestArgs,
   renderArchiveAnalysis,
 } from "../src/commands/analyze-digest";
-import type { DailyDigestArchive } from "../src/core/archive";
+import {
+  CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION,
+  migrateDailyDigestArchive,
+  type DailyDigestArchive,
+} from "../src/core/archive";
 
 describe("parseAnalyzeDigestArgs", () => {
   it("defaults to markdown output when --format is omitted", () => {
@@ -18,6 +22,7 @@ describe("parseAnalyzeDigestArgs", () => {
 describe("renderArchiveAnalysis", () => {
   it("renders evidence-driven analysis for the current archive shape", () => {
     const output = renderArchiveAnalysis("2026-03-28", {
+      schemaVersion: CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION,
       generatedAt: "2026-03-28T02:00:00Z",
       candidateCount: 49,
       shortlistedCount: 20,
@@ -69,7 +74,7 @@ describe("renderArchiveAnalysis", () => {
   });
 
   it("handles legacy archives without evidence fields", () => {
-    const output = renderArchiveAnalysis("2026-03-21", {
+    const migratedArchive = migrateDailyDigestArchive({
       generatedAt: "2026-03-21T02:00:00Z",
       candidateCount: 10,
       shortlistedCount: 5,
@@ -87,10 +92,17 @@ describe("renderArchiveAnalysis", () => {
           },
         ],
       },
-    } as DailyDigestArchive);
+    });
+    const output = renderArchiveAnalysis(
+      "2026-03-21",
+      migratedArchive as DailyDigestArchive,
+    );
 
     expect(output).toContain("General OSS");
     expect(output).toContain("为什么是现在：未记录");
     expect(output).toContain("证据：未记录");
+    expect(output).toContain(
+      `Schema 版本：${CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION}`,
+    );
   });
 });

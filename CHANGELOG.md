@@ -6,8 +6,13 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 
 ## [Unreleased]
 
+### Added
+
+- 新增 `schemaVersion` 归档模型和 `npm run migrate:archives` 迁移命令，用于批量升级历史归档
+
 ### Changed
 
+- 分析与重发主路径现在只接受当前归档 schema，旧归档需要先迁移再使用
 - 重写项目规划文档，新增 `docs/architecture-roadmap.md` 作为当前主架构设计与版本路线
 - 更新开发规范、推送设计和版本管理文档，替代旧的早期阶段规划
 

@@ -83,10 +83,10 @@ GitRadar 当前默认保持以下边界：
 
 ## 归档约定
 
-- 新归档默认保留候选、shortlist、LLM 候选池、最终 digest 和规则元数据
+- 新归档默认带 `schemaVersion`，并保留候选、shortlist、LLM 候选池、最终 digest 和规则元数据
 - 归档中的证据字段优先保存硬信号，不保存模型自造推断
 - 新增归档字段时必须考虑 schema version 和迁移策略
-- 旧归档可以兼容读取，但不应长期依赖 `legacy` 路径作为主路径
+- 旧归档在结构升级后应先执行 `npm run migrate:archives`，而不是长期依赖运行时 `legacy` 兼容路径
 
 ## 验证约定
 

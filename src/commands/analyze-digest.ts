@@ -14,10 +14,11 @@ async function main(): Promise<void> {
       JSON.stringify(
         {
           date: args.date,
+          schemaVersion: archive.schemaVersion,
           generatedAt: archive.generatedAt,
           candidateCount: archive.candidateCount,
           shortlistedCount: archive.shortlistedCount,
-          llmCandidateRepos: archive.selection?.llmCandidateRepos ?? [],
+          llmCandidateRepos: archive.selection.llmCandidateRepos,
           digest: archive.digest,
           selection: archive.selection,
           generationMeta: archive.generationMeta,
@@ -76,27 +77,28 @@ export function renderArchiveAnalysis(
     `# GitRadar Archive Analysis · ${date}`,
     "",
     `生成时间：${archive.generatedAt}`,
+    `Schema 版本：${archive.schemaVersion}`,
     `候选数量：${archive.candidateCount}`,
     `Shortlist 数量：${archive.shortlistedCount}`,
-    `LLM 候选池：${archive.selection?.llmCandidateRepos.length ?? 0}`,
-    `规则版本：${archive.generationMeta?.rulesVersion ?? "legacy"}`,
+    `LLM 候选池：${archive.selection.llmCandidateRepos.length}`,
+    `规则版本：${archive.generationMeta.rulesVersion}`,
     "",
     "## 最终日报",
   ];
 
   for (const [index, item] of archive.digest.items.entries()) {
     lines.push(
-      `${index + 1}. ${item.repo} [${item.theme ?? "General OSS"}]`,
+      `${index + 1}. ${item.repo} [${item.theme}]`,
       `   做什么：${item.summary}`,
       `   为什么值得看：${item.whyItMatters}`,
-      `   为什么是现在：${item.whyNow ?? "未记录"}`,
-      `   证据：${(item.evidence ?? []).join("；") || "未记录"}`,
+      `   为什么是现在：${item.whyNow}`,
+      `   证据：${item.evidence.join("；") || "未记录"}`,
       `   新意：${item.novelty}`,
       `   热度：${item.trend}`,
     );
   }
 
-  if (archive.selection?.selected.length) {
+  if (archive.selection.selected.length) {
     lines.push("", "## LLM 候选池");
     for (const [index, item] of archive.selection.selected.entries()) {
       lines.push(
@@ -107,14 +109,14 @@ export function renderArchiveAnalysis(
     }
   }
 
-  if (archive.selection?.rejected.length) {
+  if (archive.selection.rejected.length) {
     lines.push("", "## 被排除项目");
     for (const item of archive.selection.rejected) {
       lines.push(`- ${item.repo} [${item.theme}]：${item.reason}`);
     }
   }
 
-  if (archive.shortlisted?.length) {
+  if (archive.shortlisted.length) {
     lines.push("", "## Shortlist 预览");
     for (const candidate of archive.shortlisted.slice(0, 5)) {
       lines.push(
