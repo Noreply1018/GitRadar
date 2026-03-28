@@ -16,6 +16,12 @@ A GitHub open-source discovery radar with evidence-based Chinese digests, WeCom 
 一个带证据化中文日报、企业微信发送和可复盘归档的 GitHub 开源项目发现雷达。
 ```
 
+更强调“解释性”的中文版：
+
+```text
+一个可解释的 GitHub 开源项目发现雷达，不只告诉你今天什么项目热，还会告诉你为什么今天值得看。
+```
+
 ## Release 宣发文案
 
 适合发 Release 说明、群公告或版本介绍：

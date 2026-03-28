@@ -144,6 +144,7 @@ npm run send:wecom:sample
 ## 仓库入口
 
 - [README](../README.md)
+- [社交传播套件](./social-preview-kit.md)
 - [传播文案](./promo-copy.md)
 - [企业微信样例展示图](./assets/wecom-sample-digest.svg)
 - [架构设计与版本路线](./architecture-roadmap.md)
