@@ -1,0 +1,65 @@
+name: Bug Report
+description: Report a reproducible product or workflow defect.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug.
+
+        If this report is about a security issue, secret exposure, workflow token risk, or supply-chain concern, do not submit it here.
+        Please use the repository Security tab and choose `Report a vulnerability`.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the problem in one or two sentences.
+      placeholder: What went wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction Steps
+      description: Provide exact commands, inputs, dates, and visible output when possible.
+      placeholder: |
+        1. Run ...
+        2. Use ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      placeholder: What should have happened?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      placeholder: What actually happened?
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS, Node version, run mode, and whether this was local or GitHub Actions.
+      placeholder: |
+        OS:
+        Node:
+        Run mode:
+        Date:
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs Or Screenshots
+      description: Paste only non-sensitive excerpts. Mask tokens, webhook URLs, and secrets before posting.
+    validations:
+      required: false

@@ -11,7 +11,7 @@
     "migrate:archives": "tsx src/commands/migrate-archives.ts",
     "send:wecom:sample": "tsx src/commands/send-wecom-sample.ts",
     "format:check": "prettier --check .",
-    "lint:md": "markdownlint README.md CHANGELOG.md docs/**/*.md config/**/*.md data/**/*.md scripts/**/*.md src/**/*.md",
+    "lint:md": "markdownlint README.md CHANGELOG.md SECURITY.md .github/**/*.md docs/**/*.md config/**/*.md data/**/*.md scripts/**/*.md src/**/*.md",
     "lint:yaml": "prettier --check \"**/*.{yml,yaml}\"",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
