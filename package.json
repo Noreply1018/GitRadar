@@ -1,6 +1,6 @@
 {
   "name": "gitradar",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "Personal GitHub open-source discovery radar.",
   "scripts": {

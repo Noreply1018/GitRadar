@@ -6,6 +6,13 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-03-28
+
+### Fixed
+
+- 企业微信群 `markdown` 超过单条字节限制时，改为自动分页发送，而不是截断最后几条日报内容
+- 已通过真实终端和真实企业微信群确认分页后的完整消息可见
+
 ## [1.1.0] - 2026-03-28
 
 ### Added
