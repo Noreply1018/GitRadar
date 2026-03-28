@@ -136,6 +136,7 @@ npm run send:wecom:sample
 
 - [项目展示页](./docs/showcase.md)
 - [社交传播套件](./docs/social-preview-kit.md)
+- [GitHub Profile 置顶配置清单](./docs/profile-pinned-checklist.md)
 - [传播文案](./docs/promo-copy.md)
 
 它更适合对外介绍，包括产品定位、版本亮点、演示链路和适用场景。
@@ -183,6 +184,7 @@ npm test
 
 - [项目展示页](./docs/showcase.md)
 - [社交传播套件](./docs/social-preview-kit.md)
+- [GitHub Profile 置顶配置清单](./docs/profile-pinned-checklist.md)
 - [传播文案](./docs/promo-copy.md)
 - [企业微信样例展示图](./docs/assets/wecom-sample-digest.svg)
 - [架构设计与版本路线](./docs/architecture-roadmap.md)

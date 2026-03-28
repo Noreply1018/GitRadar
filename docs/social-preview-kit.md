@@ -12,6 +12,8 @@
   [wecom-sample-digest.svg](./assets/wecom-sample-digest.svg)
 - 传播文案：
   [promo-copy.md](./promo-copy.md)
+- GitHub Profile 置顶配置清单：
+  [profile-pinned-checklist.md](./profile-pinned-checklist.md)
 
 ## About 短描述中文版
 
@@ -73,3 +75,4 @@
 - [README](../README.md)
 - [展示页](./showcase.md)
 - [传播文案](./promo-copy.md)
+- [GitHub Profile 置顶配置清单](./profile-pinned-checklist.md)

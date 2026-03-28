@@ -105,3 +105,17 @@ Release: https://github.com/Noreply1018/GitRadar/releases/tag/v1.2.0
 ```text
 GitRadar 是一个可解释的 GitHub 开源项目发现雷达，它不只告诉你今天什么项目热，还会告诉你为什么今天值得看。
 ```
+
+## GitHub Profile Pinned 说明文案
+
+适合配合 GitHub Profile 置顶仓库截图或 pinned preview 图一起使用：
+
+```text
+一个可解释的 GitHub 开源项目发现雷达，不只告诉你今天什么项目热，还会告诉你为什么今天值得看。
+```
+
+更偏工程能力的一版：
+
+```text
+一个带证据化中文日报、企业微信发送和可复盘归档的 GitHub 开源项目发现雷达。
+```
