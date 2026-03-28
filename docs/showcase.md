@@ -3,7 +3,7 @@
 ![Release](https://img.shields.io/github/v/release/Noreply1018/GitRadar?display_name=tag&label=release)
 ![CI](https://img.shields.io/github/actions/workflow/status/Noreply1018/GitRadar/ci.yml?branch=main&label=CI)
 ![Repo](https://img.shields.io/badge/repo-Noreply1018%2FGitRadar-17324D)
-![License](https://img.shields.io/badge/license-unlicensed-lightgrey)
+![License](https://img.shields.io/badge/license-MIT-2ea44f)
 ![Topics](https://img.shields.io/badge/topics-github%20radar%20%7C%20wecom%20%7C%20typescript-2F6B8A)
 
 ![GitRadar Showcase Hero](./assets/showcase-hero.svg)

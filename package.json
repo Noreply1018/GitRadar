@@ -1,6 +1,7 @@
 {
   "name": "gitradar",
   "version": "1.2.0",
+  "license": "MIT",
   "private": true,
   "description": "Personal GitHub open-source discovery radar.",
   "scripts": {
