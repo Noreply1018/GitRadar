@@ -65,12 +65,16 @@ describe("renderArchiveAnalysis", () => {
         },
         llmCandidateCount: 1,
         rulesVersion: "2026-03-evidence-v1",
+        editorialMode: "llm",
+        warnings: ["GitHub Trending 抓取失败，已降级为仅使用 Search 候选。"],
       },
     });
 
     expect(output).toContain("GitRadar Archive Analysis · 2026-03-28");
     expect(output).toContain("为什么是现在：多来源同时命中，且近期更新活跃。");
     expect(output).toContain("证据：GitHub Trending 命中；最近 7 天更新活跃");
+    expect(output).toContain("成稿模式：llm");
+    expect(output).toContain("## 运行警告");
   });
 
   it("handles legacy archives without evidence fields", () => {

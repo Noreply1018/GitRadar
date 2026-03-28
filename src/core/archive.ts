@@ -27,6 +27,8 @@ export interface DailyDigestGenerationMeta {
   sourceCounts: Record<CandidateSource, number>;
   llmCandidateCount: number;
   rulesVersion: string;
+  editorialMode?: "llm" | "template_fallback";
+  warnings?: string[];
 }
 
 export interface DailyDigestArchive {
@@ -382,6 +384,16 @@ function normalizeGenerationMeta(
       typeof generationMeta.rulesVersion === "string"
         ? generationMeta.rulesVersion
         : LEGACY_RULES_VERSION,
+    editorialMode:
+      generationMeta.editorialMode === "llm" ||
+      generationMeta.editorialMode === "template_fallback"
+        ? generationMeta.editorialMode
+        : undefined,
+    warnings: Array.isArray(generationMeta.warnings)
+      ? generationMeta.warnings.filter(
+          (entry): entry is string => typeof entry === "string",
+        )
+      : undefined,
   };
 }
 
@@ -533,6 +545,10 @@ function cloneCurrentDailyDigestArchive(
       },
       llmCandidateCount: archive.generationMeta.llmCandidateCount,
       rulesVersion: archive.generationMeta.rulesVersion,
+      editorialMode: archive.generationMeta.editorialMode,
+      warnings: archive.generationMeta.warnings
+        ? [...archive.generationMeta.warnings]
+        : undefined,
     },
   };
 }

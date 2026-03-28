@@ -82,9 +82,18 @@ export function renderArchiveAnalysis(
     `Shortlist 数量：${archive.shortlistedCount}`,
     `LLM 候选池：${archive.selection.llmCandidateRepos.length}`,
     `规则版本：${archive.generationMeta.rulesVersion}`,
+    `成稿模式：${archive.generationMeta.editorialMode ?? "llm"}`,
     "",
     "## 最终日报",
   ];
+
+  if (archive.generationMeta.warnings?.length) {
+    lines.splice(lines.length - 2, 0, "## 运行警告");
+    for (const warning of archive.generationMeta.warnings) {
+      lines.splice(lines.length - 2, 0, `- ${warning}`);
+    }
+    lines.splice(lines.length - 2, 0, "");
+  }
 
   for (const [index, item] of archive.digest.items.entries()) {
     lines.push(

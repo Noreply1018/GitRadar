@@ -1,5 +1,6 @@
+import type { WorkflowLogger } from "../core/log";
 import { getDateDaysAgo } from "../core/date";
-import { mapWithConcurrency } from "../utils/async";
+import { mapWithConcurrency, retryAsync } from "../utils/async";
 import { GitHubClient } from "./client";
 import { fetchTrendingRepositoryNames } from "./trending";
 import type {
@@ -12,6 +13,8 @@ export async function fetchGitHubCandidates(options: {
   token: string;
   apiBaseUrl: string;
   trendingUrl: string;
+  logger?: WorkflowLogger;
+  onTrendingFailure?: (error: unknown) => Promise<void> | void;
 }): Promise<CandidateFetchResult> {
   const client = new GitHubClient(options.token, options.apiBaseUrl);
   const sourceCounts: Record<CandidateSource, number> = {
@@ -19,21 +22,43 @@ export async function fetchGitHubCandidates(options: {
     search_recently_updated: 0,
     search_recently_created: 0,
   };
+  const warnings: string[] = [];
 
-  const trendingNames = (
-    await fetchTrendingRepositoryNames(options.trendingUrl)
-  ).slice(0, 20);
-  sourceCounts.trending = trendingNames.length;
+  let trendingNames: string[] = [];
 
-  const trendingCandidates = await mapWithConcurrency(
-    trendingNames,
-    5,
-    async (name) => {
-      const candidate = await client.getRepository(name);
-      candidate.sources = ["trending"];
-      return candidate;
-    },
-  );
+  try {
+    trendingNames = (
+      await retryAsync(
+        () => fetchTrendingRepositoryNames(options.trendingUrl),
+        {
+          attempts: 3,
+          delayMs: 200,
+          onRetry: (error, nextAttempt) => {
+            options.logger?.warn("github_trending_retry_scheduled", {
+              nextAttempt,
+              message: getErrorMessage(error),
+            });
+          },
+        },
+      )
+    ).slice(0, 20);
+    sourceCounts.trending = trendingNames.length;
+  } catch (error) {
+    warnings.push("GitHub Trending 抓取失败，已降级为仅使用 Search 候选。");
+    options.logger?.warn("github_trending_failed_after_retries", {
+      message: getErrorMessage(error),
+    });
+    await options.onTrendingFailure?.(error);
+  }
+
+  const trendingCandidates =
+    trendingNames.length === 0
+      ? []
+      : await mapWithConcurrency(trendingNames, 5, async (name) => {
+          const candidate = await client.getRepository(name);
+          candidate.sources = ["trending"];
+          return candidate;
+        });
 
   const updatedCandidates = await client.searchRepositories(
     `archived:false fork:false pushed:>=${getDateDaysAgo(7)} stars:>=50`,
@@ -64,6 +89,7 @@ export async function fetchGitHubCandidates(options: {
   return {
     candidates: merged,
     sourceCounts,
+    warnings,
   };
 }
 
@@ -116,4 +142,8 @@ function mergeCandidates(
 
 function pickLonger(left: string, right: string): string {
   return right.length > left.length ? right : left;
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

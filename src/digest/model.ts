@@ -1,8 +1,10 @@
 import { request } from "undici";
 
 import type { DailyDigest, DigestItem } from "../core/digest";
+import type { WorkflowLogger } from "../core/log";
 import type { LlmConfig } from "../config/env";
 import type { GitHubCandidateRepo } from "../github/types";
+import { retryAsync } from "../utils/async";
 
 interface ChatCompletionResponse {
   choices?: Array<{
@@ -29,6 +31,16 @@ interface ModelDigestResponse {
 
 const MIN_DIGEST_ITEMS = 6;
 const MAX_DIGEST_ITEMS = 8;
+
+export interface GenerateDigestWithResilienceResult {
+  digest: DailyDigest;
+  mode: "llm" | "template_fallback";
+}
+
+export interface GenerateDigestWithResilienceOptions {
+  logger?: WorkflowLogger;
+  onModelFailure?: (error: unknown) => Promise<void> | void;
+}
 
 export async function generateDigestWithModel(
   candidates: GitHubCandidateRepo[],
@@ -118,6 +130,61 @@ export async function generateDigestWithModel(
   };
 }
 
+export async function generateDigestWithResilience(
+  candidates: GitHubCandidateRepo[],
+  date: string,
+  llmConfig: LlmConfig,
+  options: GenerateDigestWithResilienceOptions = {},
+): Promise<GenerateDigestWithResilienceResult> {
+  try {
+    const digest = await retryAsync(
+      async (attempt) => {
+        options.logger?.info("editorial_model_attempt_started", {
+          attempt,
+          candidateCount: candidates.length,
+        });
+
+        const result = await generateDigestWithModel(
+          candidates,
+          date,
+          llmConfig,
+        );
+        options.logger?.info("editorial_model_attempt_succeeded", {
+          attempt,
+          itemCount: result.items.length,
+        });
+        return result;
+      },
+      {
+        attempts: 3,
+        delayMs: 200,
+        onRetry: (error, nextAttempt) => {
+          options.logger?.warn("editorial_model_retry_scheduled", {
+            nextAttempt,
+            message: getErrorMessage(error),
+          });
+        },
+      },
+    );
+
+    return {
+      digest,
+      mode: "llm",
+    };
+  } catch (error) {
+    options.logger?.warn("editorial_model_fallback_activated", {
+      message: getErrorMessage(error),
+      candidateCount: candidates.length,
+    });
+    await options.onModelFailure?.(error);
+
+    return {
+      digest: generateDigestWithTemplate(candidates, date),
+      mode: "template_fallback",
+    };
+  }
+}
+
 function buildPrompt(candidates: GitHubCandidateRepo[], date: string): string {
   const payload = candidates.map((candidate) => ({
     repo: candidate.repo,
@@ -149,6 +216,30 @@ function buildPrompt(candidates: GitHubCandidateRepo[], date: string): string {
     "summary / whyItMatters / whyNow / novelty / trend 都用简洁中文，每个字段控制在一两句话内。",
     JSON.stringify(payload),
   ].join("\n");
+}
+
+function generateDigestWithTemplate(
+  candidates: GitHubCandidateRepo[],
+  date: string,
+): DailyDigest {
+  const limit = Math.min(MAX_DIGEST_ITEMS, candidates.length);
+  const items = candidates.slice(0, limit).map((candidate) => ({
+    repo: candidate.repo,
+    url: candidate.url,
+    theme: candidate.theme ?? "General OSS",
+    summary: buildTemplateSummary(candidate),
+    whyItMatters: buildTemplateWhyItMatters(candidate),
+    whyNow: candidate.selectionHints?.whyNow ?? buildFallbackWhyNow(candidate),
+    evidence: buildFallbackEvidence(candidate),
+    novelty: buildTemplateNovelty(candidate),
+    trend: buildTemplateTrend(candidate),
+  }));
+
+  return {
+    date,
+    title: `GitRadar · ${date}（模板降级）`,
+    items,
+  };
 }
 
 function parseModelResponse(content: string): ModelDigestResponse {
@@ -213,4 +304,103 @@ function mapDigestItem(
     novelty: item.novelty.trim(),
     trend: item.trend.trim(),
   };
+}
+
+function buildTemplateSummary(candidate: GitHubCandidateRepo): string {
+  const cleanedDescription = candidate.description.trim();
+
+  if (cleanedDescription) {
+    return cleanedDescription;
+  }
+
+  const readmeLine = extractReadableLine(candidate.readmeExcerpt);
+  if (readmeLine) {
+    return readmeLine;
+  }
+
+  return `${candidate.theme ?? "General OSS"} 方向的开源项目。`;
+}
+
+function buildTemplateWhyItMatters(candidate: GitHubCandidateRepo): string {
+  return (
+    candidate.selectionHints?.selectionReason ??
+    `${candidate.theme ?? "General OSS"} 方向近期值得持续观察。`
+  );
+}
+
+function buildTemplateNovelty(candidate: GitHubCandidateRepo): string {
+  const readmeLine = extractReadableLine(candidate.readmeExcerpt);
+
+  if (readmeLine && readmeLine !== candidate.description.trim()) {
+    return readmeLine;
+  }
+
+  return `当前候选在 ${candidate.theme ?? "General OSS"} 方向具备明确主题代表性。`;
+}
+
+function buildTemplateTrend(candidate: GitHubCandidateRepo): string {
+  if (candidate.selectionHints?.sourceSummary) {
+    return `当前信号：${candidate.selectionHints.sourceSummary}。`;
+  }
+
+  return `当前信号：${formatSources(candidate.sources)}。`;
+}
+
+function buildFallbackWhyNow(candidate: GitHubCandidateRepo): string {
+  return `当前主要依据 ${formatSources(candidate.sources)} 等结构化信号入选。`;
+}
+
+function buildFallbackEvidence(candidate: GitHubCandidateRepo): string[] {
+  const evidence = candidate.selectionHints?.evidence
+    ?.map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+
+  if (evidence && evidence.length > 0) {
+    return Array.from(new Set(evidence)).slice(0, 3);
+  }
+
+  return candidate.sources
+    .map((source) => mapSourceToEvidence(source))
+    .slice(0, 3);
+}
+
+function extractReadableLine(input?: string | null): string | null {
+  if (!input?.trim()) {
+    return null;
+  }
+
+  const normalized = input
+    .replace(/^#+\s+/gm, "")
+    .replace(/[`*_>-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  return normalized.slice(0, 90);
+}
+
+function formatSources(sources: GitHubCandidateRepo["sources"]): string {
+  return sources.map((source) => mapSourceToEvidence(source)).join("、");
+}
+
+function mapSourceToEvidence(
+  source: GitHubCandidateRepo["sources"][number],
+): string {
+  switch (source) {
+    case "trending":
+      return "GitHub Trending";
+    case "search_recently_updated":
+      return "最近更新搜索";
+    case "search_recently_created":
+      return "最近创建搜索";
+    default:
+      return source;
+  }
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

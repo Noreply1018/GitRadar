@@ -80,6 +80,7 @@ GitRadar 当前默认保持以下边界：
 - 真实发送入口是 `npm run generate:digest -- --send`
 - 补发入口是 `npm run generate:digest -- --resend-date YYYY-MM-DD`
 - 分析入口是 `npm run analyze:digest -- --date YYYY-MM-DD`
+- 运行期失败报告默认写入 `data/runtime/failures/`
 
 ## 归档约定
 
@@ -103,5 +104,6 @@ GitRadar 当前默认保持以下边界：
 - 执行命令
 - 终端可见输出
 - 归档文件路径
+- 失败时对应的 `data/runtime/failures/*.json`
 - GitHub Actions run 链接
 - 企业微信群里的可见消息

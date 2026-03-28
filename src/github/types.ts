@@ -45,4 +45,5 @@ export interface GitHubCandidateRepo {
 export interface CandidateFetchResult {
   candidates: GitHubCandidateRepo[];
   sourceCounts: Record<CandidateSource, number>;
+  warnings?: string[];
 }
