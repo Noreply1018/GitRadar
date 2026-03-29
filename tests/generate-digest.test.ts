@@ -483,7 +483,7 @@ function handleLlmRequest(_: IncomingMessage, response: ServerResponse): void {
                 {
                   repo: "owner/ui-lab",
                   theme: "Frontend & Design",
-                  summary: "实验性 Web UI 项目。",
+                  summary: "用于实验交互动效和动态视觉表达的 Web UI 项目。",
                   whyItMatters: "适合看前端表达方式。",
                   whyNow: "新项目仍在快速迭代，正处于出圈窗口。",
                   evidence: [

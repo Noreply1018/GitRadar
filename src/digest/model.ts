@@ -31,6 +31,14 @@ interface ModelDigestResponse {
 
 const MIN_DIGEST_ITEMS = 6;
 const MAX_DIGEST_ITEMS = 8;
+const GENERIC_SUMMARY_PATTERNS = [
+  /^.+是一个聚焦.+的开源项目。?$/,
+  /^一个聚焦.+的开源项目，?.*$/,
+  /^.+方向的开源项目。?$/,
+  /^.+方向近期值得持续观察。?$/,
+];
+const SUMMARY_DETAIL_MARKERS =
+  /用于|面向|帮助|支持|提供|把|将|让|连接|整合|统一|自动化|监控|检索|搜索|生成|编排|运行|分析|推理|可视化|知识图谱|研究代理|平台|工具|框架|终端|告警|查询|仪表盘|工作流|运行栈|桥接层|观测|校验|审计|托管/;
 
 export interface GenerateDigestWithResilienceResult {
   digest: DailyDigest;
@@ -213,6 +221,9 @@ function buildPrompt(candidates: GitHubCandidateRepo[], date: string): string {
     "evidence 只能从候选的 selectionHints.evidence 中原样选择 2 到 3 条，不要自造新证据。",
     "trend 只能基于候选里已有的时间、来源和 star 信号来写，不要引用外部信息。",
     "如果候选中存在 matureMomentum=true 的项目，最终结果至少保留 1 个这类项目。",
+    "summary 必须具体回答项目做什么，至少交代下面三者之一：它提供什么能力、把什么流程串起来、主要面向谁。",
+    "summary 不能写空泛套话，例如“某某是一个聚焦某方向的开源项目”“一个值得关注的工具”“某方向的平台”。",
+    "如果候选信息不足以写出具体能力或流程，就不要选择该项目。",
     "summary / whyItMatters / whyNow / novelty / trend 都用简洁中文，每个字段控制在一两句话内。",
     JSON.stringify(payload),
   ].join("\n");
@@ -271,6 +282,7 @@ function mapDigestItem(
   if (
     item.theme !== candidate.theme ||
     !item.summary?.trim() ||
+    !isActionableSummary(item.summary) ||
     !item.whyItMatters?.trim() ||
     !item.whyNow?.trim() ||
     !Array.isArray(item.evidence) ||
@@ -304,6 +316,24 @@ function mapDigestItem(
     novelty: item.novelty.trim(),
     trend: item.trend.trim(),
   };
+}
+
+function isActionableSummary(summary: string): boolean {
+  const trimmed = summary.trim();
+
+  if (!trimmed) {
+    return false;
+  }
+
+  if (GENERIC_SUMMARY_PATTERNS.some((pattern) => pattern.test(trimmed))) {
+    return false;
+  }
+
+  if (trimmed.length < 10) {
+    return false;
+  }
+
+  return SUMMARY_DETAIL_MARKERS.test(trimmed);
 }
 
 function buildTemplateSummary(candidate: GitHubCandidateRepo): string {

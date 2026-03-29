@@ -70,6 +70,39 @@ describe("generateDigestWithModel", () => {
     ).rejects.toThrow("LLM response did not include any valid digest items.");
   });
 
+  it("rejects generic summaries that do not explain what the project does", async () => {
+    responseBody = JSON.stringify({
+      choices: [
+        {
+          message: {
+            content: JSON.stringify({
+              items: [
+                {
+                  repo: "owner/alpha-agent",
+                  theme: "AI Agents",
+                  summary: "owner/alpha-agent 是一个聚焦智能体方向的开源项目。",
+                  whyItMatters: "适合持续关注。",
+                  whyNow: "多来源同时命中，且近期更新活跃。",
+                  evidence: ["GitHub Trending 命中"],
+                  novelty: "结构清晰。",
+                  trend: "近期热度上升。",
+                },
+              ],
+            }),
+          },
+        },
+      ],
+    });
+
+    await expect(
+      generateDigestWithModel(
+        [createCandidate()],
+        "2026-03-28",
+        getLlmConfig(llmServer),
+      ),
+    ).rejects.toThrow("LLM response did not include any valid digest items.");
+  });
+
   it("requires a mature momentum project when the candidate pool has one", async () => {
     responseBody = JSON.stringify({
       choices: [
@@ -90,7 +123,7 @@ describe("generateDigestWithModel", () => {
                 {
                   repo: "owner/data-scout",
                   theme: "Data & Search",
-                  summary: "数据搜索工具。",
+                  summary: "面向知识库检索场景的数据搜索工具。",
                   whyItMatters: "适合持续关注。",
                   whyNow: "新项目仍在快速迭代，正处于出圈窗口。",
                   evidence: ["最近 30 天新建仓库", "近 7 天仍在推进"],
@@ -100,7 +133,7 @@ describe("generateDigestWithModel", () => {
                 {
                   repo: "owner/ui-lab",
                   theme: "Frontend & Design",
-                  summary: "实验性 Web UI 项目。",
+                  summary: "用于实验交互动效和视觉表达的 Web UI 项目。",
                   whyItMatters: "适合持续关注。",
                   whyNow: "新项目仍在快速迭代，正处于出圈窗口。",
                   evidence: ["GitHub Trending 命中", "最近 30 天新建仓库"],
@@ -110,7 +143,8 @@ describe("generateDigestWithModel", () => {
                 {
                   repo: "owner/cli-bridge",
                   theme: "Developer Tools",
-                  summary: "把本地工具统一包装为 CLI 的桥接层。",
+                  summary:
+                    "把本地工具统一包装为 CLI 的桥接层，面向 agent 工作流。",
                   whyItMatters: "适合持续关注。",
                   whyNow: "新项目仍在快速迭代，正处于出圈窗口。",
                   evidence: ["最近 30 天新建仓库", "近 7 天仍在推进"],
@@ -120,7 +154,8 @@ describe("generateDigestWithModel", () => {
                 {
                   repo: "owner/policy-guard",
                   theme: "Observability & Security",
-                  summary: "用于运行时策略校验和风险审计的安全工具。",
+                  summary:
+                    "用于运行时策略校验和风险审计的安全工具，面向生产环境接入。",
                   whyItMatters: "适合持续关注。",
                   whyNow: "新项目仍在快速迭代，正处于出圈窗口。",
                   evidence: ["最近 30 天新建仓库", "近 7 天仍在推进"],
@@ -130,7 +165,7 @@ describe("generateDigestWithModel", () => {
                 {
                   repo: "owner/runtime-mesh",
                   theme: "Infra & Runtime",
-                  summary: "分布式运行时编排和任务调度工具。",
+                  summary: "用于分布式运行时编排和任务调度的基础设施工具。",
                   whyItMatters: "适合持续关注。",
                   whyNow: "新项目仍在快速迭代，正处于出圈窗口。",
                   evidence: ["最近 30 天新建仓库", "近 7 天仍在推进"],
