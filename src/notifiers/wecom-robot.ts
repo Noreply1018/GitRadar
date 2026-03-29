@@ -203,18 +203,18 @@ function renderItem(index: number, item: DigestItem): string {
   const evidence = item.evidence ?? [];
   const evidenceLine =
     evidence.length > 0
-      ? `证据：${evidence.map(normalizeLine).join("；")}`
+      ? `证据：${evidence.map(normalizeDigestText).join("；")}`
       : "证据：待补充";
 
   return [
     `## ${index}. [${normalizeLine(item.repo)}](${item.url})`,
-    `主题：${normalizeLine(item.theme ?? "General OSS")}`,
-    `做什么：${normalizeLine(item.summary)}`,
-    `为什么值得看：${normalizeLine(item.whyItMatters)}`,
-    `为什么是现在：${normalizeLine(item.whyNow ?? "未记录")}`,
+    `主题：${normalizeDigestText(item.theme ?? "General OSS")}`,
+    `做什么：${normalizeDigestText(item.summary)}`,
+    `为什么值得看：${normalizeDigestText(item.whyItMatters)}`,
+    `为什么是现在：${normalizeDigestText(item.whyNow ?? "未记录")}`,
     evidenceLine,
-    `新意：${normalizeLine(item.novelty)}`,
-    `热度：${normalizeLine(item.trend)}`,
+    `新意：${normalizeDigestText(item.novelty)}`,
+    `热度：${normalizeDigestText(item.trend)}`,
   ].join("\n");
 }
 
@@ -247,4 +247,16 @@ function utf8ByteLength(input: string): number {
 
 function normalizeLine(input: string): string {
   return input.replace(/\r\n/g, "\n").replace(/\n+/g, " ").trim();
+}
+
+function normalizeDigestText(input: string): string {
+  return normalizeLine(
+    input
+      .replace(/!\[[^\]]*]\([^)]*\)/g, " ")
+      .replace(/\[([^\]]+)]\([^)]*\)/g, "$1")
+      .replace(/<\/?[^>\n]+>/g, " ")
+      .replace(/https?:\/\/\S+/gi, " ")
+      .replace(/[`*_~]/g, " ")
+      .replace(/\s+/g, " "),
+  );
 }

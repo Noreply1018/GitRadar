@@ -124,6 +124,23 @@ describe("renderWecomMarkdown", () => {
     expect(payloads.length).toBeGreaterThan(1);
     expect(payloads[0].msgtype).toBe("markdown");
   });
+
+  it("strips HTML-ish fragments from digest fields before rendering", () => {
+    const payload = renderWecomMarkdownPayload({
+      ...baseDigest,
+      items: [
+        {
+          ...baseDigest.items[0]!,
+          novelty:
+            '<a name="readme-top"></a><h2 align="center"><a href="https://example.com?utm_source=test">Open Source AI Platform</a></h2>',
+        },
+      ],
+    });
+
+    expect(payload.markdown.content).toContain("新意：Open Source AI Platform");
+    expect(payload.markdown.content).not.toContain("utm_source");
+    expect(payload.markdown.content).not.toContain("<a ");
+  });
 });
 
 describe("renderWecomWorkflowFailureMarkdown", () => {

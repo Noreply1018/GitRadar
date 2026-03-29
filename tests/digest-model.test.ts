@@ -2,7 +2,10 @@ import { createServer } from "node:http";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { generateDigestWithModel } from "../src/digest/model";
+import {
+  generateDigestWithModel,
+  generateDigestWithResilience,
+} from "../src/digest/model";
 import type { GitHubCandidateRepo } from "../src/github/types";
 
 describe("generateDigestWithModel", () => {
@@ -217,6 +220,38 @@ describe("generateDigestWithModel", () => {
       ),
     ).rejects.toThrow(
       "LLM response did not keep a mature momentum project from the candidate pool.",
+    );
+  });
+
+  it("sanitizes README-heavy fallback copy when the model keeps failing", async () => {
+    responseBody = JSON.stringify({ error: "temporary llm failure" });
+    llmServer.removeAllListeners("request");
+    llmServer.on("request", (_, response) => {
+      response.writeHead(500, { "content-type": "application/json" });
+      response.end(responseBody);
+    });
+
+    const result = await generateDigestWithResilience(
+      [
+        createCandidate({
+          description:
+            "Open Source AI Platform - AI Chat with advanced features that works with every LLM",
+          readmeExcerpt: [
+            '<a name="readme-top"></a>',
+            '<h2 align="center"><a href="https://www.onyx.app/?utm_source=onyx">',
+            '<img src="docs/assets/logo.png" width="120" /></a></h2>',
+            "",
+            "Open Source AI Platform built for workplace search and internal knowledge assistants.",
+          ].join("\n"),
+        }),
+      ],
+      "2026-03-29",
+      getLlmConfig(llmServer),
+    );
+
+    expect(result.mode).toBe("template_fallback");
+    expect(result.digest.items[0]?.novelty).toBe(
+      "Open Source AI Platform built for workplace search and internal knowledge assistants.",
     );
   });
 });

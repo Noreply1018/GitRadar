@@ -369,17 +369,78 @@ function extractReadableLine(input?: string | null): string | null {
     return null;
   }
 
-  const normalized = input
-    .replace(/^#+\s+/gm, "")
-    .replace(/[`*_>-]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  const lines = input
+    .replace(/\r\n/g, "\n")
+    .replace(/<!--[\s\S]*?-->/g, "\n")
+    .split("\n");
 
-  if (!normalized) {
+  for (const line of lines) {
+    const cleaned = sanitizeReadmeLine(line);
+    if (isReadableReadmeLine(line, cleaned)) {
+      return cleaned.slice(0, 90);
+    }
+  }
+
+  const fallback = sanitizeReadmeLine(input);
+  if (!isReadableReadmeLine(input, fallback)) {
     return null;
   }
 
-  return normalized.slice(0, 90);
+  return fallback.slice(0, 90);
+}
+
+function sanitizeReadmeLine(input: string): string {
+  return decodeHtmlEntities(
+    input
+      .replace(/!\[[^\]]*]\([^)]*\)/g, " ")
+      .replace(/\[([^\]]+)]\([^)]*\)/g, "$1")
+      .replace(/<\/?[^>\n]+>/g, " ")
+      .replace(/https?:\/\/\S+/gi, " ")
+      .replace(/^\s{0,3}(?:#{1,6}\s+|[-*+]\s+|\d+\.\s+)/, "")
+      .replace(/[`*_~]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim(),
+  );
+}
+
+function isReadableReadmeLine(rawLine: string, cleanedLine: string): boolean {
+  if (!cleanedLine) {
+    return false;
+  }
+
+  const normalizedRawLine = rawLine.trim();
+  if (
+    /^\s*</.test(normalizedRawLine) ||
+    /^\s*!\[/.test(normalizedRawLine) ||
+    /(?:href=|src=|align=|width=|height=|readme[-_\s]?top|shields\.io|badge|utm[_-])/i.test(
+      normalizedRawLine,
+    )
+  ) {
+    return false;
+  }
+
+  if (!/[A-Za-z\u4e00-\u9fff]/.test(cleanedLine)) {
+    return false;
+  }
+
+  if (
+    cleanedLine.length < 20 &&
+    cleanedLine.split(/\s+/).filter(Boolean).length < 4
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function decodeHtmlEntities(input: string): string {
+  return input
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'");
 }
 
 function formatSources(sources: GitHubCandidateRepo["sources"]): string {
