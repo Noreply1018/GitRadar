@@ -62,9 +62,9 @@ describe("renderWecomMarkdown", () => {
     expect(payload.msgtype).toBe("markdown");
     expect(payload.markdown.content).toContain("# GitRadar Digest");
     expect(payload.markdown.content).toContain("## 1. [owner/project-one]");
-    expect(payload.markdown.content).toContain("主题：AI Agents");
+    expect(payload.markdown.content).toContain("主题：智能体");
     expect(payload.markdown.content).toContain(
-      "证据：GitHub Trending 命中；最近 7 天更新活跃",
+      "证据：GitHub 热榜命中；最近 7 天更新活跃",
     );
   });
 
@@ -137,9 +137,47 @@ describe("renderWecomMarkdown", () => {
       ],
     });
 
-    expect(payload.markdown.content).toContain("新意：Open Source AI Platform");
+    expect(payload.markdown.content).toContain(
+      "新意：它在智能体方向的定位清晰，适合作为近期样本继续观察。",
+    );
     expect(payload.markdown.content).not.toContain("utm_source");
     expect(payload.markdown.content).not.toContain("<a ");
+  });
+
+  it("falls back to Chinese copy when digest fields are fully English", () => {
+    const payload = renderWecomMarkdownPayload({
+      ...baseDigest,
+      items: [
+        {
+          ...baseDigest.items[0]!,
+          theme: "Data & Search",
+          summary:
+            "Open source search platform for internal knowledge assistants.",
+          whyItMatters: "Useful for developer productivity workflows.",
+          whyNow: "Momentum is picking up this week.",
+          novelty: "Clear product positioning around workplace search.",
+          trend: "Trending and actively updated.",
+          evidence: ["GitHub Trending 命中", "Star 19.8k"],
+        },
+      ],
+    });
+
+    expect(payload.markdown.content).toContain("主题：数据与搜索");
+    expect(payload.markdown.content).toContain(
+      "做什么：owner/project-one 是一个聚焦数据与搜索的开源项目。",
+    );
+    expect(payload.markdown.content).toContain(
+      "为什么值得看：它在数据与搜索方向具备持续跟踪价值。",
+    );
+    expect(payload.markdown.content).toContain(
+      "为什么是现在：近期活跃信号明显，值得今天优先关注。",
+    );
+    expect(payload.markdown.content).toContain(
+      "新意：它在数据与搜索方向的定位清晰，适合作为近期样本继续观察。",
+    );
+    expect(payload.markdown.content).toContain(
+      "热度：当前信号：GitHub 热榜命中、星标 19.8k。",
+    );
   });
 });
 

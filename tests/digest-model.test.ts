@@ -234,8 +234,16 @@ describe("generateDigestWithModel", () => {
     const result = await generateDigestWithResilience(
       [
         createCandidate({
+          theme: "Data & Search",
           description:
             "Open Source AI Platform - AI Chat with advanced features that works with every LLM",
+          selectionHints: {
+            whyNow: "成熟项目近期恢复高频更新，值得重新关注。",
+            evidence: ["GitHub Trending 命中", "成熟项目近期再次升温"],
+            matureMomentum: true,
+            sourceSummary: "Trending",
+            selectionReason: "保留一条成熟但重新升温的项目位。",
+          },
           readmeExcerpt: [
             '<a name="readme-top"></a>',
             '<h2 align="center"><a href="https://www.onyx.app/?utm_source=onyx">',
@@ -251,8 +259,12 @@ describe("generateDigestWithModel", () => {
 
     expect(result.mode).toBe("template_fallback");
     expect(result.digest.items[0]?.novelty).toBe(
-      "Open Source AI Platform built for workplace search and internal knowledge assistants.",
+      "它在数据与搜索方向已经形成一定积累，最近又出现了新的活跃信号。",
     );
+    expect(result.digest.items[0]?.summary).toBe(
+      "一个聚焦数据与搜索的成熟开源项目，近期活跃度重新上升。",
+    );
+    expect(result.digest.items[0]?.trend).toBe("当前信号：GitHub 热榜。");
   });
 });
 

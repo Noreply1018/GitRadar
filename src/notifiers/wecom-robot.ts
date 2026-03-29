@@ -203,18 +203,19 @@ function renderItem(index: number, item: DigestItem): string {
   const evidence = item.evidence ?? [];
   const evidenceLine =
     evidence.length > 0
-      ? `证据：${evidence.map(normalizeDigestText).join("；")}`
+      ? `证据：${evidence.map((entry) => renderEvidenceText(entry)).join("；")}`
       : "证据：待补充";
+  const themeLabel = localizeTheme(item.theme ?? "General OSS");
 
   return [
     `## ${index}. [${normalizeLine(item.repo)}](${item.url})`,
-    `主题：${normalizeDigestText(item.theme ?? "General OSS")}`,
-    `做什么：${normalizeDigestText(item.summary)}`,
-    `为什么值得看：${normalizeDigestText(item.whyItMatters)}`,
-    `为什么是现在：${normalizeDigestText(item.whyNow ?? "未记录")}`,
+    `主题：${themeLabel}`,
+    `做什么：${renderDigestField("summary", item.summary, item)}`,
+    `为什么值得看：${renderDigestField("whyItMatters", item.whyItMatters, item)}`,
+    `为什么是现在：${renderDigestField("whyNow", item.whyNow ?? "未记录", item)}`,
     evidenceLine,
-    `新意：${normalizeDigestText(item.novelty)}`,
-    `热度：${normalizeDigestText(item.trend)}`,
+    `新意：${renderDigestField("novelty", item.novelty, item)}`,
+    `热度：${renderDigestField("trend", item.trend, item)}`,
   ].join("\n");
 }
 
@@ -259,4 +260,108 @@ function normalizeDigestText(input: string): string {
       .replace(/[`*_~]/g, " ")
       .replace(/\s+/g, " "),
   );
+}
+
+function renderDigestField(
+  field: "summary" | "whyItMatters" | "whyNow" | "novelty" | "trend",
+  value: string,
+  item: DigestItem,
+): string {
+  const localized = normalizeDigestText(value)
+    .replace(/GitHub Trending 命中/g, "GitHub 热榜命中")
+    .replace(/GitHub Trending/g, "GitHub 热榜")
+    .replace(/\bTrending\b/g, "GitHub 热榜")
+    .replace(/\bStar\s+/g, "星标 ");
+
+  if (containsChinese(localized) && !shouldFallbackToChinese(localized)) {
+    return localized;
+  }
+
+  const themeLabel = localizeTheme(item.theme ?? "General OSS");
+  switch (field) {
+    case "summary":
+      return `${normalizeLine(item.repo)} 是一个聚焦${themeLabel}的开源项目。`;
+    case "whyItMatters":
+      return `它在${themeLabel}方向具备持续跟踪价值。`;
+    case "whyNow":
+      return buildChineseWhyNow(item);
+    case "novelty":
+      return `它在${themeLabel}方向的定位清晰，适合作为近期样本继续观察。`;
+    case "trend":
+      return buildChineseTrend(item);
+  }
+}
+
+function renderEvidenceText(value: string): string {
+  return normalizeDigestText(value)
+    .replace(/GitHub Trending 命中/g, "GitHub 热榜命中")
+    .replace(/GitHub Trending/g, "GitHub 热榜")
+    .replace(/\bTrending\b/g, "GitHub 热榜")
+    .replace(/\bStar\s+/g, "星标 ");
+}
+
+function buildChineseWhyNow(item: DigestItem): string {
+  const evidence = item.evidence.join(" ");
+
+  if (/新建仓库|新项目/.test(evidence)) {
+    return "新项目仍在快速迭代，正处于出圈窗口。";
+  }
+
+  if (/成熟项目近期再次升温/.test(evidence)) {
+    return "成熟项目近期恢复高频更新，值得重新关注。";
+  }
+
+  if (
+    /Trending|热榜|最近 7 天更新活跃|近 7 天仍在推进|近 3 天仍在推进/.test(
+      evidence,
+    )
+  ) {
+    return "近期活跃信号明显，值得今天优先关注。";
+  }
+
+  return "近期活跃度和可读性同时具备，适合今天点进去深看。";
+}
+
+function buildChineseTrend(item: DigestItem): string {
+  const evidence = item.evidence.map(renderEvidenceText);
+  const prioritized = evidence.filter((entry) =>
+    /热榜|更新活跃|仍在推进|新建仓库|成熟项目近期再次升温|星标/.test(entry),
+  );
+
+  if (prioritized.length > 0) {
+    return `当前信号：${prioritized.join("、")}。`;
+  }
+
+  return "当前信号：近期活跃度和关注度均有支撑。";
+}
+
+function localizeTheme(theme: string): string {
+  switch (theme) {
+    case "AI Agents":
+      return "智能体";
+    case "AI Research":
+      return "人工智能研究";
+    case "Infra & Runtime":
+      return "基础设施与运行时";
+    case "Developer Tools":
+      return "开发者工具";
+    case "Data & Search":
+      return "数据与搜索";
+    case "Observability & Security":
+      return "可观测性与安全";
+    case "Frontend & Design":
+      return "前端与设计";
+    case "General OSS":
+      return "通用开源";
+    default:
+      return normalizeDigestText(theme);
+  }
+}
+
+function containsChinese(input: string): boolean {
+  return /[\u4e00-\u9fff]/.test(input);
+}
+
+function shouldFallbackToChinese(input: string): boolean {
+  return /[A-Za-z]{3,}/.test(input.replace(/GitHub/g, ""));
 }

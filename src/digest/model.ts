@@ -307,40 +307,47 @@ function mapDigestItem(
 }
 
 function buildTemplateSummary(candidate: GitHubCandidateRepo): string {
-  const cleanedDescription = candidate.description.trim();
+  const themeLabel = formatThemeLabel(candidate.theme);
 
-  if (cleanedDescription) {
-    return cleanedDescription;
+  if (candidate.selectionHints?.matureMomentum) {
+    return `一个聚焦${themeLabel}的成熟开源项目，近期活跃度重新上升。`;
   }
 
-  const readmeLine = extractReadableLine(candidate.readmeExcerpt);
-  if (readmeLine) {
-    return readmeLine;
+  if (candidate.sources.includes("search_recently_created")) {
+    return `一个聚焦${themeLabel}的新项目，最近仍在持续迭代。`;
   }
 
-  return `${candidate.theme ?? "General OSS"} 方向的开源项目。`;
+  if (candidate.sources.includes("trending")) {
+    return `一个聚焦${themeLabel}的开源项目，今天在 GitHub 热榜信号中表现突出。`;
+  }
+
+  return `一个聚焦${themeLabel}的开源项目，近期保持稳定活跃。`;
 }
 
 function buildTemplateWhyItMatters(candidate: GitHubCandidateRepo): string {
   return (
     candidate.selectionHints?.selectionReason ??
-    `${candidate.theme ?? "General OSS"} 方向近期值得持续观察。`
+    `${formatThemeLabel(candidate.theme)}方向近期值得持续观察。`
   );
 }
 
 function buildTemplateNovelty(candidate: GitHubCandidateRepo): string {
-  const readmeLine = extractReadableLine(candidate.readmeExcerpt);
+  const themeLabel = formatThemeLabel(candidate.theme);
 
-  if (readmeLine && readmeLine !== candidate.description.trim()) {
-    return readmeLine;
+  if (candidate.sources.includes("search_recently_created")) {
+    return `它在${themeLabel}方向切入明确，当前仍处在快速成形阶段。`;
   }
 
-  return `当前候选在 ${candidate.theme ?? "General OSS"} 方向具备明确主题代表性。`;
+  if (candidate.selectionHints?.matureMomentum) {
+    return `它在${themeLabel}方向已经形成一定积累，最近又出现了新的活跃信号。`;
+  }
+
+  return `它在${themeLabel}方向具备清晰定位，适合作为近期样本持续跟踪。`;
 }
 
 function buildTemplateTrend(candidate: GitHubCandidateRepo): string {
   if (candidate.selectionHints?.sourceSummary) {
-    return `当前信号：${candidate.selectionHints.sourceSummary}。`;
+    return `当前信号：${localizeSourceSummary(candidate.selectionHints.sourceSummary)}。`;
   }
 
   return `当前信号：${formatSources(candidate.sources)}。`;
@@ -445,6 +452,34 @@ function decodeHtmlEntities(input: string): string {
 
 function formatSources(sources: GitHubCandidateRepo["sources"]): string {
   return sources.map((source) => mapSourceToEvidence(source)).join("、");
+}
+
+function formatThemeLabel(theme?: string): string {
+  switch (theme) {
+    case "AI Agents":
+      return "智能体";
+    case "AI Research":
+      return "人工智能研究";
+    case "Infra & Runtime":
+      return "基础设施与运行时";
+    case "Developer Tools":
+      return "开发者工具";
+    case "Data & Search":
+      return "数据与搜索";
+    case "Observability & Security":
+      return "可观测性与安全";
+    case "Frontend & Design":
+      return "前端与设计";
+    case "General OSS":
+    case undefined:
+      return "通用开源";
+    default:
+      return theme;
+  }
+}
+
+function localizeSourceSummary(summary: string): string {
+  return summary.replace(/Trending/g, "GitHub 热榜").replace(/\s+\+\s+/g, "、");
 }
 
 function mapSourceToEvidence(
