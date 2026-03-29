@@ -179,6 +179,29 @@ describe("renderWecomMarkdown", () => {
       "热度：当前信号：GitHub 热榜命中、星标 19.8k。",
     );
   });
+
+  it("keeps informative Chinese copy even when it contains English product names", () => {
+    const payload = renderWecomMarkdownPayload({
+      ...baseDigest,
+      items: [
+        {
+          ...baseDigest.items[0]!,
+          theme: "Developer Tools",
+          summary:
+            "把任意代码库转成可探索、可搜索、可问答的交互式知识图谱，面向 Claude Code、Codex 等工作流。",
+          novelty:
+            "不是再做一个聊天壳，而是把代码语义结构化成知识图谱供 agent 和人共同使用。",
+        },
+      ],
+    });
+
+    expect(payload.markdown.content).toContain(
+      "做什么：把任意代码库转成可探索、可搜索、可问答的交互式知识图谱，面向 Claude Code、Codex 等工作流。",
+    );
+    expect(payload.markdown.content).toContain(
+      "新意：不是再做一个聊天壳，而是把代码语义结构化成知识图谱供 agent 和人共同使用。",
+    );
+  });
 });
 
 describe("renderWecomWorkflowFailureMarkdown", () => {

@@ -267,13 +267,14 @@ function renderDigestField(
   value: string,
   item: DigestItem,
 ): string {
-  const localized = normalizeDigestText(value)
+  const normalized = normalizeDigestText(value);
+  const localized = normalized
     .replace(/GitHub Trending 命中/g, "GitHub 热榜命中")
     .replace(/GitHub Trending/g, "GitHub 热榜")
     .replace(/\bTrending\b/g, "GitHub 热榜")
     .replace(/\bStar\s+/g, "星标 ");
 
-  if (containsChinese(localized) && !shouldFallbackToChinese(localized)) {
+  if (containsChinese(normalized)) {
     return localized;
   }
 
@@ -360,8 +361,4 @@ function localizeTheme(theme: string): string {
 
 function containsChinese(input: string): boolean {
   return /[\u4e00-\u9fff]/.test(input);
-}
-
-function shouldFallbackToChinese(input: string): boolean {
-  return /[A-Za-z]{3,}/.test(input.replace(/GitHub/g, ""));
 }
