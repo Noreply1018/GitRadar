@@ -6,6 +6,19 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 
 ## [Unreleased]
 
+### Added
+
+- 新增本地中文网页控制台第一期，覆盖仪表盘、规则配置、执行中心和归档浏览
+- 新增 `web/` 前端工程，使用 `Vite + React + TypeScript`
+- 新增 `src/web-api/` 本地 API 层，用于规则配置读写、命令执行白名单和归档读取
+- 新增 `npm run dev:web`、`npm run dev:web-api`、`npm run build:web`、`npm run start:console`
+
+### Changed
+
+- 仓库版本推进到 `1.3.0`
+- README 已改写为当前 CLI + 中文控制台双入口产品状态
+- 版本与开发文档已切换到分支 + PR + CI 的受保护主分支工作流
+
 ## [1.2.0] - 2026-03-28
 
 ### Added

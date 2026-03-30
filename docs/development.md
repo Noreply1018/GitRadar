@@ -28,7 +28,9 @@ GitRadar 当前处于：
 ## 目录约定
 
 - `src/`：应用核心逻辑与命令入口
+- `src/web-api/`：本地中文控制台 API 与命令执行边界
 - `tests/`：单元和集成测试
+- `web/`：中文网页控制台前端
 - `scripts/`：手动运维、重发、调试和迁移脚本
 - `config/`：规则、主题、配置说明和模板约定
 - `data/history/`：日报归档
@@ -68,7 +70,7 @@ GitRadar 当前默认保持以下边界：
 - `CI`：格式、Markdown、YAML、类型检查、测试、workflow lint
 - `Daily Digest`：日报生成、企业微信发送、失败告警
 
-涉及代码或架构改动时，推送到 `main` 后需要等待 CI 完成。
+涉及代码或架构改动时，默认在功能分支推送并发起 PR，等待 CI 完成后再合并。
 
 纯文本文档改动不要求等待 CI 后再继续版本推进，但仍应确保本地文档检查通过。
 
@@ -77,6 +79,9 @@ GitRadar 当前默认保持以下边界：
 - 日报默认每天 `08:17` 中国时间触发一次
 - 也支持 GitHub Actions 手动触发
 - 本地主入口是 `npm run generate:digest`
+- 中文控制台 API 启动命令是 `npm run dev:web-api`
+- 中文控制台前端开发命令是 `npm run dev:web`
+- 构建后通过同源方式启动控制台可使用 `npm run build:web && npm run start:console`
 - 真实发送入口是 `npm run generate:digest -- --send`
 - 补发入口是 `npm run generate:digest -- --resend-date YYYY-MM-DD`
 - 分析入口是 `npm run analyze:digest -- --date YYYY-MM-DD`
