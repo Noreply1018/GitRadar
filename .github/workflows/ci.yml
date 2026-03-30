@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run gitleaks
-        uses: zricethezav/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
+        uses: zricethezav/gitleaks-action@dcedce43c6f43de0b836d1fe38946645c9c638dc
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -37,7 +37,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
