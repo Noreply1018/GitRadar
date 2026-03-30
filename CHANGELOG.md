@@ -9,6 +9,8 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 ### Added
 
 - 新增用户偏好配置 `config/user-preferences.json`，支持关心主题与自定义主题词
+- 新增轻量反馈闭环，支持在网页归档阅读页对项目标记“收藏 / 稍后看 / 跳过”
+- 新增本地反馈存储与 API：`GET/POST /api/feedback`
 
 ### Changed
 
@@ -16,6 +18,7 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 - 归档日报切换为单篇左右翻页阅读，而不是纵向长列表
 - 每日发送设置改为常用城市时区下拉与更柔和的时间输入
 - 候选筛选新增中等强度的用户偏好加权
+- 候选筛选现在会参考最近反馈，对同仓库与同主题做轻量 rerank
 - Docker 时区与 cron 调度现在都从 `schedule.json` 读取
 
 ## [1.3.1] - 2026-03-30

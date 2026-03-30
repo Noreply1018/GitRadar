@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import type { DailyDigestArchive } from "../../src/core/archive";
 import type {
   ArchiveSummary,
+  FeedbackAction,
+  FeedbackState,
   ScheduleSettings,
   TimezoneOption,
   UserPreferences,
@@ -10,9 +12,11 @@ import type {
 import {
   fetchArchiveDetail,
   fetchArchives,
+  fetchFeedback,
   fetchHealth,
   fetchPreferences,
   fetchScheduleSettings,
+  recordFeedback,
   savePreferences,
   saveScheduleSettings,
 } from "./api";
@@ -27,6 +31,12 @@ const VIEWS: Array<{ id: ViewId; label: string }> = [
 const EMPTY_PREFERENCES: UserPreferences = {
   preferredThemes: [],
   customTopics: [],
+};
+
+const EMPTY_FEEDBACK_STATE: FeedbackState = {
+  repoStates: {},
+  themeStats: {},
+  recent: [],
 };
 
 export default function App() {
@@ -45,6 +55,8 @@ export default function App() {
     useState<UserPreferences>(EMPTY_PREFERENCES);
   const [availableThemes, setAvailableThemes] = useState<string[]>([]);
   const [customTopicInput, setCustomTopicInput] = useState("");
+  const [feedbackState, setFeedbackState] =
+    useState<FeedbackState>(EMPTY_FEEDBACK_STATE);
   const [archives, setArchives] = useState<ArchiveSummary[]>([]);
   const [selectedArchiveDate, setSelectedArchiveDate] = useState("");
   const [archiveDetail, setArchiveDetail] = useState<DailyDigestArchive | null>(
@@ -52,7 +64,7 @@ export default function App() {
   );
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [busyAction, setBusyAction] = useState<
-    "" | "hydrate" | "save-schedule" | "save-preferences"
+    "" | "hydrate" | "save-schedule" | "save-preferences" | "record-feedback"
   >("hydrate");
   const [statusMessage, setStatusMessage] = useState(
     "正在同步 GitRadar 当前状态…",
@@ -92,6 +104,9 @@ export default function App() {
 
   const currentDigestItem =
     archiveDetail?.digest.items[currentItemIndex] ?? null;
+  const currentFeedback = currentDigestItem
+    ? feedbackState.repoStates[currentDigestItem.repo]
+    : null;
 
   async function hydrate(): Promise<void> {
     setBusyAction("hydrate");
@@ -102,11 +117,13 @@ export default function App() {
         healthResponse,
         scheduleResponse,
         preferencesResponse,
+        feedbackResponse,
         archiveResponse,
       ] = await Promise.all([
         fetchHealth(),
         fetchScheduleSettings(),
         fetchPreferences(),
+        fetchFeedback(),
         fetchArchives(),
       ]);
 
@@ -115,6 +132,7 @@ export default function App() {
       setTimezoneOptions(scheduleResponse.availableTimezones);
       setPreferencesDraft(preferencesResponse.preferences);
       setAvailableThemes(preferencesResponse.availableThemes);
+      setFeedbackState(feedbackResponse.state);
       setArchives(archiveResponse.archives);
 
       const initialDate = archiveResponse.archives[0]?.date ?? "";
@@ -183,6 +201,30 @@ export default function App() {
       setStatusMessage("已切换到新的归档日报。");
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
+    }
+  }
+
+  async function handleRecordFeedback(action: FeedbackAction): Promise<void> {
+    if (!currentDigestItem || !archiveDetail) {
+      return;
+    }
+
+    setBusyAction("record-feedback");
+    setErrorMessage("");
+
+    try {
+      const response = await recordFeedback({
+        repo: currentDigestItem.repo,
+        date: archiveDetail.digest.date,
+        action,
+        theme: currentDigestItem.theme,
+      });
+      setFeedbackState(response.state);
+      setStatusMessage("反馈已记录，后续日报会参考你的选择。");
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setBusyAction("");
     }
   }
 
@@ -437,6 +479,30 @@ export default function App() {
               </button>
             </div>
           </section>
+
+          <section className="panel feedback-summary-panel">
+            <header className="panel-header compact">
+              <div>
+                <p className="eyebrow">Recent Feedback</p>
+                <h2>最近反馈</h2>
+              </div>
+            </header>
+
+            <div className="feedback-list">
+              {feedbackState.recent.map((event) => (
+                <div
+                  key={`${event.repo}-${event.recordedAt}`}
+                  className="feedback-row"
+                >
+                  <strong>{event.repo}</strong>
+                  <span>{describeFeedbackAction(event.action)}</span>
+                </div>
+              ))}
+              {feedbackState.recent.length === 0 ? (
+                <div className="empty-inline">还没有任何反馈记录。</div>
+              ) : null}
+            </div>
+          </section>
         </main>
       ) : null}
 
@@ -510,6 +576,45 @@ export default function App() {
                         {currentDigestItem.theme}
                       </span>
                       <h3>{currentDigestItem.repo}</h3>
+                    </div>
+
+                    <div className="feedback-actions">
+                      <button
+                        className={
+                          currentFeedback?.action === "saved"
+                            ? "feedback-button active"
+                            : "feedback-button"
+                        }
+                        disabled={busyAction !== ""}
+                        onClick={() => void handleRecordFeedback("saved")}
+                        type="button"
+                      >
+                        收藏
+                      </button>
+                      <button
+                        className={
+                          currentFeedback?.action === "later"
+                            ? "feedback-button active"
+                            : "feedback-button"
+                        }
+                        disabled={busyAction !== ""}
+                        onClick={() => void handleRecordFeedback("later")}
+                        type="button"
+                      >
+                        稍后看
+                      </button>
+                      <button
+                        className={
+                          currentFeedback?.action === "skipped"
+                            ? "feedback-button active"
+                            : "feedback-button"
+                        }
+                        disabled={busyAction !== ""}
+                        onClick={() => void handleRecordFeedback("skipped")}
+                        type="button"
+                      >
+                        跳过
+                      </button>
                     </div>
 
                     <p className="story-lead">{currentDigestItem.summary}</p>
@@ -596,4 +701,16 @@ function formatDateTime(value: string): string {
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function describeFeedbackAction(action: FeedbackAction): string {
+  if (action === "saved") {
+    return "已收藏";
+  }
+
+  if (action === "skipped") {
+    return "已跳过";
+  }
+
+  return "稍后看";
 }

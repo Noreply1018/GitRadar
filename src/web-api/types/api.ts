@@ -1,6 +1,11 @@
 import type { DailyDigestArchive } from "../../core/archive";
 import type { DigestRulesConfig } from "../../config/digest-rules";
 import type { UserPreferencesConfig } from "../../config/user-preferences";
+import type {
+  FeedbackAction,
+  FeedbackEvent,
+  FeedbackState,
+} from "../../feedback/model";
 
 export interface HealthResponse {
   status: "ok";
@@ -52,6 +57,22 @@ export interface UserPreferencesResponse {
   path: string;
   preferences: UserPreferencesConfig;
   availableThemes: string[];
+}
+
+export interface FeedbackRequest {
+  repo: string;
+  date: string;
+  action: FeedbackAction;
+  theme?: string;
+}
+
+export interface FeedbackResponse {
+  state: FeedbackState;
+}
+
+export interface FeedbackRecordResponse {
+  event: FeedbackEvent;
+  state: FeedbackState;
 }
 
 export interface CommandStartRequest {

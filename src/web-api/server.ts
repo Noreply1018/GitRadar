@@ -25,6 +25,7 @@ import {
   readUserPreferences,
   saveUserPreferences,
 } from "./services/user-preferences-service";
+import { readFeedbackState, recordFeedback } from "../feedback/store";
 import type { HealthResponse } from "./types/api";
 
 const DEFAULT_HOST = "127.0.0.1";
@@ -85,6 +86,12 @@ async function handleRequest(
       return sendJson(response, 200, readUserPreferences(ROOT_DIR));
     }
 
+    if (request.method === "GET" && pathname === "/api/feedback") {
+      return sendJson(response, 200, {
+        state: await readFeedbackState(ROOT_DIR),
+      });
+    }
+
     if (
       request.method === "POST" &&
       pathname === "/api/config/digest-rules/validate"
@@ -129,6 +136,17 @@ async function handleRequest(
           200,
           await saveUserPreferences(ROOT_DIR, body),
         );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return sendJson(response, 400, { message });
+      }
+    }
+
+    if (request.method === "POST" && pathname === "/api/feedback") {
+      const body = await readJsonBody(request);
+
+      try {
+        return sendJson(response, 200, await recordFeedback(ROOT_DIR, body));
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         return sendJson(response, 400, { message });

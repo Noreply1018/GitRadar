@@ -10,6 +10,8 @@ import {
   loadUserPreferencesConfig,
   type UserPreferencesConfig,
 } from "../config/user-preferences";
+import { readFeedbackStateSync } from "../feedback/store";
+import { EMPTY_FEEDBACK_STATE, type FeedbackState } from "../feedback/model";
 import type {
   CandidateScoreBreakdown,
   GitHubCandidateRepo,
@@ -30,6 +32,7 @@ interface CandidateSelectionResult {
 
 interface SelectionOptions {
   userPreferences?: UserPreferencesConfig;
+  feedbackState?: FeedbackState;
 }
 
 export function selectCandidatesForDigest(
@@ -39,6 +42,8 @@ export function selectCandidatesForDigest(
 ): GitHubCandidateRepo[] {
   const userPreferences =
     options.userPreferences ?? loadUserPreferencesConfig();
+  const feedbackState =
+    options.feedbackState ?? loadFeedbackStateForSelection();
   const annotated = candidates
     .filter((candidate) => candidate.description)
     .filter(
@@ -55,7 +60,9 @@ export function selectCandidatesForDigest(
     )
     .filter((candidate) => !hasBlacklistedTopic(candidate.topics))
     .filter((candidate) => !hasBlacklistedReadme(candidate.readmeExcerpt))
-    .map((candidate) => annotateCandidate(candidate, userPreferences))
+    .map((candidate) =>
+      annotateCandidate(candidate, userPreferences, feedbackState),
+    )
     .sort(compareCandidates);
 
   return applyDiversity(annotated, limit, {
@@ -80,9 +87,15 @@ export function getRulesVersion(): string {
 function annotateCandidate(
   candidate: GitHubCandidateRepo,
   userPreferences: UserPreferencesConfig,
+  feedbackState: FeedbackState,
 ): GitHubCandidateRepo {
   const theme = inferTheme(candidate);
-  const scoreBreakdown = scoreCandidate(candidate, theme, userPreferences);
+  const scoreBreakdown = scoreCandidate(
+    candidate,
+    theme,
+    userPreferences,
+    feedbackState,
+  );
   const selectionHints = buildSelectionHints(candidate, scoreBreakdown);
 
   return {
@@ -98,6 +111,7 @@ function scoreCandidate(
   candidate: GitHubCandidateRepo,
   theme: string,
   userPreferences: UserPreferencesConfig = DEFAULT_USER_PREFERENCES,
+  feedbackState: FeedbackState = EMPTY_FEEDBACK_STATE,
 ): CandidateScoreBreakdown {
   const sourceCount = candidate.sources.length;
   const pushedDays = getDaysSince(candidate.pushedAt);
@@ -116,6 +130,7 @@ function scoreCandidate(
   let maturity = 0;
   let coverage = 0;
   let preference = 0;
+  let feedback = 0;
   let penalties = 0;
 
   if (candidate.sources.includes("trending")) {
@@ -195,6 +210,7 @@ function scoreCandidate(
   }
 
   preference += calculatePreferenceBonus(candidate, theme, userPreferences);
+  feedback += calculateFeedbackBonus(candidate, theme, feedbackState);
 
   return {
     momentum,
@@ -202,8 +218,16 @@ function scoreCandidate(
     maturity,
     coverage,
     preference,
+    feedback,
     penalties,
-    total: momentum + novelty + maturity + coverage + preference + penalties,
+    total:
+      momentum +
+      novelty +
+      maturity +
+      coverage +
+      preference +
+      feedback +
+      penalties,
   };
 }
 
@@ -371,6 +395,14 @@ function buildSelectionReason(
     return "命中关心主题，且多来源信号同时靠前。";
   }
 
+  if (scoreBreakdown.feedback > 0) {
+    return "命中过往收藏反馈，值得继续跟踪。";
+  }
+
+  if (scoreBreakdown.feedback < 0) {
+    return "虽然近期有信号，但历史反馈相关性较弱。";
+  }
+
   if (scoreBreakdown.preference > 0) {
     return "命中关心主题，且综合评分更均衡。";
   }
@@ -413,6 +445,38 @@ function calculatePreferenceBonus(
 
   bonus += Math.min(customMatches, 2) * 3;
   return bonus;
+}
+
+function calculateFeedbackBonus(
+  candidate: GitHubCandidateRepo,
+  theme: string,
+  feedbackState: FeedbackState,
+): number {
+  let bonus = 0;
+  const repoFeedback = feedbackState.repoStates[candidate.repo];
+
+  if (repoFeedback?.action === "saved") {
+    bonus += 10;
+  } else if (repoFeedback?.action === "skipped") {
+    bonus -= 18;
+  }
+
+  const themeStats = feedbackState.themeStats[theme];
+
+  if (themeStats) {
+    const themeNet = themeStats.saved - themeStats.skipped;
+    bonus += Math.max(-4, Math.min(6, themeNet * 2));
+  }
+
+  return bonus;
+}
+
+function loadFeedbackStateForSelection(): FeedbackState {
+  try {
+    return readFeedbackStateSync(process.cwd());
+  } catch {
+    return EMPTY_FEEDBACK_STATE;
+  }
 }
 
 function applyDiversity(

@@ -15,6 +15,7 @@ import {
   selectCandidatesForDigest,
 } from "../src/digest/rules";
 import type { UserPreferencesConfig } from "../src/config/user-preferences";
+import type { FeedbackState } from "../src/feedback/model";
 import type { GitHubCandidateRepo } from "../src/github/types";
 
 function createCandidate(
@@ -210,6 +211,62 @@ describe("selectCandidatesForDigest", () => {
 
     expect(selected[0].repo).toBe("owner/fabric-studio");
     expect(selected[0].scoreBreakdown?.preference).toBeGreaterThan(0);
+  });
+
+  it("reranks candidates using lightweight feedback signals", () => {
+    const feedbackState: FeedbackState = {
+      repoStates: {
+        "owner/steady-ops": {
+          repo: "owner/steady-ops",
+          date: "2026-03-29",
+          action: "skipped",
+          theme: "Infra & Runtime",
+          recordedAt: "2026-03-29T08:00:00.000Z",
+        },
+        "owner/agent-archive": {
+          repo: "owner/agent-archive",
+          date: "2026-03-29",
+          action: "saved",
+          theme: "AI Agents",
+          recordedAt: "2026-03-29T09:00:00.000Z",
+        },
+      },
+      themeStats: {
+        "AI Agents": {
+          saved: 3,
+          skipped: 0,
+        },
+        "Infra & Runtime": {
+          saved: 0,
+          skipped: 2,
+        },
+      },
+      recent: [],
+    };
+
+    const selected = selectCandidatesForDigest(
+      [
+        createCandidate({
+          repo: "owner/steady-ops",
+          description: "Distributed runtime for deployment and orchestration.",
+          topics: ["runtime", "deployment"],
+          stars: 3600,
+        }),
+        createCandidate({
+          repo: "owner/agent-studio",
+          description: "AI agent orchestration runtime with workflow memory.",
+          topics: ["ai", "agent", "workflow"],
+          stars: 3400,
+        }),
+      ],
+      20,
+      { feedbackState },
+    );
+
+    expect(selected[0].repo).toBe("owner/agent-studio");
+    expect(selected[0].scoreBreakdown?.feedback).toBeGreaterThan(0);
+    expect(selected[1].repo).toBe("owner/steady-ops");
+    expect(selected[1].scoreBreakdown?.feedback).toBeLessThan(0);
   });
 });
 

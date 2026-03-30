@@ -21,6 +21,7 @@ import {
   readUserPreferences,
   saveUserPreferences,
 } from "../src/web-api/services/user-preferences-service";
+import { readFeedbackState, recordFeedback } from "../src/feedback/store";
 
 describe("validateDigestRulesDraft", () => {
   it("accepts the current repository config", () => {
@@ -239,5 +240,57 @@ describe("user preferences", () => {
         customTopics: [],
       }),
     ).rejects.toThrow(/unknown theme/i);
+  });
+});
+
+describe("feedback store", () => {
+  it("falls back to an empty feedback state when no file exists", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-feedback-"));
+
+    await expect(readFeedbackState(rootDir)).resolves.toEqual({
+      repoStates: {},
+      themeStats: {},
+      recent: [],
+    });
+  });
+
+  it("records feedback events and keeps the latest repo state", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-feedback-"));
+
+    await recordFeedback(rootDir, {
+      repo: "owner/repo-a",
+      date: "2026-03-30",
+      action: "saved",
+      theme: "Frontend & Design",
+    });
+    const result = await recordFeedback(rootDir, {
+      repo: "owner/repo-a",
+      date: "2026-03-31",
+      action: "skipped",
+      theme: "Frontend & Design",
+    });
+
+    expect(result.state.repoStates["owner/repo-a"]).toMatchObject({
+      action: "skipped",
+      date: "2026-03-31",
+      theme: "Frontend & Design",
+    });
+    expect(result.state.themeStats["Frontend & Design"]).toEqual({
+      saved: 0,
+      skipped: 1,
+    });
+    expect(result.state.recent[0]?.repo).toBe("owner/repo-a");
+  });
+
+  it("rejects invalid feedback actions", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-feedback-"));
+
+    await expect(
+      recordFeedback(rootDir, {
+        repo: "owner/repo-a",
+        date: "2026-03-30",
+        action: "opened" as "saved",
+      }),
+    ).rejects.toThrow(/saved、skipped 或 later/);
   });
 });
