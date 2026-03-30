@@ -23,6 +23,30 @@ export interface UserPreferences {
   customTopics: string[];
 }
 
+export type FeedbackAction = "saved" | "skipped" | "later";
+
+export interface FeedbackEvent {
+  repo: string;
+  date: string;
+  action: FeedbackAction;
+  theme?: string;
+  recordedAt: string;
+}
+
+export interface FeedbackStateEntry {
+  repo: string;
+  date: string;
+  action: FeedbackAction;
+  theme?: string;
+  recordedAt: string;
+}
+
+export interface FeedbackState {
+  repoStates: Record<string, FeedbackStateEntry>;
+  themeStats: Record<string, { saved: number; skipped: number }>;
+  recent: FeedbackEvent[];
+}
+
 export interface ArchiveSummary {
   date: string;
   generatedAt: string;
@@ -78,6 +102,22 @@ export async function savePreferences(draft: UserPreferences): Promise<{
   return fetchJson("/api/settings/preferences", {
     method: "PUT",
     body: JSON.stringify(draft),
+  });
+}
+
+export async function fetchFeedback(): Promise<{ state: FeedbackState }> {
+  return fetchJson("/api/feedback");
+}
+
+export async function recordFeedback(input: {
+  repo: string;
+  date: string;
+  action: FeedbackAction;
+  theme?: string;
+}): Promise<{ event: FeedbackEvent; state: FeedbackState }> {
+  return fetchJson("/api/feedback", {
+    method: "POST",
+    body: JSON.stringify(input),
   });
 }
 

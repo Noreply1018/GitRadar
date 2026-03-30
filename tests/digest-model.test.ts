@@ -328,6 +328,7 @@ function createCandidate(
       maturity: 18,
       coverage: 12,
       preference: 0,
+      feedback: 0,
       penalties: 0,
       total: 86,
     },
