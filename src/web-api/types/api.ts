@@ -4,6 +4,7 @@ import type { UserPreferencesConfig } from "../../config/user-preferences";
 import type {
   FeedbackAction,
   FeedbackEvent,
+  FeedbackStateEntry,
   FeedbackState,
 } from "../../feedback/model";
 
@@ -59,6 +60,12 @@ export interface UserPreferencesResponse {
   availableThemes: string[];
 }
 
+export interface SaveLlmSettingsInput {
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
+}
+
 export interface FeedbackRequest {
   repo: string;
   date: string;
@@ -73,6 +80,12 @@ export interface FeedbackResponse {
 export interface FeedbackRecordResponse {
   event: FeedbackEvent;
   state: FeedbackState;
+}
+
+export interface FeedbackListItem extends FeedbackStateEntry {}
+
+export interface FeedbackItemsResponse {
+  items: FeedbackListItem[];
 }
 
 export interface CommandStartRequest {
@@ -104,6 +117,33 @@ export interface CommandListResponse {
 
 export interface CommandStartResponse {
   job: CommandJob;
+}
+
+export interface WecomSettingsResponse {
+  configured: boolean;
+  maskedWebhookUrl: string | null;
+  envFilePath: string;
+}
+
+export interface LlmSettingsResponse {
+  configured: boolean;
+  maskedApiKey: string | null;
+  baseUrl: string | null;
+  model: string | null;
+  envFilePath: string;
+}
+
+export interface LlmTestResponse {
+  ok: true;
+  message: string;
+  model: string;
+  baseUrl: string;
+}
+
+export interface WecomTestResponse {
+  ok: true;
+  message: string;
+  maskedWebhookUrl: string;
 }
 
 export interface ArchiveSummary {

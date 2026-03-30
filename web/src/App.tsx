@@ -4,27 +4,40 @@ import type { DailyDigestArchive } from "../../src/core/archive";
 import type {
   ArchiveSummary,
   FeedbackAction,
+  FeedbackListItem,
   FeedbackState,
+  LlmSettings,
+  LlmTestResult,
   ScheduleSettings,
   TimezoneOption,
   UserPreferences,
+  WecomSettings,
 } from "./api";
 import {
   fetchArchiveDetail,
   fetchArchives,
   fetchFeedback,
+  fetchFeedbackItems,
   fetchHealth,
+  fetchLlmSettings,
   fetchPreferences,
   fetchScheduleSettings,
+  fetchWecomSettings,
   recordFeedback,
+  saveLlmSettings,
   savePreferences,
   saveScheduleSettings,
+  saveWecomSettings,
+  testLlmSettings,
+  sendWecomTest,
 } from "./api";
 
-type ViewId = "schedule" | "archives";
+type ViewId = "schedule" | "saved" | "archives";
+type SavedViewFilter = "saved" | "later";
 
 const VIEWS: Array<{ id: ViewId; label: string }> = [
   { id: "schedule", label: "调度与主题" },
+  { id: "saved", label: "收藏与待看" },
   { id: "archives", label: "归档日报" },
 ];
 
@@ -37,6 +50,20 @@ const EMPTY_FEEDBACK_STATE: FeedbackState = {
   repoStates: {},
   themeStats: {},
   recent: [],
+};
+
+const EMPTY_WECOM_SETTINGS: WecomSettings = {
+  configured: false,
+  maskedWebhookUrl: null,
+  envFilePath: "",
+};
+
+const EMPTY_LLM_SETTINGS: LlmSettings = {
+  configured: false,
+  maskedApiKey: null,
+  baseUrl: null,
+  model: null,
+  envFilePath: "",
 };
 
 export default function App() {
@@ -57,14 +84,34 @@ export default function App() {
   const [customTopicInput, setCustomTopicInput] = useState("");
   const [feedbackState, setFeedbackState] =
     useState<FeedbackState>(EMPTY_FEEDBACK_STATE);
+  const [savedItems, setSavedItems] = useState<FeedbackListItem[]>([]);
+  const [laterItems, setLaterItems] = useState<FeedbackListItem[]>([]);
+  const [savedViewFilter, setSavedViewFilter] =
+    useState<SavedViewFilter>("saved");
   const [archives, setArchives] = useState<ArchiveSummary[]>([]);
   const [selectedArchiveDate, setSelectedArchiveDate] = useState("");
   const [archiveDetail, setArchiveDetail] = useState<DailyDigestArchive | null>(
     null,
   );
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
+  const [llmSettings, setLlmSettings] =
+    useState<LlmSettings>(EMPTY_LLM_SETTINGS);
+  const [llmApiKeyInput, setLlmApiKeyInput] = useState("");
+  const [llmBaseUrlInput, setLlmBaseUrlInput] = useState("");
+  const [llmModelInput, setLlmModelInput] = useState("");
+  const [wecomSettings, setWecomSettings] =
+    useState<WecomSettings>(EMPTY_WECOM_SETTINGS);
+  const [wecomWebhookInput, setWecomWebhookInput] = useState("");
   const [busyAction, setBusyAction] = useState<
-    "" | "hydrate" | "save-schedule" | "save-preferences" | "record-feedback"
+    | ""
+    | "hydrate"
+    | "save-schedule"
+    | "save-preferences"
+    | "record-feedback"
+    | "save-llm"
+    | "test-llm"
+    | "save-wecom"
+    | "test-wecom"
   >("hydrate");
   const [statusMessage, setStatusMessage] = useState(
     "正在同步 GitRadar 当前状态…",
@@ -107,6 +154,7 @@ export default function App() {
   const currentFeedback = currentDigestItem
     ? feedbackState.repoStates[currentDigestItem.repo]
     : null;
+  const feedbackItems = savedViewFilter === "saved" ? savedItems : laterItems;
 
   async function hydrate(): Promise<void> {
     setBusyAction("hydrate");
@@ -119,12 +167,20 @@ export default function App() {
         preferencesResponse,
         feedbackResponse,
         archiveResponse,
+        savedResponse,
+        laterResponse,
+        llmResponse,
+        wecomResponse,
       ] = await Promise.all([
         fetchHealth(),
         fetchScheduleSettings(),
         fetchPreferences(),
         fetchFeedback(),
         fetchArchives(),
+        fetchFeedbackItems("saved"),
+        fetchFeedbackItems("later"),
+        fetchLlmSettings(),
+        fetchWecomSettings(),
       ]);
 
       setHealth(healthResponse);
@@ -134,6 +190,14 @@ export default function App() {
       setAvailableThemes(preferencesResponse.availableThemes);
       setFeedbackState(feedbackResponse.state);
       setArchives(archiveResponse.archives);
+      setSavedItems(savedResponse.items);
+      setLaterItems(laterResponse.items);
+      setLlmSettings(llmResponse);
+      setLlmApiKeyInput("");
+      setLlmBaseUrlInput(llmResponse.baseUrl ?? "");
+      setLlmModelInput(llmResponse.model ?? "");
+      setWecomSettings(wecomResponse);
+      setWecomWebhookInput("");
 
       const initialDate = archiveResponse.archives[0]?.date ?? "";
       setSelectedArchiveDate(initialDate);
@@ -146,12 +210,22 @@ export default function App() {
         setArchiveDetail(null);
       }
 
-      setStatusMessage("GitRadar 已同步到当前配置与归档状态。");
+      setStatusMessage("GitRadar 已同步到当前配置、反馈与归档状态。");
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
       setBusyAction("");
     }
+  }
+
+  async function refreshFeedbackCollections(): Promise<void> {
+    const [savedResponse, laterResponse] = await Promise.all([
+      fetchFeedbackItems("saved"),
+      fetchFeedbackItems("later"),
+    ]);
+
+    setSavedItems(savedResponse.items);
+    setLaterItems(laterResponse.items);
   }
 
   async function handleSaveSchedule(): Promise<void> {
@@ -190,6 +264,94 @@ export default function App() {
     }
   }
 
+  async function handleSaveLlmSettings(): Promise<void> {
+    setBusyAction("save-llm");
+    setErrorMessage("");
+
+    try {
+      const response = await saveLlmSettings({
+        apiKey: llmApiKeyInput.trim() || undefined,
+        baseUrl: llmBaseUrlInput.trim(),
+        model: llmModelInput.trim(),
+      });
+      setLlmSettings(response);
+      setLlmApiKeyInput("");
+      setLlmBaseUrlInput(response.baseUrl ?? "");
+      setLlmModelInput(response.model ?? "");
+      setStatusMessage("LLM 配置已写入 .env，尚未验证连通性。");
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setBusyAction("");
+    }
+  }
+
+  async function handleTestLlmSettings(): Promise<void> {
+    setBusyAction("test-llm");
+    setErrorMessage("");
+
+    try {
+      const response: LlmTestResult = await testLlmSettings();
+      setStatusMessage(
+        `${response.message} 模型：${response.model} · 地址：${response.baseUrl}`,
+      );
+      setLlmSettings((current) => ({
+        ...current,
+        configured: true,
+        baseUrl: response.baseUrl,
+        model: response.model,
+      }));
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setBusyAction("");
+    }
+  }
+
+  async function handleSaveWecomSettings(): Promise<void> {
+    const webhookUrl = wecomWebhookInput.trim();
+
+    if (!webhookUrl) {
+      setErrorMessage("请输入新的企业微信 Webhook 链接。");
+      return;
+    }
+
+    setBusyAction("save-wecom");
+    setErrorMessage("");
+
+    try {
+      const response = await saveWecomSettings({ webhookUrl });
+      setWecomSettings(response);
+      setWecomWebhookInput("");
+      setStatusMessage("企业微信 Webhook 已写入 .env 配置。");
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setBusyAction("");
+    }
+  }
+
+  async function handleSendWecomTest(): Promise<void> {
+    setBusyAction("test-wecom");
+    setErrorMessage("");
+
+    try {
+      const response = await sendWecomTest();
+      setStatusMessage(
+        `${response.message} 目标：${response.maskedWebhookUrl}`,
+      );
+      setWecomSettings((current) => ({
+        ...current,
+        configured: true,
+        maskedWebhookUrl: response.maskedWebhookUrl,
+      }));
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setBusyAction("");
+    }
+  }
+
   async function handleSelectArchive(date: string): Promise<void> {
     setSelectedArchiveDate(date);
     setCurrentItemIndex(0);
@@ -220,7 +382,8 @@ export default function App() {
         theme: currentDigestItem.theme,
       });
       setFeedbackState(response.state);
-      setStatusMessage("反馈已记录，后续日报会参考你的选择。");
+      await refreshFeedbackCollections();
+      setStatusMessage("反馈已记录，收藏与待看列表已同步更新。");
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -320,7 +483,9 @@ export default function App() {
       <section className="feedback-bar">
         <div className="feedback-main">
           <strong>{statusMessage}</strong>
-          <span>保存设置后重新启动 GitRadar，即可让新的调度配置生效。</span>
+          <span>
+            已区分配置写入、测试发送与归档反馈，不把按钮点击当成成功。
+          </span>
         </div>
 
         {errorMessage ? (
@@ -480,6 +645,141 @@ export default function App() {
             </div>
           </section>
 
+          <section className="panel llm-panel">
+            <header className="panel-header compact">
+              <div>
+                <p className="eyebrow">LLM</p>
+                <h2>模型配置</h2>
+              </div>
+              <div className="wecom-status">
+                {llmSettings.configured ? "已配置" : "未配置"}
+              </div>
+            </header>
+
+            <div className="wecom-details">
+              <div className="wecom-row">
+                <span>当前 API Key</span>
+                <strong>{llmSettings.maskedApiKey ?? "尚未配置"}</strong>
+              </div>
+              <div className="wecom-row">
+                <span>Base URL</span>
+                <strong>{llmSettings.baseUrl ?? "尚未配置"}</strong>
+              </div>
+              <div className="wecom-row">
+                <span>Model</span>
+                <strong>{llmSettings.model ?? "尚未配置"}</strong>
+              </div>
+              <div className="wecom-row">
+                <span>配置文件</span>
+                <strong>{llmSettings.envFilePath || "--"}</strong>
+              </div>
+            </div>
+
+            <label className="field">
+              <span>新的 API Key</span>
+              <input
+                autoComplete="off"
+                onChange={(event) => setLlmApiKeyInput(event.target.value)}
+                placeholder="留空表示保留当前 API Key，不会回显旧值"
+                type="password"
+                value={llmApiKeyInput}
+              />
+            </label>
+
+            <div className="schedule-grid">
+              <label className="field">
+                <span>Base URL</span>
+                <input
+                  onChange={(event) => setLlmBaseUrlInput(event.target.value)}
+                  placeholder="例如：https://your-openai-compatible-endpoint/v1"
+                  type="url"
+                  value={llmBaseUrlInput}
+                />
+              </label>
+
+              <label className="field">
+                <span>Model</span>
+                <input
+                  onChange={(event) => setLlmModelInput(event.target.value)}
+                  placeholder="例如：gpt-4.1-mini"
+                  type="text"
+                  value={llmModelInput}
+                />
+              </label>
+            </div>
+
+            <div className="action-row dual-actions">
+              <button
+                className="primary-button"
+                disabled={busyAction !== ""}
+                onClick={() => void handleSaveLlmSettings()}
+                type="button"
+              >
+                {busyAction === "save-llm" ? "保存中…" : "保存 LLM 配置"}
+              </button>
+              <button
+                className="ghost-button"
+                disabled={busyAction !== ""}
+                onClick={() => void handleTestLlmSettings()}
+                type="button"
+              >
+                {busyAction === "test-llm" ? "测试中…" : "测试连通性"}
+              </button>
+            </div>
+          </section>
+
+          <section className="panel wecom-panel">
+            <header className="panel-header compact">
+              <div>
+                <p className="eyebrow">WeCom</p>
+                <h2>企业微信机器人</h2>
+              </div>
+              <div className="wecom-status">
+                {wecomSettings.configured ? "已配置" : "未配置"}
+              </div>
+            </header>
+
+            <div className="wecom-details">
+              <div className="wecom-row">
+                <span>当前 Webhook</span>
+                <strong>{wecomSettings.maskedWebhookUrl ?? "尚未配置"}</strong>
+              </div>
+              <div className="wecom-row">
+                <span>配置文件</span>
+                <strong>{wecomSettings.envFilePath || "--"}</strong>
+              </div>
+            </div>
+
+            <label className="field">
+              <span>新的 Webhook 链接</span>
+              <input
+                type="url"
+                placeholder="输入新的企业微信 Webhook 链接，保存后会覆盖当前配置"
+                value={wecomWebhookInput}
+                onChange={(event) => setWecomWebhookInput(event.target.value)}
+              />
+            </label>
+
+            <div className="action-row dual-actions">
+              <button
+                className="primary-button"
+                disabled={busyAction !== ""}
+                onClick={() => void handleSaveWecomSettings()}
+                type="button"
+              >
+                {busyAction === "save-wecom" ? "保存中…" : "保存 Webhook"}
+              </button>
+              <button
+                className="ghost-button"
+                disabled={busyAction !== ""}
+                onClick={() => void handleSendWecomTest()}
+                type="button"
+              >
+                {busyAction === "test-wecom" ? "发送中…" : "发送测试消息"}
+              </button>
+            </div>
+          </section>
+
           <section className="panel feedback-summary-panel">
             <header className="panel-header compact">
               <div>
@@ -500,6 +800,95 @@ export default function App() {
               ))}
               {feedbackState.recent.length === 0 ? (
                 <div className="empty-inline">还没有任何反馈记录。</div>
+              ) : null}
+            </div>
+          </section>
+        </main>
+      ) : null}
+
+      {activeView === "saved" ? (
+        <main className="saved-page">
+          <section className="panel saved-panel">
+            <header className="panel-header">
+              <div>
+                <p className="eyebrow">Collection</p>
+                <h2>收藏与待看</h2>
+                <p className="reader-meta-line">
+                  只展示当前仍然生效的状态集合，按最新记录时间倒序排列。
+                </p>
+              </div>
+
+              <div className="collection-summary">
+                <MetaPill label="已收藏" value={String(savedItems.length)} />
+                <MetaPill label="待会看" value={String(laterItems.length)} />
+              </div>
+            </header>
+
+            <div
+              className="saved-filter-tabs"
+              role="tablist"
+              aria-label="收藏筛选"
+            >
+              <button
+                className={
+                  savedViewFilter === "saved" ? "view-tab active" : "view-tab"
+                }
+                onClick={() => setSavedViewFilter("saved")}
+                type="button"
+              >
+                已收藏
+              </button>
+              <button
+                className={
+                  savedViewFilter === "later" ? "view-tab active" : "view-tab"
+                }
+                onClick={() => setSavedViewFilter("later")}
+                type="button"
+              >
+                待会看
+              </button>
+            </div>
+
+            <div className="saved-list">
+              {feedbackItems.map((item) => (
+                <article
+                  key={`${item.repo}-${item.recordedAt}`}
+                  className="saved-item"
+                >
+                  <div className="saved-item-main">
+                    <div className="saved-item-heading">
+                      <span className="story-theme">
+                        {item.theme ?? "未分类"}
+                      </span>
+                      <h3>{item.repo}</h3>
+                    </div>
+                    <p className="saved-item-meta">
+                      来源日报 {item.date} · 记录于{" "}
+                      {formatDateTime(item.recordedAt)}
+                    </p>
+                  </div>
+
+                  <div className="saved-item-side">
+                    <span className="saved-item-state">
+                      {describeFeedbackAction(item.action)}
+                    </span>
+                    <a
+                      className="ghost-button link-button"
+                      href={toRepoUrl(item.repo)}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      打开仓库
+                    </a>
+                  </div>
+                </article>
+              ))}
+
+              {feedbackItems.length === 0 ? (
+                <div className="empty-state">
+                  当前还没有{savedViewFilter === "saved" ? "已收藏" : "待会看"}
+                  项目。
+                </div>
               ) : null}
             </div>
           </section>
@@ -713,4 +1102,8 @@ function describeFeedbackAction(action: FeedbackAction): string {
   }
 
   return "稍后看";
+}
+
+function toRepoUrl(repo: string): string {
+  return `https://github.com/${repo}`;
 }

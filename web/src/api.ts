@@ -47,6 +47,14 @@ export interface FeedbackState {
   recent: FeedbackEvent[];
 }
 
+export interface FeedbackListItem {
+  repo: string;
+  date: string;
+  action: FeedbackAction;
+  theme?: string;
+  recordedAt: string;
+}
+
 export interface ArchiveSummary {
   date: string;
   generatedAt: string;
@@ -56,6 +64,33 @@ export interface ArchiveSummary {
   title: string;
   editorialMode: string;
   topRepos: string[];
+}
+
+export interface WecomSettings {
+  configured: boolean;
+  maskedWebhookUrl: string | null;
+  envFilePath: string;
+}
+
+export interface LlmSettings {
+  configured: boolean;
+  maskedApiKey: string | null;
+  baseUrl: string | null;
+  model: string | null;
+  envFilePath: string;
+}
+
+export interface WecomTestResult {
+  ok: true;
+  message: string;
+  maskedWebhookUrl: string;
+}
+
+export interface LlmTestResult {
+  ok: true;
+  message: string;
+  model: string;
+  baseUrl: string;
 }
 
 export async function fetchHealth(): Promise<{
@@ -109,6 +144,13 @@ export async function fetchFeedback(): Promise<{ state: FeedbackState }> {
   return fetchJson("/api/feedback");
 }
 
+export async function fetchFeedbackItems(action?: FeedbackAction): Promise<{
+  items: FeedbackListItem[];
+}> {
+  const query = action ? `?action=${encodeURIComponent(action)}` : "";
+  return fetchJson(`/api/feedback/items${query}`);
+}
+
 export async function recordFeedback(input: {
   repo: string;
   date: string;
@@ -123,6 +165,46 @@ export async function recordFeedback(input: {
 
 export async function fetchArchives(): Promise<{ archives: ArchiveSummary[] }> {
   return fetchJson("/api/archives");
+}
+
+export async function fetchWecomSettings(): Promise<WecomSettings> {
+  return fetchJson("/api/settings/wecom");
+}
+
+export async function fetchLlmSettings(): Promise<LlmSettings> {
+  return fetchJson("/api/settings/llm");
+}
+
+export async function saveLlmSettings(input: {
+  apiKey?: string;
+  baseUrl: string;
+  model: string;
+}): Promise<LlmSettings> {
+  return fetchJson("/api/settings/llm", {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function testLlmSettings(): Promise<LlmTestResult> {
+  return fetchJson("/api/settings/llm/test", {
+    method: "POST",
+  });
+}
+
+export async function saveWecomSettings(input: {
+  webhookUrl: string;
+}): Promise<WecomSettings> {
+  return fetchJson("/api/settings/wecom", {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function sendWecomTest(): Promise<WecomTestResult> {
+  return fetchJson("/api/settings/wecom/test", {
+    method: "POST",
+  });
 }
 
 export async function fetchArchiveDetail(date: string): Promise<{
