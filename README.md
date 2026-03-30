@@ -26,6 +26,8 @@ GitRadar 现在已经具备这些稳定能力：
 - digest 规则配置文件化：`config/digest-rules.json`
 - 规则独立校验：`npm run validate:digest-rules`
 - 日报归档、迁移、分析和历史重发
+- 反馈闭环：网页里可以对项目标记“收藏 / 稍后看 / 跳过”
+- 反馈终端复盘：`npm run feedback:list`
 - 企业微信群机器人发送与失败留痕
 - GitHub Actions 每日自动运行
 - 本地中文控制台：规则配置、执行中心、归档浏览
@@ -105,7 +107,7 @@ docker compose down
 - 仪表盘：规则版本、最近归档、最近命令状态、快捷动作
 - 规则配置：主题、黑名单、阈值、权重的结构化编辑
 - 执行中心：校验、生成、发送样例、归档分析与终端日志
-- 归档浏览：日报详情、LLM 候选池、排除原因
+- 归档浏览：日报详情、左右翻页阅读和“收藏 / 稍后看 / 跳过”反馈
 
 控制台通过本地 API 工作，默认只监听本机，不面向公网多用户部署。
 
@@ -121,6 +123,9 @@ npm run generate:digest
 npm run generate:digest -- --send
 npm run analyze:digest -- --date 2026-03-26
 npm run analyze:digest -- --date 2026-03-26 --format json
+npm run feedback:list
+npm run feedback:list -- --action saved
+npm run feedback:list -- --action later --format json
 npm run migrate:archives
 npm run migrate:archives -- --dry-run
 npm run send:wecom:sample
@@ -132,8 +137,26 @@ npm run send:wecom:sample
 - `generate:digest`：抓取、筛选、成稿并写归档
 - `generate:digest -- --send`：生成后发送企业微信
 - `analyze:digest -- --date YYYY-MM-DD`：分析某天归档
+- `feedback:list`：查看本地反馈记录，支持按动作、主题、仓库筛选
 - `migrate:archives`：把旧归档迁移到当前 schema
 - `send:wecom:sample`：发送样例消息验证机器人链路
+
+`feedback:list` 常用写法：
+
+```bash
+npm run feedback:list
+npm run feedback:list -- --action saved
+npm run feedback:list -- --action later --theme "AI Agents"
+npm run feedback:list -- --repo owner/alpha-agent --format json
+```
+
+支持参数：
+
+- `--action saved|later|skipped`
+- `--theme <主题名>`
+- `--repo <owner/name>`
+- `--limit <数量>`
+- `--format text|json`
 
 ## 开发模式
 

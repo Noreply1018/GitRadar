@@ -1,6 +1,6 @@
 {
   "name": "gitradar",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "license": "MIT",
   "private": true,
   "description": "Personal GitHub open-source discovery radar.",
@@ -8,6 +8,7 @@
     "generate:digest": "tsx src/commands/generate-daily-digest.ts",
     "generate:digest:send": "tsx src/commands/generate-daily-digest.ts --send",
     "analyze:digest": "tsx src/commands/analyze-digest.ts",
+    "feedback:list": "tsx src/commands/list-feedback.ts",
     "validate:digest-rules": "tsx src/commands/validate-digest-rules.ts",
     "migrate:archives": "tsx src/commands/migrate-archives.ts",
     "send:wecom:sample": "tsx src/commands/send-wecom-sample.ts",
