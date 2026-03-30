@@ -182,6 +182,7 @@ npm test
 
 ## 文档索引
 
+- [中文网页前端实施蓝图](./docs/web-frontend-blueprint.md)
 - [项目展示页](./docs/showcase.md)
 - [社交传播套件](./docs/social-preview-kit.md)
 - [GitHub Profile 置顶配置清单](./docs/profile-pinned-checklist.md)
