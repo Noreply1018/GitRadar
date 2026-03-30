@@ -1,4 +1,7 @@
 {
-  "preferredThemes": ["AI Agents", "Infra & Runtime"],
+  "preferredThemes": [
+    "AI Agents",
+    "Infra & Runtime"
+  ],
   "customTopics": []
 }
