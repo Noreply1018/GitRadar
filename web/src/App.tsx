@@ -46,6 +46,11 @@ interface ValidationStatus {
   detail: string;
 }
 
+interface EnvironmentValidationResult {
+  label: string;
+  validation: ValidationStatus;
+}
+
 const VIEWS: Array<{ id: ViewId; label: string }> = [
   { id: "environment", label: "环境配置" },
   { id: "preferences", label: "主题偏好" },
@@ -140,6 +145,7 @@ export default function App() {
   const [busyAction, setBusyAction] = useState<
     | ""
     | "hydrate"
+    | "validate-environment"
     | "save-schedule"
     | "save-preferences"
     | "record-feedback"
@@ -201,17 +207,7 @@ export default function App() {
     ),
     buildEnvironmentCard("LLM 模型", llmSettings.configured, llmValidation),
     buildEnvironmentCard("企业微信", wecomSettings.configured, wecomValidation),
-    {
-      label: "调度",
-      configured: Boolean(scheduleDraft),
-      status: scheduleDraft ? "已配置" : "待配置",
-      detail: scheduleDraft
-        ? `${scheduleDraft.dailySendTime} · ${describeTimezone(
-            scheduleDraft.timezone,
-            timezoneOptions,
-          )}`
-        : "尚未读取配置",
-    },
+    buildScheduleCard(scheduleDraft, timezoneOptions),
   ];
 
   async function hydrate(): Promise<void> {
@@ -356,24 +352,15 @@ export default function App() {
     setBusyAction("test-github");
     setErrorMessage("");
 
-    try {
-      const response: GitHubTestResult = await testGitHubSettings();
-      setGitHubValidation({
-        state: "passed",
-        detail: `账号 ${response.login}`,
-      });
-      setStatusMessage(
-        `${response.message} 账号：${response.login} · 地址：${response.apiBaseUrl}`,
-      );
-    } catch (error) {
-      setGitHubValidation({
-        state: "failed",
-        detail: getErrorMessage(error),
-      });
-      setErrorMessage(getErrorMessage(error));
-    } finally {
-      setBusyAction("");
+    const validation = await runGitHubValidation();
+
+    if (validation.state === "passed") {
+      setStatusMessage(`GitHub 连通性测试通过。${validation.detail}`);
+    } else {
+      setErrorMessage(validation.detail);
     }
+
+    setBusyAction("");
   }
 
   async function handleSaveLlmSettings(): Promise<void> {
@@ -407,30 +394,15 @@ export default function App() {
     setBusyAction("test-llm");
     setErrorMessage("");
 
-    try {
-      const response: LlmTestResult = await testLlmSettings();
-      setLlmValidation({
-        state: "passed",
-        detail: `${response.model}`,
-      });
-      setStatusMessage(
-        `${response.message} 模型：${response.model} · 地址：${response.baseUrl}`,
-      );
-      setLlmSettings((current) => ({
-        ...current,
-        configured: true,
-        baseUrl: response.baseUrl,
-        model: response.model,
-      }));
-    } catch (error) {
-      setLlmValidation({
-        state: "failed",
-        detail: getErrorMessage(error),
-      });
-      setErrorMessage(getErrorMessage(error));
-    } finally {
-      setBusyAction("");
+    const validation = await runLlmValidation();
+
+    if (validation.state === "passed") {
+      setStatusMessage(`LLM 连通性测试通过。${validation.detail}`);
+    } else {
+      setErrorMessage(validation.detail);
     }
+
+    setBusyAction("");
   }
 
   async function handleSaveWecomSettings(): Promise<void> {
@@ -469,28 +441,126 @@ export default function App() {
     setBusyAction("test-wecom");
     setErrorMessage("");
 
+    const validation = await runWecomValidation();
+
+    if (validation.state === "passed") {
+      setStatusMessage(`企业微信测试消息发送成功。${validation.detail}`);
+    } else {
+      setErrorMessage(validation.detail);
+    }
+
+    setBusyAction("");
+  }
+
+  async function handleValidateEnvironment(): Promise<void> {
+    setBusyAction("validate-environment");
+    setErrorMessage("");
+
+    try {
+      const results: EnvironmentValidationResult[] = [
+        { label: "GitHub", validation: await runGitHubValidation() },
+        { label: "LLM", validation: await runLlmValidation() },
+        { label: "企业微信", validation: await runWecomValidation() },
+        {
+          label: "调度",
+          validation: validateScheduleConfiguration(
+            scheduleDraft,
+            timezoneOptions,
+          ),
+        },
+      ];
+      const failedResults = results.filter(
+        (result) => result.validation.state === "failed",
+      );
+      const passedResults = results.filter(
+        (result) => result.validation.state === "passed",
+      );
+
+      if (failedResults.length > 0) {
+        setErrorMessage(
+          failedResults
+            .map((result) => `${result.label}：${result.validation.detail}`)
+            .join("；"),
+        );
+        setStatusMessage(
+          `环境验证完成：${passedResults.length} 项通过，${failedResults.length} 项需处理。调度仅做本地配置检查。`,
+        );
+        return;
+      }
+
+      setStatusMessage(
+        "环境验证完成：GitHub、LLM、企业微信通过，调度配置有效。调度仅做本地配置检查。",
+      );
+    } finally {
+      setBusyAction("");
+    }
+  }
+
+  async function runGitHubValidation(): Promise<ValidationStatus> {
+    try {
+      const response: GitHubTestResult = await testGitHubSettings();
+      const validation = {
+        state: "passed" as const,
+        detail: `账号 ${response.login} · ${response.apiBaseUrl}`,
+      };
+      setGitHubValidation(validation);
+      return validation;
+    } catch (error) {
+      const validation = {
+        state: "failed" as const,
+        detail: getErrorMessage(error),
+      };
+      setGitHubValidation(validation);
+      return validation;
+    }
+  }
+
+  async function runLlmValidation(): Promise<ValidationStatus> {
+    try {
+      const response: LlmTestResult = await testLlmSettings();
+      const validation = {
+        state: "passed" as const,
+        detail: `${response.model} · ${response.baseUrl}`,
+      };
+      setLlmValidation(validation);
+      setLlmSettings((current) => ({
+        ...current,
+        configured: true,
+        baseUrl: response.baseUrl,
+        model: response.model,
+      }));
+      return validation;
+    } catch (error) {
+      const validation = {
+        state: "failed" as const,
+        detail: getErrorMessage(error),
+      };
+      setLlmValidation(validation);
+      return validation;
+    }
+  }
+
+  async function runWecomValidation(): Promise<ValidationStatus> {
     try {
       const response = await sendWecomTest();
-      setWecomValidation({
-        state: "passed",
-        detail: response.maskedWebhookUrl,
-      });
-      setStatusMessage(
-        `${response.message} 目标：${response.maskedWebhookUrl}`,
-      );
+      const validation = {
+        state: "passed" as const,
+        detail: `目标 ${response.maskedWebhookUrl}`,
+      };
+      setWecomValidation(validation);
       setWecomSettings((current) => ({
         ...current,
         configured: true,
         maskedWebhookUrl: response.maskedWebhookUrl,
       }));
+      return validation;
     } catch (error) {
-      setWecomValidation({
-        state: "failed",
+      const validation = {
+        state: "failed" as const,
         detail: getErrorMessage(error),
-      });
-      setErrorMessage(getErrorMessage(error));
-    } finally {
-      setBusyAction("");
+      };
+      setWecomValidation(validation);
+      return validation;
     }
   }
 
@@ -677,6 +747,16 @@ export default function App() {
                 <p className="eyebrow">Environment</p>
                 <h2>环境摘要</h2>
               </div>
+              <button
+                className="primary-button"
+                disabled={busyAction !== ""}
+                onClick={() => void handleValidateEnvironment()}
+                type="button"
+              >
+                {busyAction === "validate-environment"
+                  ? "验证中…"
+                  : "一键验证环境"}
+              </button>
             </header>
 
             <div className="environment-card-grid">
@@ -1408,6 +1488,20 @@ function buildEnvironmentCard(
   };
 }
 
+function buildScheduleCard(
+  schedule: ScheduleSettings | null,
+  options: TimezoneOption[],
+) {
+  const validation = validateScheduleConfiguration(schedule, options);
+
+  return {
+    label: "调度",
+    configured: validation.state === "passed",
+    status: validation.state === "passed" ? "已配置" : "待配置",
+    detail: validation.detail,
+  };
+}
+
 function buildStatusLabel(
   configured: boolean,
   validation: ValidationStatus,
@@ -1425,6 +1519,26 @@ function buildStatusLabel(
   }
 
   return "已配置未验证";
+}
+
+function validateScheduleConfiguration(
+  schedule: ScheduleSettings | null,
+  options: TimezoneOption[],
+): ValidationStatus {
+  if (!schedule?.dailySendTime || !schedule.timezone) {
+    return {
+      state: "failed",
+      detail: "尚未配置发送时间或时区",
+    };
+  }
+
+  return {
+    state: "passed",
+    detail: `${schedule.dailySendTime} · ${describeTimezone(
+      schedule.timezone,
+      options,
+    )} · 需重启后生效`,
+  };
 }
 
 function describeTimezone(
