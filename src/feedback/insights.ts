@@ -82,7 +82,10 @@ function buildPreferenceSuggestion(
 
   for (const theme of interestedThemes) {
     const recentSaved = streakByTheme.get(theme.theme) ?? 0;
-    if (preferredThemeSet.has(theme.theme) || recentSaved < SUGGESTION_MIN_SAVED) {
+    if (
+      preferredThemeSet.has(theme.theme) ||
+      recentSaved < SUGGESTION_MIN_SAVED
+    ) {
       continue;
     }
 

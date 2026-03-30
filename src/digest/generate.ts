@@ -213,9 +213,7 @@ export async function generateDailyDigest(
           context: {
             archivePath: path.resolve(archivePath),
             digestTitle: digest.title,
-            digestItemRepos: digest.items.map(
-              (item) => item.repo,
-            ),
+            digestItemRepos: digest.items.map((item) => item.repo),
           },
           digestDate: date,
         });
@@ -279,8 +277,12 @@ function markExplorationItem(
   const interestedThemes = new Set(
     insights.interestedThemes.map((item) => item.theme),
   );
-  const skippedThemes = new Set(insights.skippedThemes.map((item) => item.theme));
-  const candidateByRepo = new Map(candidates.map((candidate) => [candidate.repo, candidate]));
+  const skippedThemes = new Set(
+    insights.skippedThemes.map((item) => item.theme),
+  );
+  const candidateByRepo = new Map(
+    candidates.map((candidate) => [candidate.repo, candidate]),
+  );
 
   const exploration = digest.items.find((item) => {
     if (preferredThemes.has(item.theme) || interestedThemes.has(item.theme)) {
@@ -294,7 +296,8 @@ function markExplorationItem(
     const candidate = candidateByRepo.get(item.repo);
     return Boolean(
       candidate &&
-        (candidate.sources.length >= 2 || candidate.selectionHints?.matureMomentum),
+        (candidate.sources.length >= 2 ||
+          candidate.selectionHints?.matureMomentum),
     );
   });
 

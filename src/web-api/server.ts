@@ -120,8 +120,15 @@ async function handleRequest(
       return sendJson(response, 200, await readWecomSettings(ROOT_DIR));
     }
 
-    if (request.method === "GET" && pathname === "/api/environment/fingerprints") {
-      return sendJson(response, 200, await readEnvironmentFingerprints(ROOT_DIR));
+    if (
+      request.method === "GET" &&
+      pathname === "/api/environment/fingerprints"
+    ) {
+      return sendJson(
+        response,
+        200,
+        await readEnvironmentFingerprints(ROOT_DIR),
+      );
     }
 
     if (request.method === "GET" && pathname === "/api/feedback") {
@@ -275,7 +282,9 @@ async function handleRequest(
       pathname.startsWith("/api/feedback/suggestions/")
     ) {
       const theme = decodeURIComponent(
-        pathname.replace("/api/feedback/suggestions/", "").replace(/\/accept$/, ""),
+        pathname
+          .replace("/api/feedback/suggestions/", "")
+          .replace(/\/accept$/, ""),
       );
 
       if (!pathname.endsWith("/accept")) {
@@ -289,7 +298,10 @@ async function handleRequest(
         const nextPreferences = {
           ...preferencesResponse.preferences,
           preferredThemes: Array.from(
-            new Set([...preferencesResponse.preferences.preferredThemes, theme]),
+            new Set([
+              ...preferencesResponse.preferences.preferredThemes,
+              theme,
+            ]),
           ),
         };
         await writeUserPreferences(ROOT_DIR, nextPreferences);

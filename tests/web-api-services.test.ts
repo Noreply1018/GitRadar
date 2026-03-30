@@ -42,9 +42,7 @@ import {
   saveGitHubSettings,
   testGitHubSettings,
 } from "../src/web-api/services/github-settings-service";
-import {
-  readEnvironmentFingerprints,
-} from "../src/web-api/services/environment-fingerprint-service";
+import { readEnvironmentFingerprints } from "../src/web-api/services/environment-fingerprint-service";
 
 let activeServer: ReturnType<typeof createServer> | null = null;
 

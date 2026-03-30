@@ -141,8 +141,9 @@ export default function App() {
   const [customTopicInput, setCustomTopicInput] = useState("");
   const [feedbackState, setFeedbackState] =
     useState<FeedbackState>(EMPTY_FEEDBACK_STATE);
-  const [feedbackInsights, setFeedbackInsights] =
-    useState<FeedbackInsights>(EMPTY_FEEDBACK_INSIGHTS);
+  const [feedbackInsights, setFeedbackInsights] = useState<FeedbackInsights>(
+    EMPTY_FEEDBACK_INSIGHTS,
+  );
   const [savedItems, setSavedItems] = useState<FeedbackListItem[]>([]);
   const [laterItems, setLaterItems] = useState<FeedbackListItem[]>([]);
   const [savedViewFilter, setSavedViewFilter] =
@@ -699,7 +700,9 @@ export default function App() {
     }
   }
 
-  async function handleAcceptPreferenceSuggestion(theme: string): Promise<void> {
+  async function handleAcceptPreferenceSuggestion(
+    theme: string,
+  ): Promise<void> {
     setBusyAction("accept-suggestion");
     setErrorMessage("");
 
@@ -716,7 +719,9 @@ export default function App() {
           skippedThemes: response.insights.skippedThemes,
         },
       }));
-      setStatusMessage(`已把 ${theme} 加入关心主题，后续日报会更主动保留这类项目。`);
+      setStatusMessage(
+        `已把 ${theme} 加入关心主题，后续日报会更主动保留这类项目。`,
+      );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -891,7 +896,9 @@ export default function App() {
                 <span>最近验证</span>
                 <strong>
                   {environmentFingerprints.github
-                    ? formatDateTime(environmentFingerprints.github.lastValidatedAt)
+                    ? formatDateTime(
+                        environmentFingerprints.github.lastValidatedAt,
+                      )
                     : "尚无成功记录"}
                 </strong>
               </div>
@@ -976,7 +983,9 @@ export default function App() {
                 <span>最近验证</span>
                 <strong>
                   {environmentFingerprints.llm
-                    ? formatDateTime(environmentFingerprints.llm.lastValidatedAt)
+                    ? formatDateTime(
+                        environmentFingerprints.llm.lastValidatedAt,
+                      )
                     : "尚无成功记录"}
                 </strong>
               </div>
@@ -1074,7 +1083,9 @@ export default function App() {
                 <span>最近测试发送</span>
                 <strong>
                   {environmentFingerprints.wecom
-                    ? formatDateTime(environmentFingerprints.wecom.lastValidatedAt)
+                    ? formatDateTime(
+                        environmentFingerprints.wecom.lastValidatedAt,
+                      )
                     : "尚无成功记录"}
                 </strong>
               </div>
@@ -1518,7 +1529,9 @@ export default function App() {
                     </div>
 
                     {currentDigestItem.readerNote ? (
-                      <p className="story-note">{currentDigestItem.readerNote}</p>
+                      <p className="story-note">
+                        {currentDigestItem.readerNote}
+                      </p>
                     ) : null}
 
                     <div className="feedback-actions">

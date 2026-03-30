@@ -129,21 +129,31 @@ function buildEditorialIntro(archive: DailyDigestArchive): string[] {
       `今天偏向 ${leadingTheme[0]}，因为这一类候选在当前信号池里最集中，最终成稿里占了 ${leadingTheme[1]} 条。`,
     );
   } else {
-    lines.push("今天这期更强调少而准，优先保留近期信号和项目形态都更明确的仓库。");
+    lines.push(
+      "今天这期更强调少而准，优先保留近期信号和项目形态都更明确的仓库。",
+    );
   }
 
   if (matureCount > 0) {
-    lines.push(`这期保留了 ${matureCount} 条成熟项目回暖位，避免日报只追新而错过重新升温的老牌仓库。`);
+    lines.push(
+      `这期保留了 ${matureCount} 条成熟项目回暖位，避免日报只追新而错过重新升温的老牌仓库。`,
+    );
   } else if (multiSourceCount > 0) {
-    lines.push(`其中 ${multiSourceCount} 条同时命中多来源信号，今天整体更偏“近期活跃且证据够硬”的编辑判断。`);
+    lines.push(
+      `其中 ${multiSourceCount} 条同时命中多来源信号，今天整体更偏“近期活跃且证据够硬”的编辑判断。`,
+    );
   } else {
     lines.push("今天的入选更看重近期推进节奏和可读性，而不是单一热度。");
   }
 
   if (explorationItem) {
-    lines.push(`另外补了一条探索位 ${explorationItem.theme}，刻意给阅读范围留出一点跳出舒适区的空间。`);
+    lines.push(
+      `另外补了一条探索位 ${explorationItem.theme}，刻意给阅读范围留出一点跳出舒适区的空间。`,
+    );
   } else {
-    lines.push("整体仍然保持主题分散，尽量让今天的列表既有判断也不失横向视野。");
+    lines.push(
+      "整体仍然保持主题分散，尽量让今天的列表既有判断也不失横向视野。",
+    );
   }
 
   return lines.slice(0, 3);
