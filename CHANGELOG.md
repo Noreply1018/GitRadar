@@ -12,11 +12,13 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 - 新增 `web/` 前端工程，使用 `Vite + React + TypeScript`
 - 新增 `src/web-api/` 本地 API 层，用于规则配置读写、命令执行白名单和归档读取
 - 新增 `npm run dev:web`、`npm run dev:web-api`、`npm run build:web`、`npm run start:console`
+- 新增 Docker 运行层，包含 `Dockerfile`、`docker-compose.yml`、容器入口脚本和容器内每日定时任务
+- 新增 Windows 启动脚本 `start-gitradar.bat` 与 `stop-gitradar.bat`
 
 ### Changed
 
 - 仓库版本推进到 `1.3.0`
-- README 已改写为当前 CLI + 中文控制台双入口产品状态
+- README 已改写为当前 CLI + 中文控制台 + Docker + Windows 双击启动产品状态
 - 版本与开发文档已切换到分支 + PR + CI 的受保护主分支工作流
 
 ## [1.2.0] - 2026-03-28

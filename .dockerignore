@@ -1,0 +1,17 @@
+.env
+.git
+.github
+node_modules
+web/dist
+coverage
+.cache
+tmp
+runtime
+reports
+data/history/*.json
+data/history/*.jsonl
+data/history/*.html
+data/history/*.md
+data/runtime/*
+data/cache/*
+data/exports/*

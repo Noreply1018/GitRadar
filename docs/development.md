@@ -32,6 +32,8 @@ GitRadar 当前处于：
 - `tests/`：单元和集成测试
 - `web/`：中文网页控制台前端
 - `scripts/`：手动运维、重发、调试和迁移脚本
+- `scripts/docker/`：容器入口与定时任务脚本
+- `scripts/windows/`：Windows 启动辅助脚本
 - `config/`：规则、主题、配置说明和模板约定
 - `data/history/`：日报归档
 - `data/runtime/`：运行期临时数据，不入库
@@ -82,7 +84,11 @@ GitRadar 当前默认保持以下边界：
 - 中文控制台 API 启动命令是 `npm run dev:web-api`
 - 中文控制台前端开发命令是 `npm run dev:web`
 - 构建后通过同源方式启动控制台可使用 `npm run build:web && npm run start:console`
+- Docker 本地运行入口是 `docker compose up --build`
+- Windows 双击启动入口是仓库根目录 `start-gitradar.bat`
+- Windows 停止入口是仓库根目录 `stop-gitradar.bat`
 - 真实发送入口是 `npm run generate:digest -- --send`
+- Docker 容器内每日任务入口是 `npm run generate:digest:send`
 - 补发入口是 `npm run generate:digest -- --resend-date YYYY-MM-DD`
 - 分析入口是 `npm run analyze:digest -- --date YYYY-MM-DD`
 - 运行期失败报告默认写入 `data/runtime/failures/`
@@ -103,6 +109,12 @@ GitRadar 当前默认保持以下边界：
 3. `npm run lint:yaml`
 4. `npm run typecheck`
 5. `npm test`
+
+如果涉及 Docker 或 Windows 启动器，还应额外验证：
+
+- `docker compose up --build`
+- `http://127.0.0.1:3210/api/health`
+- `start-gitradar.bat` 的依赖检查、等待逻辑和浏览器打开行为
 
 如果涉及真实发送链路且本机具备凭据，还应补一次真实终端验证，并保留：
 

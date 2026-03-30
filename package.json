@@ -6,6 +6,7 @@
   "description": "Personal GitHub open-source discovery radar.",
   "scripts": {
     "generate:digest": "tsx src/commands/generate-daily-digest.ts",
+    "generate:digest:send": "tsx src/commands/generate-daily-digest.ts --send",
     "analyze:digest": "tsx src/commands/analyze-digest.ts",
     "validate:digest-rules": "tsx src/commands/validate-digest-rules.ts",
     "migrate:archives": "tsx src/commands/migrate-archives.ts",
@@ -13,6 +14,7 @@
     "dev:web": "vite --config web/vite.config.ts",
     "dev:web-api": "tsx src/web-api/server.ts",
     "start:console": "tsx src/web-api/server.ts",
+    "start:console:docker": "tsx src/web-api/server.ts --host 0.0.0.0 --port 3210",
     "build:web": "vite build --config web/vite.config.ts",
     "format:check": "prettier --check .",
     "lint:md": "markdownlint README.md CHANGELOG.md SECURITY.md .github/**/*.md docs/**/*.md config/**/*.md data/**/*.md scripts/**/*.md src/**/*.md",

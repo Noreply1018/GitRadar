@@ -10,7 +10,12 @@
 
 GitRadar 是一个面向个人和小团队的 GitHub 开源项目雷达。它每天从 GitHub Trending、最近更新、最近创建三类来源里抓取候选仓库，经过规则筛选、主题去重、候选池收敛和证据整理后，生成 6 到 8 条中文日报，支持企业微信群机器人发送，并把完整过程归档到本地。
 
-当前主线正在推进 `v1.3.0`：在保留现有 CLI 主流程的前提下，新增一个本地中文网页控制台，把规则配置、命令执行和归档浏览收口到同一套工作界面。
+当前版本把 GitRadar 收口成两层能力：
+
+- 产品内核：CLI + 规则配置 + 归档 + 企业微信发送
+- 本地使用层：中文网页控制台 + Docker 容器 + Windows 双击启动脚本
+
+这意味着你可以继续像开发者一样直接跑 CLI，也可以把仓库 clone 到 Windows 本机后，通过 `.bat` 双击直接启动 GitRadar 并打开网页前端。
 
 ## 当前产品状态
 
@@ -23,49 +28,136 @@ GitRadar 现在已经具备这些稳定能力：
 - 日报归档、迁移、分析和历史重发
 - 企业微信群机器人发送与失败留痕
 - GitHub Actions 每日自动运行
-- 本地中文控制台第一期：规则配置、执行中心、归档浏览
+- 本地中文控制台：规则配置、执行中心、归档浏览
+- Docker 本地运行：控制台和每日任务一起封装进容器
+- Windows 双击启动：`start-gitradar.bat`
 
 它不是一个“抄 GitHub 热榜”的脚本，而是一个强调“为什么今天值得看”的解释型发现引擎。
 
-## 当前交互面
+## Windows 双击启动
 
-GitRadar 当前同时提供两套入口：
+这是当前最推荐的本地使用方式。
 
-- CLI：适合脚本化、自动化和 CI
-- 中文网页控制台：适合改规则、看日志、浏览归档
+前提：
 
-两套入口共享同一套内核边界：
+- 已安装并启动 Docker Desktop
+- 已把仓库 clone 到本机
+- 已准备好 `.env`
 
-- 环境配置：`src/config/env.ts`
-- 规则配置：`src/config/digest-rules.ts`
-- 规则文件：`config/digest-rules.json`
-- 归档模型：`src/core/archive.ts`
-- 命令入口：`src/commands/*.ts`
-
-网页控制台不会替代现有 CLI，而是把已有能力可视化。
-
-## 一个典型工作流
-
-GitRadar 的主链路仍然是固定流水线：
-
-1. 抓取 GitHub Trending 仓库
-2. 通过 GitHub Search API 获取最近更新和最近创建候选
-3. 读取 README 摘要补足上下文
-4. 根据规则配置过滤低质量仓库并计算结构化评分
-5. 推断主题，构造 shortlist 和 LLM 候选池
-6. 让模型只在受限候选池内生成 6 到 8 条中文日报
-7. 写入 `data/history/YYYY-MM-DD.json`
-8. 显式发送时推送到企业微信群机器人
-
-模型只负责最终中文成稿，不负责额外搜索、捏造 repo 或补造证据。
-
-## 快速开始
-
-准备本地环境：
+首次准备：
 
 ```bash
 cp .env.example .env
 ```
+
+Windows 上直接双击：
+
+- `start-gitradar.bat`：启动 Docker 服务并自动打开网页前端
+- `stop-gitradar.bat`：停止 Docker 服务
+
+双击 `start-gitradar.bat` 后，脚本会自动完成这些动作：
+
+1. 检查 Docker Desktop 和 `docker compose` 是否可用
+2. 检查 `.env` 是否存在
+3. 启动或构建 GitRadar 容器
+4. 等待控制台健康检查通过
+5. 自动打开 `http://127.0.0.1:3210`
+6. 保留一个 Docker 服务窗口显示日志
+
+## Docker 本地运行
+
+GitRadar 当前的 Docker 方案默认包含两部分：
+
+- 中文网页控制台
+- 容器内每日定时任务
+
+默认行为：
+
+- 控制台端口：`http://127.0.0.1:3210`
+- 容器时区：`Asia/Shanghai`
+- 每日任务时间：`08:17`
+- 容器内定时命令：`npm run generate:digest:send`
+
+如果你不用 `.bat`，也可以直接手动运行：
+
+```bash
+docker compose up --build
+```
+
+停止：
+
+```bash
+docker compose down
+```
+
+挂载策略：
+
+- `config/`：规则配置保留在宿主机
+- `data/`：历史归档、失败报告、缓存和导出保留在宿主机
+- `.env`：通过 `env_file` 和只读挂载注入容器
+
+这保证了你在网页里改规则、运行命令、生成归档后，本机仓库目录里能直接看到结果。
+
+## 中文网页控制台
+
+控制台当前包含 4 个主要区域：
+
+- 仪表盘：规则版本、最近归档、最近命令状态、快捷动作
+- 规则配置：主题、黑名单、阈值、权重的结构化编辑
+- 执行中心：校验、生成、发送样例、归档分析与终端日志
+- 归档浏览：日报详情、LLM 候选池、排除原因
+
+控制台通过本地 API 工作，默认只监听本机，不面向公网多用户部署。
+
+## 常用 CLI 命令
+
+GitRadar 仍然保留完整 CLI 能力，适合开发、调试和 CI：
+
+```bash
+npm install
+npm run validate:digest-rules
+npm run validate:digest-rules -- --format json
+npm run generate:digest
+npm run generate:digest -- --send
+npm run analyze:digest -- --date 2026-03-26
+npm run analyze:digest -- --date 2026-03-26 --format json
+npm run migrate:archives
+npm run migrate:archives -- --dry-run
+npm run send:wecom:sample
+```
+
+命令说明：
+
+- `validate:digest-rules`：校验 `config/digest-rules.json`
+- `generate:digest`：抓取、筛选、成稿并写归档
+- `generate:digest -- --send`：生成后发送企业微信
+- `analyze:digest -- --date YYYY-MM-DD`：分析某天归档
+- `migrate:archives`：把旧归档迁移到当前 schema
+- `send:wecom:sample`：发送样例消息验证机器人链路
+
+## 开发模式
+
+如果你是在本地继续开发网页控制台，而不是作为普通用户使用 Docker：
+
+```bash
+npm install
+npm run dev:web-api
+npm run dev:web
+```
+
+开发端口：
+
+- API：`http://127.0.0.1:3210`
+- 前端开发服务：`http://127.0.0.1:4173`
+
+如果只想构建网页前端并通过同源方式访问：
+
+```bash
+npm run build:web
+npm run start:console
+```
+
+## 环境变量
 
 必填环境变量：
 
@@ -79,87 +171,6 @@ cp .env.example .env
 
 - `GR_GH_API_URL`
 - `GR_GH_TRENDING_URL`
-
-推荐的第一次检查顺序：
-
-```bash
-npm install
-npm run validate:digest-rules
-npm run typecheck
-npm test
-```
-
-## 常用 CLI 命令
-
-```bash
-npm run validate:digest-rules
-npm run validate:digest-rules -- --format json
-npm run generate:digest
-npm run generate:digest -- --send
-npm run generate:digest -- --resend-date 2026-03-26
-npm run analyze:digest -- --date 2026-03-26
-npm run analyze:digest -- --date 2026-03-26 --format json
-npm run migrate:archives
-npm run migrate:archives -- --dry-run
-npm run send:wecom:sample
-```
-
-命令说明：
-
-- `validate:digest-rules`：校验 `config/digest-rules.json`
-- `generate:digest`：抓取、筛选、成稿并写归档
-- `generate:digest -- --send`：生成后发送企业微信
-- `generate:digest -- --resend-date YYYY-MM-DD`：重发已有归档
-- `analyze:digest -- --date YYYY-MM-DD`：分析某天归档
-- `migrate:archives`：把旧归档迁移到当前 schema
-- `send:wecom:sample`：发送样例消息验证机器人链路
-
-## 中文网页控制台
-
-第一期控制台聚焦于三件事：
-
-- 改规则时不再手写整份 JSON
-- 跑命令时直接看真实终端输出和退出码
-- 看归档时不必手翻历史 JSON
-
-本地启动方式：
-
-```bash
-npm run dev:web-api
-npm run dev:web
-```
-
-默认端口：
-
-- API：`http://127.0.0.1:3210`
-- 前端开发服务：`http://127.0.0.1:4173`
-
-如果要本地构建并通过 API 服务同源访问控制台：
-
-```bash
-npm run build:web
-npm run start:console
-```
-
-控制台当前包含：
-
-- 仪表盘：规则版本、最近归档、最近命令状态、快捷动作
-- 规则配置：主题、黑名单、阈值、权重的结构化编辑
-- 执行中心：校验、生成、发送样例、归档分析与终端日志
-- 归档浏览：日报详情、LLM 候选池、排除原因
-
-当前控制台仍然是本地优先设计，默认只监听 `127.0.0.1`，不面向公网多用户部署。
-
-## 真实验证口径
-
-GitRadar 对外汇报时严格区分：
-
-- 代码已改
-- 测试已过
-- 真实终端已验证
-- 企业微信群内已实际收到
-
-没有真实终端复现前，不报告“链路已成功”。
 
 ## 规则配置
 
@@ -196,9 +207,19 @@ npm run lint:yaml
 npm run validate:digest-rules -- --format json
 npm run typecheck
 npm test
+npm run build:web
 ```
 
-涉及代码或架构变更时，仓库默认通过分支和 PR 推进；合并前需要等待 CI 通过，不再直接推送到受保护的 `main`。
+## 真实验证口径
+
+GitRadar 对外汇报时严格区分：
+
+- 代码已改
+- 测试已过
+- 真实终端已验证
+- 企业微信群内已实际收到
+
+没有真实终端复现前，不报告“链路已成功”。
 
 ## 文档索引
 
