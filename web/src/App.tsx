@@ -6,6 +6,8 @@ import type {
   FeedbackAction,
   FeedbackListItem,
   FeedbackState,
+  GitHubSettings,
+  GitHubTestResult,
   LlmSettings,
   LlmTestResult,
   ScheduleSettings,
@@ -18,25 +20,35 @@ import {
   fetchArchives,
   fetchFeedback,
   fetchFeedbackItems,
+  fetchGitHubSettings,
   fetchHealth,
   fetchLlmSettings,
   fetchPreferences,
   fetchScheduleSettings,
   fetchWecomSettings,
   recordFeedback,
+  saveGitHubSettings,
   saveLlmSettings,
   savePreferences,
   saveScheduleSettings,
   saveWecomSettings,
-  testLlmSettings,
   sendWecomTest,
+  testGitHubSettings,
+  testLlmSettings,
 } from "./api";
 
-type ViewId = "schedule" | "saved" | "archives";
+type ViewId = "environment" | "preferences" | "saved" | "archives";
 type SavedViewFilter = "saved" | "later";
+type ValidationState = "idle" | "passed" | "failed";
+
+interface ValidationStatus {
+  state: ValidationState;
+  detail: string;
+}
 
 const VIEWS: Array<{ id: ViewId; label: string }> = [
-  { id: "schedule", label: "调度与主题" },
+  { id: "environment", label: "环境配置" },
+  { id: "preferences", label: "主题偏好" },
   { id: "saved", label: "收藏与待看" },
   { id: "archives", label: "归档日报" },
 ];
@@ -66,8 +78,21 @@ const EMPTY_LLM_SETTINGS: LlmSettings = {
   envFilePath: "",
 };
 
+const EMPTY_GITHUB_SETTINGS: GitHubSettings = {
+  configured: false,
+  maskedToken: null,
+  apiBaseUrl: "https://api.github.com",
+  trendingUrl: "https://github.com/trending?since=daily",
+  envFilePath: "",
+};
+
+const IDLE_VALIDATION: ValidationStatus = {
+  state: "idle",
+  detail: "尚未验证",
+};
+
 export default function App() {
-  const [activeView, setActiveView] = useState<ViewId>("schedule");
+  const [activeView, setActiveView] = useState<ViewId>("environment");
   const [health, setHealth] = useState<{
     status: string;
     app: string;
@@ -94,20 +119,32 @@ export default function App() {
     null,
   );
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
+  const [githubSettings, setGitHubSettings] = useState<GitHubSettings>(
+    EMPTY_GITHUB_SETTINGS,
+  );
+  const [githubTokenInput, setGitHubTokenInput] = useState("");
+  const [githubValidation, setGitHubValidation] =
+    useState<ValidationStatus>(IDLE_VALIDATION);
   const [llmSettings, setLlmSettings] =
     useState<LlmSettings>(EMPTY_LLM_SETTINGS);
   const [llmApiKeyInput, setLlmApiKeyInput] = useState("");
   const [llmBaseUrlInput, setLlmBaseUrlInput] = useState("");
   const [llmModelInput, setLlmModelInput] = useState("");
+  const [llmValidation, setLlmValidation] =
+    useState<ValidationStatus>(IDLE_VALIDATION);
   const [wecomSettings, setWecomSettings] =
     useState<WecomSettings>(EMPTY_WECOM_SETTINGS);
   const [wecomWebhookInput, setWecomWebhookInput] = useState("");
+  const [wecomValidation, setWecomValidation] =
+    useState<ValidationStatus>(IDLE_VALIDATION);
   const [busyAction, setBusyAction] = useState<
     | ""
     | "hydrate"
     | "save-schedule"
     | "save-preferences"
     | "record-feedback"
+    | "save-github"
+    | "test-github"
     | "save-llm"
     | "test-llm"
     | "save-wecom"
@@ -156,6 +193,27 @@ export default function App() {
     : null;
   const feedbackItems = savedViewFilter === "saved" ? savedItems : laterItems;
 
+  const environmentCards = [
+    buildEnvironmentCard(
+      "GitHub 源",
+      githubSettings.configured,
+      githubValidation,
+    ),
+    buildEnvironmentCard("LLM 模型", llmSettings.configured, llmValidation),
+    buildEnvironmentCard("企业微信", wecomSettings.configured, wecomValidation),
+    {
+      label: "调度",
+      configured: Boolean(scheduleDraft),
+      status: scheduleDraft ? "已配置" : "待配置",
+      detail: scheduleDraft
+        ? `${scheduleDraft.dailySendTime} · ${describeTimezone(
+            scheduleDraft.timezone,
+            timezoneOptions,
+          )}`
+        : "尚未读取配置",
+    },
+  ];
+
   async function hydrate(): Promise<void> {
     setBusyAction("hydrate");
     setErrorMessage("");
@@ -169,6 +227,7 @@ export default function App() {
         archiveResponse,
         savedResponse,
         laterResponse,
+        githubResponse,
         llmResponse,
         wecomResponse,
       ] = await Promise.all([
@@ -179,6 +238,7 @@ export default function App() {
         fetchArchives(),
         fetchFeedbackItems("saved"),
         fetchFeedbackItems("later"),
+        fetchGitHubSettings(),
         fetchLlmSettings(),
         fetchWecomSettings(),
       ]);
@@ -192,12 +252,17 @@ export default function App() {
       setArchives(archiveResponse.archives);
       setSavedItems(savedResponse.items);
       setLaterItems(laterResponse.items);
+      setGitHubSettings(githubResponse);
+      setGitHubTokenInput("");
+      setGitHubValidation(IDLE_VALIDATION);
       setLlmSettings(llmResponse);
       setLlmApiKeyInput("");
       setLlmBaseUrlInput(llmResponse.baseUrl ?? "");
       setLlmModelInput(llmResponse.model ?? "");
+      setLlmValidation(IDLE_VALIDATION);
       setWecomSettings(wecomResponse);
       setWecomWebhookInput("");
+      setWecomValidation(IDLE_VALIDATION);
 
       const initialDate = archiveResponse.archives[0]?.date ?? "";
       setSelectedArchiveDate(initialDate);
@@ -240,7 +305,7 @@ export default function App() {
       const response = await saveScheduleSettings(scheduleDraft);
       setScheduleDraft(response.settings);
       setTimezoneOptions(response.availableTimezones);
-      setStatusMessage("发送时间已更新，重启 GitRadar 后生效。");
+      setStatusMessage("调度设置已写入配置文件，重启 GitRadar 后生效。");
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -264,6 +329,53 @@ export default function App() {
     }
   }
 
+  async function handleSaveGitHubSettings(): Promise<void> {
+    setBusyAction("save-github");
+    setErrorMessage("");
+
+    try {
+      const response = await saveGitHubSettings({
+        token: githubTokenInput.trim() || undefined,
+      });
+      setGitHubSettings(response);
+      setGitHubTokenInput("");
+      setGitHubValidation(IDLE_VALIDATION);
+      setStatusMessage("GitHub Token 已写入 .env，尚未验证可用性。");
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+      setGitHubValidation({
+        state: "failed",
+        detail: getErrorMessage(error),
+      });
+    } finally {
+      setBusyAction("");
+    }
+  }
+
+  async function handleTestGitHubSettings(): Promise<void> {
+    setBusyAction("test-github");
+    setErrorMessage("");
+
+    try {
+      const response: GitHubTestResult = await testGitHubSettings();
+      setGitHubValidation({
+        state: "passed",
+        detail: `账号 ${response.login}`,
+      });
+      setStatusMessage(
+        `${response.message} 账号：${response.login} · 地址：${response.apiBaseUrl}`,
+      );
+    } catch (error) {
+      setGitHubValidation({
+        state: "failed",
+        detail: getErrorMessage(error),
+      });
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setBusyAction("");
+    }
+  }
+
   async function handleSaveLlmSettings(): Promise<void> {
     setBusyAction("save-llm");
     setErrorMessage("");
@@ -278,8 +390,13 @@ export default function App() {
       setLlmApiKeyInput("");
       setLlmBaseUrlInput(response.baseUrl ?? "");
       setLlmModelInput(response.model ?? "");
+      setLlmValidation(IDLE_VALIDATION);
       setStatusMessage("LLM 配置已写入 .env，尚未验证连通性。");
     } catch (error) {
+      setLlmValidation({
+        state: "failed",
+        detail: getErrorMessage(error),
+      });
       setErrorMessage(getErrorMessage(error));
     } finally {
       setBusyAction("");
@@ -292,6 +409,10 @@ export default function App() {
 
     try {
       const response: LlmTestResult = await testLlmSettings();
+      setLlmValidation({
+        state: "passed",
+        detail: `${response.model}`,
+      });
       setStatusMessage(
         `${response.message} 模型：${response.model} · 地址：${response.baseUrl}`,
       );
@@ -302,6 +423,10 @@ export default function App() {
         model: response.model,
       }));
     } catch (error) {
+      setLlmValidation({
+        state: "failed",
+        detail: getErrorMessage(error),
+      });
       setErrorMessage(getErrorMessage(error));
     } finally {
       setBusyAction("");
@@ -313,6 +438,10 @@ export default function App() {
 
     if (!webhookUrl) {
       setErrorMessage("请输入新的企业微信 Webhook 链接。");
+      setWecomValidation({
+        state: "failed",
+        detail: "Webhook 不能为空",
+      });
       return;
     }
 
@@ -323,8 +452,13 @@ export default function App() {
       const response = await saveWecomSettings({ webhookUrl });
       setWecomSettings(response);
       setWecomWebhookInput("");
-      setStatusMessage("企业微信 Webhook 已写入 .env 配置。");
+      setWecomValidation(IDLE_VALIDATION);
+      setStatusMessage("企业微信 Webhook 已写入 .env，尚未验证发送。");
     } catch (error) {
+      setWecomValidation({
+        state: "failed",
+        detail: getErrorMessage(error),
+      });
       setErrorMessage(getErrorMessage(error));
     } finally {
       setBusyAction("");
@@ -337,6 +471,10 @@ export default function App() {
 
     try {
       const response = await sendWecomTest();
+      setWecomValidation({
+        state: "passed",
+        detail: response.maskedWebhookUrl,
+      });
       setStatusMessage(
         `${response.message} 目标：${response.maskedWebhookUrl}`,
       );
@@ -346,6 +484,10 @@ export default function App() {
         maskedWebhookUrl: response.maskedWebhookUrl,
       }));
     } catch (error) {
+      setWecomValidation({
+        state: "failed",
+        detail: getErrorMessage(error),
+      });
       setErrorMessage(getErrorMessage(error));
     } finally {
       setBusyAction("");
@@ -484,7 +626,7 @@ export default function App() {
         <div className="feedback-main">
           <strong>{statusMessage}</strong>
           <span>
-            已区分配置写入、测试发送与归档反馈，不把按钮点击当成成功。
+            已区分配置写入、测试验证与归档反馈，不把按钮点击当成链路成功。
           </span>
         </div>
 
@@ -496,151 +638,89 @@ export default function App() {
         ) : null}
       </section>
 
-      {activeView === "schedule" ? (
-        <main className="schedule-page">
-          <section className="panel schedule-panel">
-            <header className="panel-header">
+      {activeView === "environment" ? (
+        <main className="environment-page">
+          <section className="panel environment-summary-panel">
+            <header className="panel-header compact">
               <div>
-                <p className="eyebrow">Schedule</p>
-                <h2>发送时间</h2>
+                <p className="eyebrow">Environment</p>
+                <h2>环境摘要</h2>
               </div>
-              <SchedulePreview
-                schedule={scheduleDraft}
-                timezones={timezoneOptions}
-              />
             </header>
 
-            <div className="schedule-grid">
-              <label className="field">
-                <span>时间</span>
-                <input
-                  type="time"
-                  value={scheduleDraft?.dailySendTime ?? ""}
-                  onChange={(event) =>
-                    setScheduleDraft((current) =>
-                      current
-                        ? { ...current, dailySendTime: event.target.value }
-                        : current,
-                    )
-                  }
-                />
-              </label>
-
-              <label className="field">
-                <span>时区</span>
-                <select
-                  value={scheduleDraft?.timezone ?? "Asia/Shanghai"}
-                  onChange={(event) =>
-                    setScheduleDraft((current) =>
-                      current
-                        ? {
-                            ...current,
-                            timezone: event.target
-                              .value as ScheduleSettings["timezone"],
-                          }
-                        : current,
-                    )
-                  }
-                >
-                  {timezoneOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <div className="action-row">
-              <button
-                className="primary-button"
-                disabled={!scheduleDraft || busyAction !== ""}
-                onClick={() => void handleSaveSchedule()}
-                type="button"
-              >
-                {busyAction === "save-schedule" ? "保存中…" : "保存调度设置"}
-              </button>
+            <div className="environment-card-grid">
+              {environmentCards.map((card) => (
+                <article key={card.label} className="environment-card">
+                  <span>{card.label}</span>
+                  <strong>{card.status}</strong>
+                  <p>{card.detail}</p>
+                </article>
+              ))}
             </div>
           </section>
 
-          <section className="panel preferences-panel">
-            <header className="panel-header">
+          <section className="panel github-panel">
+            <header className="panel-header compact">
               <div>
-                <p className="eyebrow">Preferences</p>
-                <h2>关心主题</h2>
+                <p className="eyebrow">GitHub</p>
+                <h2>GitHub 源配置</h2>
               </div>
+              <StatusBadge
+                configured={githubSettings.configured}
+                validation={githubValidation}
+              />
             </header>
 
-            <div className="theme-picker">
-              {availableThemes.map((theme) => {
-                const active = preferencesDraft.preferredThemes.includes(theme);
-                return (
-                  <button
-                    key={theme}
-                    className={active ? "theme-chip active" : "theme-chip"}
-                    onClick={() => handleToggleTheme(theme)}
-                    type="button"
-                  >
-                    {theme}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="custom-topic-block">
-              <div className="custom-topic-input">
-                <label className="field">
-                  <span>自定义主题词</span>
-                  <input
-                    type="text"
-                    placeholder="例如：Fabric, FPGA, agents runtime"
-                    value={customTopicInput}
-                    onChange={(event) =>
-                      setCustomTopicInput(event.target.value)
-                    }
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.preventDefault();
-                        handleAddCustomTopic();
-                      }
-                    }}
-                  />
-                </label>
-                <button
-                  className="ghost-button"
-                  onClick={handleAddCustomTopic}
-                  type="button"
-                >
-                  添加
-                </button>
+            <div className="wecom-details">
+              <div className="wecom-row">
+                <span>当前 Token</span>
+                <strong>{githubSettings.maskedToken ?? "尚未配置"}</strong>
               </div>
-
-              <div className="custom-topic-list">
-                {preferencesDraft.customTopics.map((topic) => (
-                  <button
-                    key={topic}
-                    className="topic-tag"
-                    onClick={() => handleRemoveCustomTopic(topic)}
-                    type="button"
-                  >
-                    {topic}
-                    <span>移除</span>
-                  </button>
-                ))}
-                {preferencesDraft.customTopics.length === 0 ? (
-                  <div className="empty-inline">还没有添加自定义主题词。</div>
-                ) : null}
+              <div className="wecom-row">
+                <span>API 地址</span>
+                <strong>{githubSettings.apiBaseUrl}</strong>
+              </div>
+              <div className="wecom-row">
+                <span>Trending 地址</span>
+                <strong>{githubSettings.trendingUrl}</strong>
+              </div>
+              <div className="wecom-row">
+                <span>配置文件</span>
+                <strong>{githubSettings.envFilePath || "--"}</strong>
               </div>
             </div>
 
-            <div className="action-row">
+            <label className="field">
+              <span>新的 GitHub Token</span>
+              <input
+                autoComplete="off"
+                onChange={(event) => setGitHubTokenInput(event.target.value)}
+                placeholder="留空表示保留当前 Token，不会回显旧值"
+                type="password"
+                value={githubTokenInput}
+              />
+            </label>
+
+            <ValidationHint validation={githubValidation} />
+
+            <div className="action-row dual-actions">
               <button
                 className="primary-button"
                 disabled={busyAction !== ""}
-                onClick={() => void handleSavePreferences()}
+                onClick={() => void handleSaveGitHubSettings()}
                 type="button"
               >
-                {busyAction === "save-preferences" ? "保存中…" : "保存关心主题"}
+                {busyAction === "save-github" ? "保存中…" : "保存 GitHub Token"}
+              </button>
+              <button
+                className="ghost-button"
+                disabled={busyAction !== ""}
+                onClick={() => void handleTestGitHubSettings()}
+                type="button"
+              >
+                {busyAction === "test-github"
+                  ? "测试中…"
+                  : "测试 GitHub 连通性"}
               </button>
             </div>
           </section>
@@ -651,9 +731,10 @@ export default function App() {
                 <p className="eyebrow">LLM</p>
                 <h2>模型配置</h2>
               </div>
-              <div className="wecom-status">
-                {llmSettings.configured ? "已配置" : "未配置"}
-              </div>
+              <StatusBadge
+                configured={llmSettings.configured}
+                validation={llmValidation}
+              />
             </header>
 
             <div className="wecom-details">
@@ -708,6 +789,8 @@ export default function App() {
               </label>
             </div>
 
+            <ValidationHint validation={llmValidation} />
+
             <div className="action-row dual-actions">
               <button
                 className="primary-button"
@@ -734,9 +817,10 @@ export default function App() {
                 <p className="eyebrow">WeCom</p>
                 <h2>企业微信机器人</h2>
               </div>
-              <div className="wecom-status">
-                {wecomSettings.configured ? "已配置" : "未配置"}
-              </div>
+              <StatusBadge
+                configured={wecomSettings.configured}
+                validation={wecomValidation}
+              />
             </header>
 
             <div className="wecom-details">
@@ -753,12 +837,14 @@ export default function App() {
             <label className="field">
               <span>新的 Webhook 链接</span>
               <input
-                type="url"
-                placeholder="输入新的企业微信 Webhook 链接，保存后会覆盖当前配置"
-                value={wecomWebhookInput}
                 onChange={(event) => setWecomWebhookInput(event.target.value)}
+                placeholder="输入新的企业微信 Webhook 链接，保存后会覆盖当前配置"
+                type="url"
+                value={wecomWebhookInput}
               />
             </label>
+
+            <ValidationHint validation={wecomValidation} />
 
             <div className="action-row dual-actions">
               <button
@@ -780,27 +866,158 @@ export default function App() {
             </div>
           </section>
 
-          <section className="panel feedback-summary-panel">
-            <header className="panel-header compact">
+          <section className="panel schedule-panel">
+            <header className="panel-header">
               <div>
-                <p className="eyebrow">Recent Feedback</p>
-                <h2>最近反馈</h2>
+                <p className="eyebrow">Schedule</p>
+                <h2>发送时间</h2>
+              </div>
+              <SchedulePreview
+                schedule={scheduleDraft}
+                timezones={timezoneOptions}
+              />
+            </header>
+
+            <div className="schedule-grid">
+              <label className="field">
+                <span>时间</span>
+                <input
+                  onChange={(event) =>
+                    setScheduleDraft((current) =>
+                      current
+                        ? { ...current, dailySendTime: event.target.value }
+                        : current,
+                    )
+                  }
+                  type="time"
+                  value={scheduleDraft?.dailySendTime ?? ""}
+                />
+              </label>
+
+              <label className="field">
+                <span>时区</span>
+                <select
+                  onChange={(event) =>
+                    setScheduleDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            timezone: event.target
+                              .value as ScheduleSettings["timezone"],
+                          }
+                        : current,
+                    )
+                  }
+                  value={scheduleDraft?.timezone ?? "Asia/Shanghai"}
+                >
+                  {timezoneOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="environment-inline-note">
+              调度属于本地运行配置。保存表示已写入，实际生效依赖后续重启或容器重建。
+            </div>
+
+            <div className="action-row">
+              <button
+                className="primary-button"
+                disabled={!scheduleDraft || busyAction !== ""}
+                onClick={() => void handleSaveSchedule()}
+                type="button"
+              >
+                {busyAction === "save-schedule" ? "保存中…" : "保存调度设置"}
+              </button>
+            </div>
+          </section>
+        </main>
+      ) : null}
+
+      {activeView === "preferences" ? (
+        <main className="preferences-page">
+          <section className="panel preferences-panel">
+            <header className="panel-header">
+              <div>
+                <p className="eyebrow">Preferences</p>
+                <h2>关心主题</h2>
               </div>
             </header>
 
-            <div className="feedback-list">
-              {feedbackState.recent.map((event) => (
-                <div
-                  key={`${event.repo}-${event.recordedAt}`}
-                  className="feedback-row"
+            <div className="theme-picker">
+              {availableThemes.map((theme) => {
+                const active = preferencesDraft.preferredThemes.includes(theme);
+                return (
+                  <button
+                    key={theme}
+                    className={active ? "theme-chip active" : "theme-chip"}
+                    onClick={() => handleToggleTheme(theme)}
+                    type="button"
+                  >
+                    {theme}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="custom-topic-block">
+              <div className="custom-topic-input">
+                <label className="field">
+                  <span>自定义主题词</span>
+                  <input
+                    onChange={(event) =>
+                      setCustomTopicInput(event.target.value)
+                    }
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        handleAddCustomTopic();
+                      }
+                    }}
+                    placeholder="例如：Fabric, FPGA, agents runtime"
+                    type="text"
+                    value={customTopicInput}
+                  />
+                </label>
+                <button
+                  className="ghost-button"
+                  onClick={handleAddCustomTopic}
+                  type="button"
                 >
-                  <strong>{event.repo}</strong>
-                  <span>{describeFeedbackAction(event.action)}</span>
-                </div>
-              ))}
-              {feedbackState.recent.length === 0 ? (
-                <div className="empty-inline">还没有任何反馈记录。</div>
-              ) : null}
+                  添加
+                </button>
+              </div>
+
+              <div className="custom-topic-list">
+                {preferencesDraft.customTopics.map((topic) => (
+                  <button
+                    key={topic}
+                    className="topic-tag"
+                    onClick={() => handleRemoveCustomTopic(topic)}
+                    type="button"
+                  >
+                    {topic}
+                    <span>移除</span>
+                  </button>
+                ))}
+                {preferencesDraft.customTopics.length === 0 ? (
+                  <div className="empty-inline">还没有添加自定义主题词。</div>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="action-row">
+              <button
+                className="primary-button"
+                disabled={busyAction !== ""}
+                onClick={() => void handleSavePreferences()}
+                type="button"
+              >
+                {busyAction === "save-preferences" ? "保存中…" : "保存关心主题"}
+              </button>
             </div>
           </section>
         </main>
@@ -1066,6 +1283,26 @@ function MetaPill(props: { label: string; value: string }) {
   );
 }
 
+function StatusBadge(props: {
+  configured: boolean;
+  validation: ValidationStatus;
+}) {
+  return (
+    <div className="wecom-status">
+      {buildStatusLabel(props.configured, props.validation)}
+    </div>
+  );
+}
+
+function ValidationHint(props: { validation: ValidationStatus }) {
+  const className =
+    props.validation.state === "failed"
+      ? "validation-hint failed"
+      : "validation-hint";
+
+  return <div className={className}>{props.validation.detail}</div>;
+}
+
 function SchedulePreview(props: {
   schedule: ScheduleSettings | null;
   timezones: TimezoneOption[];
@@ -1080,6 +1317,45 @@ function SchedulePreview(props: {
       <span>{label}</span>
     </div>
   );
+}
+
+function buildEnvironmentCard(
+  label: string,
+  configured: boolean,
+  validation: ValidationStatus,
+) {
+  return {
+    label,
+    configured,
+    status: buildStatusLabel(configured, validation),
+    detail: validation.detail,
+  };
+}
+
+function buildStatusLabel(
+  configured: boolean,
+  validation: ValidationStatus,
+): string {
+  if (!configured) {
+    return "未配置";
+  }
+
+  if (validation.state === "passed") {
+    return "已验证";
+  }
+
+  if (validation.state === "failed") {
+    return "验证失败";
+  }
+
+  return "已配置未验证";
+}
+
+function describeTimezone(
+  timezone: ScheduleSettings["timezone"],
+  options: TimezoneOption[],
+): string {
+  return options.find((option) => option.value === timezone)?.label ?? timezone;
 }
 
 function formatDateTime(value: string): string {
