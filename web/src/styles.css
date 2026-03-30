@@ -478,7 +478,8 @@ label span {
 
 .saved-item-main,
 .saved-item-side,
-.saved-item-heading {
+.saved-item-heading,
+.saved-item-actions {
   display: grid;
   gap: 10px;
 }
@@ -503,11 +504,19 @@ label span {
   justify-items: end;
 }
 
+.saved-item-actions {
+  justify-items: end;
+}
+
 .link-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
+}
+
+.inline-action-link {
+  white-space: nowrap;
 }
 
 .theme-picker {
@@ -790,7 +799,8 @@ label span {
 
   .reader-counter,
   .schedule-preview,
-  .saved-item-side {
+  .saved-item-side,
+  .saved-item-actions {
     justify-items: start;
     text-align: left;
   }

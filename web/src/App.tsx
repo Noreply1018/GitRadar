@@ -508,6 +508,37 @@ export default function App() {
     }
   }
 
+  async function handleOpenArchiveFromCollection(
+    date: string,
+    repo: string,
+  ): Promise<void> {
+    setActiveView("archives");
+    setSelectedArchiveDate(date);
+    setCurrentItemIndex(0);
+    setErrorMessage("");
+
+    try {
+      const detailResponse = await fetchArchiveDetail(date);
+      const matchedIndex = detailResponse.archive.digest.items.findIndex(
+        (item) => item.repo === repo,
+      );
+
+      setArchiveDetail(detailResponse.archive);
+
+      if (matchedIndex >= 0) {
+        setCurrentItemIndex(matchedIndex);
+        setStatusMessage(`已跳转到 ${date} 的归档，并定位到 ${repo}。`);
+        return;
+      }
+
+      setStatusMessage(
+        `已打开 ${date} 的归档，但没有定位到 ${repo}，当前展示当日首条。`,
+      );
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+    }
+  }
+
   async function handleRecordFeedback(action: FeedbackAction): Promise<void> {
     if (!currentDigestItem || !archiveDetail) {
       return;
@@ -1089,14 +1120,28 @@ export default function App() {
                     <span className="saved-item-state">
                       {describeFeedbackAction(item.action)}
                     </span>
-                    <a
-                      className="ghost-button link-button"
-                      href={toRepoUrl(item.repo)}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      打开仓库
-                    </a>
+                    <div className="saved-item-actions">
+                      <a
+                        className="ghost-button link-button"
+                        href={toRepoUrl(item.repo)}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        打开仓库
+                      </a>
+                      <button
+                        className="ghost-button"
+                        onClick={() =>
+                          void handleOpenArchiveFromCollection(
+                            item.date,
+                            item.repo,
+                          )
+                        }
+                        type="button"
+                      >
+                        查看归档
+                      </button>
+                    </div>
                   </div>
                 </article>
               ))}
@@ -1221,6 +1266,14 @@ export default function App() {
                       >
                         跳过
                       </button>
+                      <a
+                        className="ghost-button link-button inline-action-link"
+                        href={currentDigestItem.url}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        打开仓库
+                      </a>
                     </div>
 
                     <p className="story-lead">{currentDigestItem.summary}</p>
