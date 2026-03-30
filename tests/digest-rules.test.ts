@@ -14,6 +14,7 @@ import {
   getRulesVersion,
   selectCandidatesForDigest,
 } from "../src/digest/rules";
+import type { UserPreferencesConfig } from "../src/config/user-preferences";
 import type { GitHubCandidateRepo } from "../src/github/types";
 
 function createCandidate(
@@ -180,6 +181,35 @@ describe("selectCandidatesForDigest", () => {
 
   it("reads the rules version from the externalized config", () => {
     expect(getRulesVersion()).toBe(DIGEST_RULES_CONFIG.version);
+  });
+
+  it("boosts repositories that match the saved preferred themes", () => {
+    const userPreferences: UserPreferencesConfig = {
+      preferredThemes: ["Frontend & Design"],
+      customTopics: ["fabric"],
+    };
+
+    const selected = selectCandidatesForDigest(
+      [
+        createCandidate({
+          repo: "owner/ops-runtime",
+          description: "Distributed runtime for deployment and orchestration.",
+          topics: ["runtime", "deployment"],
+          stars: 3500,
+        }),
+        createCandidate({
+          repo: "owner/fabric-studio",
+          description: "Frontend design system for Fabric workflow review.",
+          topics: ["frontend", "design", "fabric"],
+          stars: 3300,
+        }),
+      ],
+      20,
+      { userPreferences },
+    );
+
+    expect(selected[0].repo).toBe("owner/fabric-studio");
+    expect(selected[0].scoreBreakdown?.preference).toBeGreaterThan(0);
   });
 });
 

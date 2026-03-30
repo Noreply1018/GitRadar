@@ -8,6 +8,7 @@ export interface CandidateScoreBreakdown {
   novelty: number;
   maturity: number;
   coverage: number;
+  preference: number;
   penalties: number;
   total: number;
 }

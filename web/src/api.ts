@@ -1,5 +1,28 @@
 import type { DailyDigestArchive } from "../../src/core/archive";
 
+export type ScheduleTimezone =
+  | "Asia/Shanghai"
+  | "Asia/Tokyo"
+  | "Europe/Berlin"
+  | "Europe/London"
+  | "America/New_York"
+  | "America/Los_Angeles";
+
+export interface TimezoneOption {
+  value: ScheduleTimezone;
+  label: string;
+}
+
+export interface ScheduleSettings {
+  timezone: ScheduleTimezone;
+  dailySendTime: string;
+}
+
+export interface UserPreferences {
+  preferredThemes: string[];
+  customTopics: string[];
+}
+
 export interface ArchiveSummary {
   date: string;
   generatedAt: string;
@@ -9,11 +32,6 @@ export interface ArchiveSummary {
   title: string;
   editorialMode: string;
   topRepos: string[];
-}
-
-export interface ScheduleSettings {
-  timezone: "Asia/Shanghai";
-  dailySendTime: string;
 }
 
 export async function fetchHealth(): Promise<{
@@ -28,6 +46,7 @@ export async function fetchHealth(): Promise<{
 export async function fetchScheduleSettings(): Promise<{
   path: string;
   settings: ScheduleSettings;
+  availableTimezones: TimezoneOption[];
 }> {
   return fetchJson("/api/settings/schedule");
 }
@@ -35,8 +54,28 @@ export async function fetchScheduleSettings(): Promise<{
 export async function saveScheduleSettings(draft: ScheduleSettings): Promise<{
   path: string;
   settings: ScheduleSettings;
+  availableTimezones: TimezoneOption[];
 }> {
   return fetchJson("/api/settings/schedule", {
+    method: "PUT",
+    body: JSON.stringify(draft),
+  });
+}
+
+export async function fetchPreferences(): Promise<{
+  path: string;
+  preferences: UserPreferences;
+  availableThemes: string[];
+}> {
+  return fetchJson("/api/settings/preferences");
+}
+
+export async function savePreferences(draft: UserPreferences): Promise<{
+  path: string;
+  preferences: UserPreferences;
+  availableThemes: string[];
+}> {
+  return fetchJson("/api/settings/preferences", {
     method: "PUT",
     body: JSON.stringify(draft),
   });

@@ -8,6 +8,20 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 
 ### Added
 
+- 新增用户偏好配置 `config/user-preferences.json`，支持关心主题与自定义主题词
+
+### Changed
+
+- 网页首页强化 `GitRadar` 品牌层级，移除解释性设计文案
+- 归档日报切换为单篇左右翻页阅读，而不是纵向长列表
+- 每日发送设置改为常用城市时区下拉与更柔和的时间输入
+- 候选筛选新增中等强度的用户偏好加权
+- Docker 时区与 cron 调度现在都从 `schedule.json` 读取
+
+## [1.3.1] - 2026-03-30
+
+### Added
+
 - 新增 `config/schedule.json` 和网页端每日发送时间设置，保存后重启 Docker 即可生效
 
 ### Changed

@@ -5,6 +5,11 @@ import {
   DIGEST_RULES_CONFIG,
   DIGEST_TOPIC_BLACKLIST,
 } from "../config/digest-rules";
+import {
+  DEFAULT_USER_PREFERENCES,
+  loadUserPreferencesConfig,
+  type UserPreferencesConfig,
+} from "../config/user-preferences";
 import type {
   CandidateScoreBreakdown,
   GitHubCandidateRepo,
@@ -23,10 +28,17 @@ interface CandidateSelectionResult {
   }>;
 }
 
+interface SelectionOptions {
+  userPreferences?: UserPreferencesConfig;
+}
+
 export function selectCandidatesForDigest(
   candidates: GitHubCandidateRepo[],
   limit = 20,
+  options: SelectionOptions = {},
 ): GitHubCandidateRepo[] {
+  const userPreferences =
+    options.userPreferences ?? loadUserPreferencesConfig();
   const annotated = candidates
     .filter((candidate) => candidate.description)
     .filter(
@@ -43,7 +55,7 @@ export function selectCandidatesForDigest(
     )
     .filter((candidate) => !hasBlacklistedTopic(candidate.topics))
     .filter((candidate) => !hasBlacklistedReadme(candidate.readmeExcerpt))
-    .map(annotateCandidate)
+    .map((candidate) => annotateCandidate(candidate, userPreferences))
     .sort(compareCandidates);
 
   return applyDiversity(annotated, limit, {
@@ -67,9 +79,10 @@ export function getRulesVersion(): string {
 
 function annotateCandidate(
   candidate: GitHubCandidateRepo,
+  userPreferences: UserPreferencesConfig,
 ): GitHubCandidateRepo {
   const theme = inferTheme(candidate);
-  const scoreBreakdown = scoreCandidate(candidate);
+  const scoreBreakdown = scoreCandidate(candidate, theme, userPreferences);
   const selectionHints = buildSelectionHints(candidate, scoreBreakdown);
 
   return {
@@ -83,6 +96,8 @@ function annotateCandidate(
 
 function scoreCandidate(
   candidate: GitHubCandidateRepo,
+  theme: string,
+  userPreferences: UserPreferencesConfig = DEFAULT_USER_PREFERENCES,
 ): CandidateScoreBreakdown {
   const sourceCount = candidate.sources.length;
   const pushedDays = getDaysSince(candidate.pushedAt);
@@ -100,6 +115,7 @@ function scoreCandidate(
   let novelty = 0;
   let maturity = 0;
   let coverage = 0;
+  let preference = 0;
   let penalties = 0;
 
   if (candidate.sources.includes("trending")) {
@@ -178,13 +194,16 @@ function scoreCandidate(
     coverage += weights.coverage.language;
   }
 
+  preference += calculatePreferenceBonus(candidate, theme, userPreferences);
+
   return {
     momentum,
     novelty,
     maturity,
     coverage,
+    preference,
     penalties,
-    total: momentum + novelty + maturity + coverage + penalties,
+    total: momentum + novelty + maturity + coverage + preference + penalties,
   };
 }
 
@@ -348,6 +367,14 @@ function buildSelectionReason(
     return "保留一条成熟但重新升温的项目位。";
   }
 
+  if (scoreBreakdown.preference > 0 && sourceCount >= 2) {
+    return "命中关心主题，且多来源信号同时靠前。";
+  }
+
+  if (scoreBreakdown.preference > 0) {
+    return "命中关心主题，且综合评分更均衡。";
+  }
+
   if (sourceCount >= 2) {
     return "多来源重合且综合评分靠前。";
   }
@@ -357,6 +384,35 @@ function buildSelectionReason(
   }
 
   return "主题代表性和近期活跃度更均衡。";
+}
+
+function calculatePreferenceBonus(
+  candidate: GitHubCandidateRepo,
+  theme: string,
+  userPreferences: UserPreferencesConfig,
+): number {
+  const haystack = [
+    candidate.repo,
+    candidate.description,
+    candidate.readmeExcerpt ?? "",
+    candidate.language ?? "",
+    ...candidate.topics,
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  let bonus = 0;
+
+  if (userPreferences.preferredThemes.includes(theme)) {
+    bonus += 8;
+  }
+
+  const customMatches = userPreferences.customTopics.reduce((count, topic) => {
+    return haystack.includes(topic.toLowerCase()) ? count + 1 : count;
+  }, 0);
+
+  bonus += Math.min(customMatches, 2) * 3;
+  return bonus;
 }
 
 function applyDiversity(
