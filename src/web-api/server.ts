@@ -10,6 +10,7 @@ import {
   getArchiveDetail,
   listArchiveSummaries,
 } from "./services/archive-service";
+import { buildFeedbackInsights } from "../feedback/insights";
 import { CommandRunner } from "./services/command-runner";
 import {
   readDigestRulesConfig,
@@ -24,6 +25,7 @@ import {
 import {
   readUserPreferences,
   saveUserPreferences,
+  writeUserPreferences,
 } from "./services/user-preferences-service";
 import {
   readLlmSettings,
@@ -45,6 +47,7 @@ import {
   saveWecomSettings,
   sendWecomTestMessage,
 } from "./services/wecom-settings-service";
+import { readEnvironmentFingerprints } from "./services/environment-fingerprint-service";
 import type { HealthResponse } from "./types/api";
 
 const DEFAULT_HOST = "127.0.0.1";
@@ -117,9 +120,16 @@ async function handleRequest(
       return sendJson(response, 200, await readWecomSettings(ROOT_DIR));
     }
 
+    if (request.method === "GET" && pathname === "/api/environment/fingerprints") {
+      return sendJson(response, 200, await readEnvironmentFingerprints(ROOT_DIR));
+    }
+
     if (request.method === "GET" && pathname === "/api/feedback") {
+      const feedbackState = await readFeedbackState(ROOT_DIR);
+      const preferences = readUserPreferences(ROOT_DIR);
       return sendJson(response, 200, {
-        state: await readFeedbackState(ROOT_DIR),
+        state: feedbackState,
+        insights: buildFeedbackInsights(feedbackState, preferences.preferences),
       });
     }
 
@@ -254,6 +264,42 @@ async function handleRequest(
 
       try {
         return sendJson(response, 200, await recordFeedback(ROOT_DIR, body));
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return sendJson(response, 400, { message });
+      }
+    }
+
+    if (
+      request.method === "POST" &&
+      pathname.startsWith("/api/feedback/suggestions/")
+    ) {
+      const theme = decodeURIComponent(
+        pathname.replace("/api/feedback/suggestions/", "").replace(/\/accept$/, ""),
+      );
+
+      if (!pathname.endsWith("/accept")) {
+        return sendJson(response, 404, {
+          message: `Route not found: ${pathname}`,
+        });
+      }
+
+      try {
+        const preferencesResponse = readUserPreferences(ROOT_DIR);
+        const nextPreferences = {
+          ...preferencesResponse.preferences,
+          preferredThemes: Array.from(
+            new Set([...preferencesResponse.preferences.preferredThemes, theme]),
+          ),
+        };
+        await writeUserPreferences(ROOT_DIR, nextPreferences);
+        const feedbackState = await readFeedbackState(ROOT_DIR);
+
+        return sendJson(response, 200, {
+          preferences: nextPreferences,
+          availableThemes: preferencesResponse.availableThemes,
+          insights: buildFeedbackInsights(feedbackState, nextPreferences),
+        });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         return sendJson(response, 400, { message });

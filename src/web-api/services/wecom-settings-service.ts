@@ -8,6 +8,7 @@ import {
   readManagedEnv,
   upsertManagedEnvValue,
 } from "./managed-env";
+import { saveWecomFingerprint } from "./environment-fingerprint-service";
 
 const WECOM_WEBHOOK_KEY = "GITRADAR_WECOM_WEBHOOK_URL";
 
@@ -66,11 +67,14 @@ export async function sendWecomTestMessage(
   const digest = buildSampleDigest();
 
   await notifier.sendDailyDigest(digest);
+  const fingerprint = await saveWecomFingerprint(rootDir, {
+    maskedWebhookUrl: notifier.getMaskedWebhook(),
+  });
 
   return {
     ok: true,
     message: "企业微信测试消息发送完成。",
-    maskedWebhookUrl: notifier.getMaskedWebhook(),
+    maskedWebhookUrl: fingerprint.maskedWebhookUrl,
   };
 }
 

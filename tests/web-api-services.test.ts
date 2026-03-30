@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { DIGEST_RULES_CONFIG } from "../src/config/digest-rules";
 import { type DailyDigestArchive } from "../src/core/archive";
+import { buildFeedbackInsights } from "../src/feedback/insights";
 import { buildArchiveSummary } from "../src/web-api/services/archive-service";
 import {
   CommandRunner,
@@ -41,6 +42,9 @@ import {
   saveGitHubSettings,
   testGitHubSettings,
 } from "../src/web-api/services/github-settings-service";
+import {
+  readEnvironmentFingerprints,
+} from "../src/web-api/services/environment-fingerprint-service";
 
 let activeServer: ReturnType<typeof createServer> | null = null;
 
@@ -87,7 +91,7 @@ describe("validateDigestRulesDraft", () => {
 describe("buildArchiveSummary", () => {
   it("extracts top-level archive data for the dashboard", () => {
     const archive: DailyDigestArchive = {
-      schemaVersion: 2,
+      schemaVersion: 3,
       generatedAt: "2026-03-30T07:00:00.000Z",
       candidateCount: 12,
       shortlistedCount: 6,
@@ -141,7 +145,7 @@ describe("buildArchiveSummary", () => {
     expect(buildArchiveSummary(archive)).toEqual({
       date: "2026-03-30",
       generatedAt: "2026-03-30T07:00:00.000Z",
-      schemaVersion: 2,
+      schemaVersion: 3,
       rulesVersion: "2026-03-evidence-v1",
       digestCount: 2,
       title: "GitRadar Daily Digest",
@@ -366,6 +370,46 @@ describe("feedback store", () => {
       theme: "Frontend & Design",
     });
   });
+
+  it("derives interest insights and preference suggestions from recent saves", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-feedback-"));
+
+    await recordFeedback(rootDir, {
+      repo: "owner/repo-a",
+      date: "2026-03-30",
+      action: "saved",
+      theme: "Infra & Runtime",
+    });
+    await recordFeedback(rootDir, {
+      repo: "owner/repo-b",
+      date: "2026-03-31",
+      action: "saved",
+      theme: "Infra & Runtime",
+    });
+    await recordFeedback(rootDir, {
+      repo: "owner/repo-c",
+      date: "2026-03-31",
+      action: "skipped",
+      theme: "Frontend & Design",
+    });
+
+    const state = await readFeedbackState(rootDir);
+    const insights = buildFeedbackInsights(state, {
+      preferredThemes: [],
+      customTopics: [],
+    });
+
+    expect(insights.interestedThemes[0]).toMatchObject({
+      theme: "Infra & Runtime",
+    });
+    expect(insights.skippedThemes[0]).toMatchObject({
+      theme: "Frontend & Design",
+    });
+    expect(insights.preferenceSuggestion).toMatchObject({
+      theme: "Infra & Runtime",
+      suggestedAction: "prefer",
+    });
+  });
 });
 
 describe("wecom settings", () => {
@@ -483,6 +527,13 @@ describe("github settings", () => {
       login: "gitradar-bot",
       apiBaseUrl,
     });
+
+    await expect(readEnvironmentFingerprints(rootDir)).resolves.toMatchObject({
+      github: {
+        login: "gitradar-bot",
+        apiBaseUrl,
+      },
+    });
   });
 });
 
@@ -594,6 +645,13 @@ describe("llm settings", () => {
       message: "LLM 连通性测试通过。",
       model: "gpt-test",
       baseUrl: `http://127.0.0.1:${address.port}/v1`,
+    });
+
+    await expect(readEnvironmentFingerprints(rootDir)).resolves.toMatchObject({
+      llm: {
+        model: "gpt-test",
+        baseUrl: `http://127.0.0.1:${address.port}/v1`,
+      },
     });
   });
 });

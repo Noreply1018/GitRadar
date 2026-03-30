@@ -12,6 +12,7 @@ import {
   readManagedEnv,
   upsertManagedEnvValue,
 } from "./managed-env";
+import { saveGitHubFingerprint } from "./environment-fingerprint-service";
 
 const GITHUB_TOKEN_KEY = "GITHUB_TOKEN";
 
@@ -96,11 +97,16 @@ export async function testGitHubSettings(
     throw new Error("GitHub 测试响应未返回账号信息。");
   }
 
+  const fingerprint = await saveGitHubFingerprint(rootDir, {
+    login: payload.login.trim(),
+    apiBaseUrl: config.apiBaseUrl,
+  });
+
   return {
     ok: true,
     message: "GitHub Token 连通性测试通过。",
-    login: payload.login.trim(),
-    apiBaseUrl: config.apiBaseUrl,
+    login: fingerprint.login,
+    apiBaseUrl: fingerprint.apiBaseUrl,
   };
 }
 

@@ -12,6 +12,7 @@ import {
   readManagedEnv,
   upsertManagedEnvValue,
 } from "./managed-env";
+import { saveLlmFingerprint } from "./environment-fingerprint-service";
 
 const LLM_API_KEY_KEY = "GR_API_KEY";
 const LLM_BASE_URL_KEY = "GR_BASE_URL";
@@ -123,11 +124,16 @@ export async function testLlmSettings(
     throw new Error("LLM 测试响应未返回有效内容。");
   }
 
+  const fingerprint = await saveLlmFingerprint(rootDir, {
+    model: config.model,
+    baseUrl: config.baseUrl,
+  });
+
   return {
     ok: true,
     message: "LLM 连通性测试通过。",
-    model: config.model,
-    baseUrl: config.baseUrl,
+    model: fingerprint.model,
+    baseUrl: fingerprint.baseUrl,
   };
 }
 

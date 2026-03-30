@@ -79,6 +79,7 @@ export interface FeedbackRequest {
 
 export interface FeedbackResponse {
   state: FeedbackState;
+  insights: FeedbackInsights;
 }
 
 export interface FeedbackRecordResponse {
@@ -90,6 +91,34 @@ export interface FeedbackListItem extends FeedbackStateEntry {}
 
 export interface FeedbackItemsResponse {
   items: FeedbackListItem[];
+}
+
+export interface ThemeInsight {
+  theme: string;
+  savedCount: number;
+  skippedCount: number;
+  netScore: number;
+  reason: string;
+}
+
+export interface PreferenceSuggestion {
+  theme: string;
+  suggestedAction: "prefer";
+  confidence: "medium" | "high";
+  reason: string;
+  sourceWindow: string;
+}
+
+export interface FeedbackInsights {
+  interestedThemes: ThemeInsight[];
+  skippedThemes: ThemeInsight[];
+  preferenceSuggestion: PreferenceSuggestion | null;
+}
+
+export interface FeedbackSuggestionAcceptResponse {
+  preferences: UserPreferencesConfig;
+  availableThemes: string[];
+  insights: FeedbackInsights;
 }
 
 export interface CommandStartRequest {
@@ -145,6 +174,29 @@ export interface LlmSettingsResponse {
   envFilePath: string;
 }
 
+export interface GitHubFingerprint {
+  login: string;
+  apiBaseUrl: string;
+  lastValidatedAt: string;
+}
+
+export interface LlmFingerprint {
+  model: string;
+  baseUrl: string;
+  lastValidatedAt: string;
+}
+
+export interface WecomFingerprint {
+  maskedWebhookUrl: string;
+  lastValidatedAt: string;
+}
+
+export interface EnvironmentFingerprintResponse {
+  github: GitHubFingerprint | null;
+  llm: LlmFingerprint | null;
+  wecom: WecomFingerprint | null;
+}
+
 export interface LlmTestResponse {
   ok: true;
   message: string;
@@ -183,4 +235,15 @@ export interface ArchiveListResponse {
 export interface ArchiveDetailResponse {
   archive: DailyDigestArchive;
   summary: ArchiveSummary;
+  readerContext: ArchiveReaderContext;
+}
+
+export interface ArchiveReaderContext {
+  editorialIntro: string[];
+  preferenceSuggestion: PreferenceSuggestion | null;
+  interestTrack: {
+    interestedThemes: ThemeInsight[];
+    skippedThemes: ThemeInsight[];
+  };
+  explorationRepo: string | null;
 }

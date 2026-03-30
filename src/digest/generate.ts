@@ -13,7 +13,13 @@ import {
 } from "../core/failure-report";
 import { getCurrentDigestDate, getIsoTimestamp } from "../core/date";
 import { createWorkflowLogger } from "../core/log";
+import {
+  getUserPreferencesConfigPath,
+  loadUserPreferencesConfig,
+} from "../config/user-preferences";
 import type { GitHubConfig, LlmConfig, WecomRobotConfig } from "../config/env";
+import { buildFeedbackInsights } from "../feedback/insights";
+import { readFeedbackStateSync } from "../feedback/store";
 import {
   enrichCandidatesWithReadmes,
   fetchGitHubCandidates,
@@ -141,6 +147,11 @@ export async function generateDailyDigest(
         },
       },
     );
+    const digest = markExplorationItem(
+      editorialResult.digest,
+      llmPool.selected,
+      rootDir,
+    );
 
     const archive: DailyDigestArchive = {
       schemaVersion: CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION,
@@ -173,7 +184,7 @@ export async function generateDailyDigest(
         editorialMode: editorialResult.mode,
         warnings: candidateWarnings.length > 0 ? candidateWarnings : undefined,
       },
-      digest: editorialResult.digest,
+      digest,
     };
     const archivePath = await writeDailyDigestArchive(archive, rootDir);
 
@@ -189,9 +200,9 @@ export async function generateDailyDigest(
 
       try {
         const notifier = new WecomRobotNotifier(options.wecom.webhookUrl);
-        await notifier.sendDailyDigest(editorialResult.digest);
+        await notifier.sendDailyDigest(digest);
         logger.info("delivery_wecom_succeeded", {
-          itemCount: editorialResult.digest.items.length,
+          itemCount: digest.items.length,
         });
       } catch (error) {
         const failurePath = await writeDailyDigestFailureReport(rootDir, {
@@ -201,8 +212,8 @@ export async function generateDailyDigest(
           error: toErrorPayload(error),
           context: {
             archivePath: path.resolve(archivePath),
-            digestTitle: editorialResult.digest.title,
-            digestItemRepos: editorialResult.digest.items.map(
+            digestTitle: digest.title,
+            digestItemRepos: digest.items.map(
               (item) => item.repo,
             ),
           },
@@ -252,6 +263,58 @@ export async function generateDailyDigest(
     });
     throw error;
   }
+}
+
+function markExplorationItem(
+  digest: DailyDigestArchive["digest"],
+  candidates: DailyDigestArchive["shortlisted"],
+  rootDir: string,
+): DailyDigestArchive["digest"] {
+  const preferences = loadUserPreferencesConfig(
+    getUserPreferencesConfigPath(rootDir),
+  );
+  const feedbackState = readFeedbackStateSync(rootDir);
+  const insights = buildFeedbackInsights(feedbackState, preferences);
+  const preferredThemes = new Set(preferences.preferredThemes);
+  const interestedThemes = new Set(
+    insights.interestedThemes.map((item) => item.theme),
+  );
+  const skippedThemes = new Set(insights.skippedThemes.map((item) => item.theme));
+  const candidateByRepo = new Map(candidates.map((candidate) => [candidate.repo, candidate]));
+
+  const exploration = digest.items.find((item) => {
+    if (preferredThemes.has(item.theme) || interestedThemes.has(item.theme)) {
+      return false;
+    }
+
+    if (skippedThemes.has(item.theme)) {
+      return false;
+    }
+
+    const candidate = candidateByRepo.get(item.repo);
+    return Boolean(
+      candidate &&
+        (candidate.sources.length >= 2 || candidate.selectionHints?.matureMomentum),
+    );
+  });
+
+  if (!exploration) {
+    return digest;
+  }
+
+  return {
+    ...digest,
+    items: digest.items.map((item) =>
+      item.repo === exploration.repo
+        ? {
+            ...item,
+            readerTag: "exploration",
+            readerNote:
+              "这条是今天刻意保留的探索位：主题和你最近高频兴趣重合不高，但信号够硬，适合偶尔跳出舒适区。",
+          }
+        : item,
+    ),
+  };
 }
 
 export interface ResendArchivedDigestOptions {

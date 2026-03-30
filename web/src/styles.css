@@ -472,6 +472,58 @@ label span {
   gap: 12px;
 }
 
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.insight-grid.compact {
+  margin-bottom: 18px;
+}
+
+.insight-card,
+.preference-suggestion,
+.editorial-intro {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.44);
+}
+
+.insight-card {
+  padding: 18px;
+}
+
+.insight-card h3,
+.editorial-intro h3 {
+  margin: 0 0 14px;
+  font-size: 1.18rem;
+}
+
+.insight-list {
+  display: grid;
+  gap: 10px;
+}
+
+.insight-item {
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.insight-item:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.insight-item p,
+.editorial-intro p,
+.preference-suggestion p,
+.story-note {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.75;
+}
+
 .saved-item {
   align-items: flex-start;
 }
@@ -638,6 +690,26 @@ label span {
   text-align: right;
 }
 
+.editorial-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 18px;
+}
+
+.editorial-intro-copy {
+  display: grid;
+  gap: 10px;
+}
+
+.preference-suggestion {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 16px;
+}
+
 .reader-body {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -660,9 +732,11 @@ label span {
 }
 
 .story-heading {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 18px;
+  align-items: center;
 }
 
 .story-theme {
@@ -679,6 +753,22 @@ label span {
   font-size: clamp(2rem, 3vw, 3rem);
   line-height: 1;
   letter-spacing: -0.04em;
+  width: 100%;
+}
+
+.story-flag {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(120, 148, 113, 0.16);
+  color: #4e6c47;
+  font-size: 0.82rem;
+}
+
+.story-note {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(120, 148, 113, 0.08);
 }
 
 .story-lead {
@@ -777,7 +867,9 @@ label span {
   .archive-page,
   .reader-body,
   .schedule-grid,
-  .environment-card-grid {
+  .environment-card-grid,
+  .insight-grid,
+  .editorial-intro {
     grid-template-columns: 1fr;
   }
 

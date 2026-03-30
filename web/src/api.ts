@@ -55,6 +55,28 @@ export interface FeedbackState {
   recent: FeedbackEvent[];
 }
 
+export interface ThemeInsight {
+  theme: string;
+  savedCount: number;
+  skippedCount: number;
+  netScore: number;
+  reason: string;
+}
+
+export interface PreferenceSuggestion {
+  theme: string;
+  suggestedAction: "prefer";
+  confidence: "medium" | "high";
+  reason: string;
+  sourceWindow: string;
+}
+
+export interface FeedbackInsights {
+  interestedThemes: ThemeInsight[];
+  skippedThemes: ThemeInsight[];
+  preferenceSuggestion: PreferenceSuggestion | null;
+}
+
 export interface FeedbackListItem {
   repo: string;
   date: string;
@@ -106,6 +128,33 @@ export interface GitHubTestResult {
   message: string;
   login: string;
   apiBaseUrl: string;
+}
+
+export interface EnvironmentFingerprints {
+  github: {
+    login: string;
+    apiBaseUrl: string;
+    lastValidatedAt: string;
+  } | null;
+  llm: {
+    model: string;
+    baseUrl: string;
+    lastValidatedAt: string;
+  } | null;
+  wecom: {
+    maskedWebhookUrl: string;
+    lastValidatedAt: string;
+  } | null;
+}
+
+export interface ArchiveReaderContext {
+  editorialIntro: string[];
+  preferenceSuggestion: PreferenceSuggestion | null;
+  interestTrack: {
+    interestedThemes: ThemeInsight[];
+    skippedThemes: ThemeInsight[];
+  };
+  explorationRepo: string | null;
 }
 
 export async function fetchHealth(): Promise<{
@@ -174,7 +223,10 @@ export async function savePreferences(draft: UserPreferences): Promise<{
   });
 }
 
-export async function fetchFeedback(): Promise<{ state: FeedbackState }> {
+export async function fetchFeedback(): Promise<{
+  state: FeedbackState;
+  insights: FeedbackInsights;
+}> {
   return fetchJson("/api/feedback");
 }
 
@@ -201,12 +253,29 @@ export async function fetchArchives(): Promise<{ archives: ArchiveSummary[] }> {
   return fetchJson("/api/archives");
 }
 
+export async function acceptPreferenceSuggestion(theme: string): Promise<{
+  preferences: UserPreferences;
+  availableThemes: string[];
+  insights: FeedbackInsights;
+}> {
+  return fetchJson(
+    `/api/feedback/suggestions/${encodeURIComponent(theme)}/accept`,
+    {
+      method: "POST",
+    },
+  );
+}
+
 export async function fetchWecomSettings(): Promise<WecomSettings> {
   return fetchJson("/api/settings/wecom");
 }
 
 export async function fetchLlmSettings(): Promise<LlmSettings> {
   return fetchJson("/api/settings/llm");
+}
+
+export async function fetchEnvironmentFingerprints(): Promise<EnvironmentFingerprints> {
+  return fetchJson("/api/environment/fingerprints");
 }
 
 export async function saveLlmSettings(input: {
@@ -244,6 +313,7 @@ export async function sendWecomTest(): Promise<WecomTestResult> {
 export async function fetchArchiveDetail(date: string): Promise<{
   archive: DailyDigestArchive;
   summary: ArchiveSummary;
+  readerContext: ArchiveReaderContext;
 }> {
   return fetchJson(`/api/archives/${date}`);
 }

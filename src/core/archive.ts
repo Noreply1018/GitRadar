@@ -5,7 +5,7 @@ import type { Dirent } from "node:fs";
 import type { DailyDigest } from "./digest";
 import type { CandidateSource, GitHubCandidateRepo } from "../github/types";
 
-export const CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION = 2;
+export const CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION = 3;
 const ARCHIVE_FILE_PATTERN = /^\d{4}-\d{2}-\d{2}\.json$/;
 const DEFAULT_THEME = "General OSS";
 const LEGACY_RULES_VERSION = "legacy";
@@ -289,6 +289,11 @@ function normalizeDigestItem(value: unknown): DailyDigest["items"][number] {
       : [],
     novelty: item.novelty,
     trend: item.trend,
+    readerTag: item.readerTag === "exploration" ? "exploration" : undefined,
+    readerNote:
+      typeof item.readerNote === "string" && item.readerNote.trim()
+        ? item.readerNote
+        : undefined,
   };
 }
 
@@ -445,7 +450,9 @@ function isValidDigestItem(value: unknown): boolean {
     Array.isArray(item.evidence) &&
     item.evidence.every((entry) => typeof entry === "string") &&
     typeof item.novelty === "string" &&
-    typeof item.trend === "string"
+    typeof item.trend === "string" &&
+    (item.readerTag === undefined || item.readerTag === "exploration") &&
+    (item.readerNote === undefined || typeof item.readerNote === "string")
   );
 }
 

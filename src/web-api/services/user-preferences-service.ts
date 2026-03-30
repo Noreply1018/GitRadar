@@ -28,14 +28,22 @@ export async function saveUserPreferences(
   const path = getUserPreferencesConfigPath(rootDir);
   const preferences = parseUserPreferencesConfig(draft, "userPreferences");
 
-  await mkdir(pathDir(path), { recursive: true });
-  await writeFile(path, stringifyUserPreferencesConfig(preferences), "utf8");
+  await writeUserPreferences(rootDir, preferences);
 
   return {
     path,
     preferences,
     availableThemes: DIGEST_RULES_CONFIG.themes.map((item) => item.theme),
   };
+}
+
+export async function writeUserPreferences(
+  rootDir: string,
+  preferences: ReturnType<typeof parseUserPreferencesConfig>,
+): Promise<void> {
+  const path = getUserPreferencesConfigPath(rootDir);
+  await mkdir(pathDir(path), { recursive: true });
+  await writeFile(path, stringifyUserPreferencesConfig(preferences), "utf8");
 }
 
 function pathDir(filePath: string): string {

@@ -3,7 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 import type { DailyDigestArchive } from "../../src/core/archive";
 import type {
   ArchiveSummary,
+  ArchiveReaderContext,
+  EnvironmentFingerprints,
   FeedbackAction,
+  FeedbackInsights,
   FeedbackListItem,
   FeedbackState,
   GitHubSettings,
@@ -16,8 +19,10 @@ import type {
   WecomSettings,
 } from "./api";
 import {
+  acceptPreferenceSuggestion,
   fetchArchiveDetail,
   fetchArchives,
+  fetchEnvironmentFingerprints,
   fetchFeedback,
   fetchFeedbackItems,
   fetchGitHubSettings,
@@ -69,6 +74,28 @@ const EMPTY_FEEDBACK_STATE: FeedbackState = {
   recent: [],
 };
 
+const EMPTY_FEEDBACK_INSIGHTS: FeedbackInsights = {
+  interestedThemes: [],
+  skippedThemes: [],
+  preferenceSuggestion: null,
+};
+
+const EMPTY_ENVIRONMENT_FINGERPRINTS: EnvironmentFingerprints = {
+  github: null,
+  llm: null,
+  wecom: null,
+};
+
+const EMPTY_ARCHIVE_READER_CONTEXT: ArchiveReaderContext = {
+  editorialIntro: [],
+  preferenceSuggestion: null,
+  interestTrack: {
+    interestedThemes: [],
+    skippedThemes: [],
+  },
+  explorationRepo: null,
+};
+
 const EMPTY_WECOM_SETTINGS: WecomSettings = {
   configured: false,
   maskedWebhookUrl: null,
@@ -114,6 +141,8 @@ export default function App() {
   const [customTopicInput, setCustomTopicInput] = useState("");
   const [feedbackState, setFeedbackState] =
     useState<FeedbackState>(EMPTY_FEEDBACK_STATE);
+  const [feedbackInsights, setFeedbackInsights] =
+    useState<FeedbackInsights>(EMPTY_FEEDBACK_INSIGHTS);
   const [savedItems, setSavedItems] = useState<FeedbackListItem[]>([]);
   const [laterItems, setLaterItems] = useState<FeedbackListItem[]>([]);
   const [savedViewFilter, setSavedViewFilter] =
@@ -123,6 +152,8 @@ export default function App() {
   const [archiveDetail, setArchiveDetail] = useState<DailyDigestArchive | null>(
     null,
   );
+  const [archiveReaderContext, setArchiveReaderContext] =
+    useState<ArchiveReaderContext>(EMPTY_ARCHIVE_READER_CONTEXT);
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [githubSettings, setGitHubSettings] = useState<GitHubSettings>(
     EMPTY_GITHUB_SETTINGS,
@@ -139,6 +170,8 @@ export default function App() {
     useState<ValidationStatus>(IDLE_VALIDATION);
   const [wecomSettings, setWecomSettings] =
     useState<WecomSettings>(EMPTY_WECOM_SETTINGS);
+  const [environmentFingerprints, setEnvironmentFingerprints] =
+    useState<EnvironmentFingerprints>(EMPTY_ENVIRONMENT_FINGERPRINTS);
   const [wecomWebhookInput, setWecomWebhookInput] = useState("");
   const [wecomValidation, setWecomValidation] =
     useState<ValidationStatus>(IDLE_VALIDATION);
@@ -155,6 +188,7 @@ export default function App() {
     | "test-llm"
     | "save-wecom"
     | "test-wecom"
+    | "accept-suggestion"
   >("hydrate");
   const [statusMessage, setStatusMessage] = useState(
     "正在同步 GitRadar 当前状态…",
@@ -204,9 +238,26 @@ export default function App() {
       "GitHub 源",
       githubSettings.configured,
       githubValidation,
+      environmentFingerprints.github
+        ? `已验证账号 ${environmentFingerprints.github.login}`
+        : undefined,
     ),
-    buildEnvironmentCard("LLM 模型", llmSettings.configured, llmValidation),
-    buildEnvironmentCard("企业微信", wecomSettings.configured, wecomValidation),
+    buildEnvironmentCard(
+      "LLM 模型",
+      llmSettings.configured,
+      llmValidation,
+      environmentFingerprints.llm
+        ? `${environmentFingerprints.llm.model} · ${environmentFingerprints.llm.baseUrl}`
+        : undefined,
+    ),
+    buildEnvironmentCard(
+      "企业微信",
+      wecomSettings.configured,
+      wecomValidation,
+      environmentFingerprints.wecom
+        ? `最近发送 ${formatDateTime(environmentFingerprints.wecom.lastValidatedAt)}`
+        : undefined,
+    ),
     buildScheduleCard(scheduleDraft, timezoneOptions),
   ];
 
@@ -226,6 +277,7 @@ export default function App() {
         githubResponse,
         llmResponse,
         wecomResponse,
+        fingerprintResponse,
       ] = await Promise.all([
         fetchHealth(),
         fetchScheduleSettings(),
@@ -237,6 +289,7 @@ export default function App() {
         fetchGitHubSettings(),
         fetchLlmSettings(),
         fetchWecomSettings(),
+        fetchEnvironmentFingerprints(),
       ]);
 
       setHealth(healthResponse);
@@ -245,6 +298,7 @@ export default function App() {
       setPreferencesDraft(preferencesResponse.preferences);
       setAvailableThemes(preferencesResponse.availableThemes);
       setFeedbackState(feedbackResponse.state);
+      setFeedbackInsights(feedbackResponse.insights);
       setArchives(archiveResponse.archives);
       setSavedItems(savedResponse.items);
       setLaterItems(laterResponse.items);
@@ -257,6 +311,7 @@ export default function App() {
       setLlmModelInput(llmResponse.model ?? "");
       setLlmValidation(IDLE_VALIDATION);
       setWecomSettings(wecomResponse);
+      setEnvironmentFingerprints(fingerprintResponse);
       setWecomWebhookInput("");
       setWecomValidation(IDLE_VALIDATION);
 
@@ -267,8 +322,10 @@ export default function App() {
       if (initialDate) {
         const detailResponse = await fetchArchiveDetail(initialDate);
         setArchiveDetail(detailResponse.archive);
+        setArchiveReaderContext(detailResponse.readerContext);
       } else {
         setArchiveDetail(null);
+        setArchiveReaderContext(EMPTY_ARCHIVE_READER_CONTEXT);
       }
 
       setStatusMessage("GitRadar 已同步到当前配置、反馈与归档状态。");
@@ -280,13 +337,16 @@ export default function App() {
   }
 
   async function refreshFeedbackCollections(): Promise<void> {
-    const [savedResponse, laterResponse] = await Promise.all([
+    const [savedResponse, laterResponse, feedbackResponse] = await Promise.all([
       fetchFeedbackItems("saved"),
       fetchFeedbackItems("later"),
+      fetchFeedback(),
     ]);
 
     setSavedItems(savedResponse.items);
     setLaterItems(laterResponse.items);
+    setFeedbackState(feedbackResponse.state);
+    setFeedbackInsights(feedbackResponse.insights);
   }
 
   async function handleSaveSchedule(): Promise<void> {
@@ -499,6 +559,7 @@ export default function App() {
   async function runGitHubValidation(): Promise<ValidationStatus> {
     try {
       const response: GitHubTestResult = await testGitHubSettings();
+      setEnvironmentFingerprints(await fetchEnvironmentFingerprints());
       const validation = {
         state: "passed" as const,
         detail: `账号 ${response.login} · ${response.apiBaseUrl}`,
@@ -518,6 +579,7 @@ export default function App() {
   async function runLlmValidation(): Promise<ValidationStatus> {
     try {
       const response: LlmTestResult = await testLlmSettings();
+      setEnvironmentFingerprints(await fetchEnvironmentFingerprints());
       const validation = {
         state: "passed" as const,
         detail: `${response.model} · ${response.baseUrl}`,
@@ -543,6 +605,7 @@ export default function App() {
   async function runWecomValidation(): Promise<ValidationStatus> {
     try {
       const response = await sendWecomTest();
+      setEnvironmentFingerprints(await fetchEnvironmentFingerprints());
       const validation = {
         state: "passed" as const,
         detail: `目标 ${response.maskedWebhookUrl}`,
@@ -572,6 +635,7 @@ export default function App() {
     try {
       const detailResponse = await fetchArchiveDetail(date);
       setArchiveDetail(detailResponse.archive);
+      setArchiveReaderContext(detailResponse.readerContext);
       setStatusMessage("已切换到新的归档日报。");
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
@@ -594,6 +658,7 @@ export default function App() {
       );
 
       setArchiveDetail(detailResponse.archive);
+      setArchiveReaderContext(detailResponse.readerContext);
 
       if (matchedIndex >= 0) {
         setCurrentItemIndex(matchedIndex);
@@ -627,6 +692,31 @@ export default function App() {
       setFeedbackState(response.state);
       await refreshFeedbackCollections();
       setStatusMessage("反馈已记录，收藏与待看列表已同步更新。");
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setBusyAction("");
+    }
+  }
+
+  async function handleAcceptPreferenceSuggestion(theme: string): Promise<void> {
+    setBusyAction("accept-suggestion");
+    setErrorMessage("");
+
+    try {
+      const response = await acceptPreferenceSuggestion(theme);
+      setPreferencesDraft(response.preferences);
+      setAvailableThemes(response.availableThemes);
+      setFeedbackInsights(response.insights);
+      setArchiveReaderContext((current) => ({
+        ...current,
+        preferenceSuggestion: response.insights.preferenceSuggestion,
+        interestTrack: {
+          interestedThemes: response.insights.interestedThemes,
+          skippedThemes: response.insights.skippedThemes,
+        },
+      }));
+      setStatusMessage(`已把 ${theme} 加入关心主题，后续日报会更主动保留这类项目。`);
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -788,8 +878,22 @@ export default function App() {
                 <strong>{githubSettings.maskedToken ?? "尚未配置"}</strong>
               </div>
               <div className="wecom-row">
+                <span>已验证账号</span>
+                <strong>
+                  {environmentFingerprints.github?.login ?? "尚未验证"}
+                </strong>
+              </div>
+              <div className="wecom-row">
                 <span>API 地址</span>
                 <strong>{githubSettings.apiBaseUrl}</strong>
+              </div>
+              <div className="wecom-row">
+                <span>最近验证</span>
+                <strong>
+                  {environmentFingerprints.github
+                    ? formatDateTime(environmentFingerprints.github.lastValidatedAt)
+                    : "尚无成功记录"}
+                </strong>
               </div>
               <div className="wecom-row">
                 <span>Trending 地址</span>
@@ -862,7 +966,19 @@ export default function App() {
               </div>
               <div className="wecom-row">
                 <span>Model</span>
-                <strong>{llmSettings.model ?? "尚未配置"}</strong>
+                <strong>
+                  {environmentFingerprints.llm?.model ??
+                    llmSettings.model ??
+                    "尚未配置"}
+                </strong>
+              </div>
+              <div className="wecom-row">
+                <span>最近验证</span>
+                <strong>
+                  {environmentFingerprints.llm
+                    ? formatDateTime(environmentFingerprints.llm.lastValidatedAt)
+                    : "尚无成功记录"}
+                </strong>
               </div>
               <div className="wecom-row">
                 <span>配置文件</span>
@@ -953,6 +1069,14 @@ export default function App() {
               <div className="wecom-row">
                 <span>当前 Webhook</span>
                 <strong>{wecomSettings.maskedWebhookUrl ?? "尚未配置"}</strong>
+              </div>
+              <div className="wecom-row">
+                <span>最近测试发送</span>
+                <strong>
+                  {environmentFingerprints.wecom
+                    ? formatDateTime(environmentFingerprints.wecom.lastValidatedAt)
+                    : "尚无成功记录"}
+                </strong>
               </div>
               <div className="wecom-row">
                 <span>配置文件</span>
@@ -1170,6 +1294,19 @@ export default function App() {
               </div>
             </header>
 
+            <div className="insight-grid">
+              <InsightCard
+                title="最近真正感兴趣的主题"
+                items={feedbackInsights.interestedThemes}
+                emptyText="还没形成明显兴趣轨迹。"
+              />
+              <InsightCard
+                title="最近被连续跳过的主题"
+                items={feedbackInsights.skippedThemes}
+                emptyText="目前还没有明显被连续跳过的主题。"
+              />
+            </div>
+
             <div
               className="saved-filter-tabs"
               role="tablist"
@@ -1307,6 +1444,56 @@ export default function App() {
                   </div>
                 </header>
 
+                <section className="editorial-intro">
+                  <div className="editorial-intro-copy">
+                    <p className="eyebrow">Editorial Intro</p>
+                    <h3>今天为什么是这几条</h3>
+                    {archiveReaderContext.editorialIntro.map((line) => (
+                      <p key={line}>{line}</p>
+                    ))}
+                  </div>
+
+                  {archiveReaderContext.preferenceSuggestion ? (
+                    <div className="preference-suggestion">
+                      <span className="story-theme">
+                        {archiveReaderContext.preferenceSuggestion.theme}
+                      </span>
+                      <strong>偏好学习提示</strong>
+                      <p>{archiveReaderContext.preferenceSuggestion.reason}</p>
+                      <p className="reader-meta-line">
+                        {archiveReaderContext.preferenceSuggestion.sourceWindow}
+                      </p>
+                      <button
+                        className="primary-button"
+                        disabled={busyAction !== ""}
+                        onClick={() =>
+                          void handleAcceptPreferenceSuggestion(
+                            archiveReaderContext.preferenceSuggestion!.theme,
+                          )
+                        }
+                        type="button"
+                      >
+                        {busyAction === "accept-suggestion"
+                          ? "更新中…"
+                          : "加入关心主题"}
+                      </button>
+                    </div>
+                  ) : null}
+                </section>
+
+                <div className="insight-grid compact">
+                  <InsightCard
+                    title="我最近真正感兴趣的主题"
+                    items={archiveReaderContext.interestTrack.interestedThemes}
+                    emptyText="还没形成明显偏好。"
+                  />
+                  <InsightCard
+                    title="我最近连续跳过的主题"
+                    items={archiveReaderContext.interestTrack.skippedThemes}
+                    emptyText="目前没有明显跳过趋势。"
+                  />
+                </div>
+
                 <div className="reader-body">
                   <button
                     className="pager-button"
@@ -1324,8 +1511,15 @@ export default function App() {
                       <span className="story-theme">
                         {currentDigestItem.theme}
                       </span>
+                      {currentDigestItem.readerTag === "exploration" ? (
+                        <span className="story-flag">探索位</span>
+                      ) : null}
                       <h3>{currentDigestItem.repo}</h3>
                     </div>
+
+                    {currentDigestItem.readerNote ? (
+                      <p className="story-note">{currentDigestItem.readerNote}</p>
+                    ) : null}
 
                     <div className="feedback-actions">
                       <button
@@ -1434,6 +1628,33 @@ function MetaPill(props: { label: string; value: string }) {
   );
 }
 
+function InsightCard(props: {
+  title: string;
+  items: Array<{
+    theme: string;
+    reason: string;
+  }>;
+  emptyText: string;
+}) {
+  return (
+    <section className="insight-card">
+      <h3>{props.title}</h3>
+      {props.items.length > 0 ? (
+        <div className="insight-list">
+          {props.items.map((item) => (
+            <article key={item.theme} className="insight-item">
+              <strong>{item.theme}</strong>
+              <p>{item.reason}</p>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="empty-inline">{props.emptyText}</div>
+      )}
+    </section>
+  );
+}
+
 function StatusBadge(props: {
   configured: boolean;
   validation: ValidationStatus;
@@ -1479,12 +1700,13 @@ function buildEnvironmentCard(
   label: string,
   configured: boolean,
   validation: ValidationStatus,
+  fingerprintDetail?: string,
 ) {
   return {
     label,
     configured,
     status: buildStatusLabel(configured, validation),
-    detail: validation.detail,
+    detail: fingerprintDetail ?? validation.detail,
   };
 }
 
