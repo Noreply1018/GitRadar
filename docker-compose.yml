@@ -1,0 +1,24 @@
+services:
+  gitradar:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gitradar
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3210:3210"
+    env_file:
+      - .env
+    environment:
+      TZ: Asia/Shanghai
+      GITRADAR_CRON_SCHEDULE: "17 8 * * *"
+    volumes:
+      - ./config:/app/config
+      - ./data:/app/data
+      - ./.env:/app/.env:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3210/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
