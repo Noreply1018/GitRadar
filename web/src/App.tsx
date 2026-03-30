@@ -21,12 +21,26 @@ import {
 } from "./api";
 
 type TabId = "dashboard" | "rules" | "commands" | "archives";
+type CommandKind =
+  | "validate"
+  | "generate"
+  | "generate-send"
+  | "analyze"
+  | "send-sample";
 
 const TABS: Array<{ id: TabId; label: string; detail: string }> = [
-  { id: "dashboard", label: "仪表盘", detail: "运行态势与快捷动作" },
-  { id: "rules", label: "规则配置", detail: "主题、黑名单、阈值与权重" },
-  { id: "commands", label: "执行中心", detail: "真实终端命令与日志" },
-  { id: "archives", label: "归档浏览", detail: "日报历史、shortlist 与证据" },
+  { id: "dashboard", label: "总览", detail: "运行状态与今日动作" },
+  { id: "rules", label: "规则", detail: "主题、阈值、权重" },
+  { id: "commands", label: "命令", detail: "任务队列与终端输出" },
+  { id: "archives", label: "归档", detail: "日报、候选池与排除原因" },
+];
+
+const RULE_SECTIONS: Array<{ id: string; label: string }> = [
+  { id: "themes", label: "主题" },
+  { id: "blacklists", label: "黑名单" },
+  { id: "selection", label: "选择策略" },
+  { id: "thresholds", label: "阈值" },
+  { id: "weights", label: "权重" },
 ];
 
 const THRESHOLD_FIELDS: Array<{
@@ -120,7 +134,9 @@ export default function App() {
   const [selectedJobId, setSelectedJobId] = useState("");
   const [analyzeDate, setAnalyzeDate] = useState("");
   const [busyAction, setBusyAction] = useState("");
-  const [statusMessage, setStatusMessage] = useState("正在读取本地控制台状态…");
+  const [statusMessage, setStatusMessage] = useState(
+    "正在同步 GitRadar 控制台状态…",
+  );
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
@@ -137,7 +153,7 @@ export default function App() {
     }, 2000);
 
     return () => window.clearInterval(timer);
-  }, [jobs]);
+  }, [jobs, selectedJobId]);
 
   async function hydrate(): Promise<void> {
     try {
@@ -154,7 +170,7 @@ export default function App() {
       setConfig(configResponse.config);
       setArchives(archiveResponse.archives);
       setJobs(jobsResponse.jobs);
-      setStatusMessage("本地控制台已加载，规则、命令和归档状态可查看。");
+      setStatusMessage("控制台已就绪，规则、命令与归档状态已同步。");
 
       if (archiveResponse.archives[0]) {
         setSelectedArchiveDate(archiveResponse.archives[0].date);
@@ -213,8 +229,8 @@ export default function App() {
       setIssues(result.issues);
       setStatusMessage(
         result.valid
-          ? "规则配置校验通过，可以直接保存或生成日报。"
-          : "规则配置存在错误，请先按字段提示修正。",
+          ? "当前规则草稿校验通过，可以直接保存或执行日报任务。"
+          : "规则草稿存在错误，请按诊断面板逐项修正。",
       );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
@@ -236,14 +252,14 @@ export default function App() {
       setIssues(validation.issues);
 
       if (!validation.valid) {
-        setStatusMessage("保存已拦截：当前规则配置仍有错误。");
+        setStatusMessage("保存已拦截：规则配置仍有未修复的问题。");
         return;
       }
 
       const result = await saveDigestRules(config);
       setConfig(result.config);
       setConfigPath(result.path);
-      setStatusMessage(`规则配置已写入 ${result.path}`);
+      setStatusMessage(`规则配置已写回 ${result.path}`);
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -251,9 +267,7 @@ export default function App() {
     }
   }
 
-  async function handleCommand(
-    kind: "validate" | "generate" | "generate-send" | "analyze" | "send-sample",
-  ): Promise<void> {
+  async function handleCommand(kind: CommandKind): Promise<void> {
     setBusyAction(kind);
     setErrorMessage("");
 
@@ -272,7 +286,7 @@ export default function App() {
       setJobs((currentJobs) => [result.job, ...currentJobs]);
       setSelectedJobId(result.job.id);
       setActiveTab("commands");
-      setStatusMessage(`已启动命令：${result.job.command}`);
+      setStatusMessage(`任务已启动：${result.job.command}`);
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -287,257 +301,365 @@ export default function App() {
     try {
       const detail = await fetchArchiveDetail(date);
       setArchiveDetail(detail.archive);
-      setStatusMessage(`已加载 ${date} 的归档详情。`);
+      setStatusMessage(`已切换到 ${date} 的归档视图。`);
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     }
   }
 
   const selectedJob = jobs.find((job) => job.id === selectedJobId) ?? null;
+  const recentArchive = archives[0] ?? null;
+  const latestJob = jobs[0] ?? null;
+  const runningJobs = jobs.filter((job) => job.status === "running").length;
+  const failingJobs = jobs.filter((job) => job.status === "failed").length;
+  const successfulJobs = jobs.filter(
+    (job) => job.status === "succeeded",
+  ).length;
 
   return (
-    <div className="shell">
-      <aside className="sidebar">
-        <div className="brand-block">
-          <div className="brand-kicker">GitRadar v1.3.0</div>
-          <h1>中文控制台</h1>
+    <div className="console-shell">
+      <aside className="console-sidebar">
+        <div className="sidebar-brand">
+          <div className="brand-tag">GitRadar / Control Surface</div>
+          <h1>GitRadar</h1>
           <p>
-            用结构化规则、真实终端命令和可浏览归档，把日报引擎升级为可操作的
-            Radar 工作台。
+            开源项目发现、证据整理、规则调参和发送链路，现在收口到同一块情报工作台。
           </p>
         </div>
 
-        <nav className="tab-list">
-          {TABS.map((tab) => (
+        <nav className="sidebar-nav" aria-label="主导航">
+          {TABS.map((tab, index) => (
             <button
               key={tab.id}
-              className={tab.id === activeTab ? "tab-link active" : "tab-link"}
+              className={tab.id === activeTab ? "nav-item active" : "nav-item"}
               onClick={() => setActiveTab(tab.id)}
               type="button"
             >
-              <span>{tab.label}</span>
-              <small>{tab.detail}</small>
+              <span className="nav-index">0{index + 1}</span>
+              <span className="nav-text">
+                <strong>{tab.label}</strong>
+                <small>{tab.detail}</small>
+              </span>
             </button>
           ))}
         </nav>
 
-        <section className="sidebar-footer">
-          <div className="meta-line">
-            <span>状态</span>
+        <section className="sidebar-status">
+          <div className="status-card">
+            <span>服务状态</span>
             <strong>{health?.status ?? "loading"}</strong>
           </div>
-          <div className="meta-line">
+          <div className="status-card">
             <span>运行模式</span>
             <strong>{health?.mode ?? "loading"}</strong>
           </div>
-          <div className="meta-line">
+          <div className="status-card">
             <span>规则路径</span>
             <strong>{configPath || "loading"}</strong>
           </div>
         </section>
       </aside>
 
-      <main className="workspace">
-        <header className="hero">
-          <div>
-            <div className="hero-kicker">本地优先 · 中文优先 · 配置驱动</div>
-            <h2>把 `digest-rules.json`、CLI 和归档历史收口到一个工作界面</h2>
+      <main className="console-main">
+        <header className="topbar">
+          <div className="topbar-title">
+            <span className="eyebrow">Open source signal desk</span>
+            <h2>{getTabTitle(activeTab)}</h2>
           </div>
-          <div className="hero-actions">
-            <button
-              className="primary"
-              onClick={() => void handleCommand("validate")}
-              type="button"
-            >
-              校验规则
-            </button>
-            <button
-              className="secondary"
-              onClick={() => void handleCommand("generate")}
-              type="button"
-            >
-              生成日报
-            </button>
+          <div className="topbar-metrics">
+            <MetricChip
+              label="今日归档"
+              value={recentArchive?.date ?? "暂无"}
+              tone="neutral"
+            />
+            <MetricChip
+              label="运行中"
+              value={String(runningJobs)}
+              tone="info"
+            />
+            <MetricChip
+              label="失败"
+              value={String(failingJobs)}
+              tone="danger"
+            />
+            <MetricChip
+              label="成功"
+              value={String(successfulJobs)}
+              tone="success"
+            />
           </div>
         </header>
 
-        <section className="status-strip">
-          <span>{statusMessage}</span>
+        <section className="system-banner">
+          <div>
+            <strong>{statusMessage}</strong>
+            <span>
+              {health
+                ? `版本 ${health.version} · 模式 ${health.mode}`
+                : "正在读取健康检查信息"}
+            </span>
+          </div>
           {errorMessage ? (
-            <strong className="error-text">{errorMessage}</strong>
+            <div className="banner-error">
+              <strong>错误</strong>
+              <span>{errorMessage}</span>
+            </div>
           ) : null}
         </section>
 
         {activeTab === "dashboard" ? (
-          <section className="dashboard-grid">
-            <article className="metric-panel">
-              <div className="metric-label">规则版本</div>
-              <div className="metric-value">{config?.version ?? "-"}</div>
-              <p>当前仓库规则配置版本，保存后会直接写回本地文件。</p>
-            </article>
-            <article className="metric-panel">
-              <div className="metric-label">主题数量</div>
-              <div className="metric-value">{config?.themes.length ?? 0}</div>
-              <p>用于 shortlist 和候选池多样性约束的主题集合。</p>
-            </article>
-            <article className="metric-panel">
-              <div className="metric-label">最近归档</div>
-              <div className="metric-value">{archives[0]?.date ?? "暂无"}</div>
-              <p>
-                {archives[0] ? archives[0].title : "还没有可读取的日报归档。"}
-              </p>
-            </article>
-            <article className="metric-panel">
-              <div className="metric-label">命令状态</div>
-              <div className="metric-value">{jobs[0]?.status ?? "暂无"}</div>
-              <p>{jobs[0] ? jobs[0].command : "尚未从网页触发过命令。"}</p>
-            </article>
+          <section className="dashboard-layout">
+            <div className="dashboard-commanddeck panel">
+              <div className="panel-head compact">
+                <div>
+                  <span className="eyebrow">Mission Control</span>
+                  <h3>今日运行态势</h3>
+                </div>
+                <span className="inline-note">
+                  规则版本 {config?.version ?? "loading"}
+                </span>
+              </div>
 
-            <section className="wide-panel">
-              <div className="panel-heading">
-                <h3>快捷动作</h3>
-                <p>这些动作都通过本地 API 白名单转成真实终端命令。</p>
+              <div className="commanddeck-grid">
+                <div className="commanddeck-copy">
+                  <h4>从候选抓取到日报发送，核心动作都在这里。</h4>
+                  <p>
+                    先校验规则，再决定是否直接生成日报。任务启动后，执行中心会保留完整命令、退出码和终端输出。
+                  </p>
+                </div>
+                <div className="commanddeck-actions">
+                  <ActionButton
+                    busyAction={busyAction}
+                    className="action-primary"
+                    currentAction="validate"
+                    label="校验规则"
+                    onClick={() => void handleCommand("validate")}
+                  />
+                  <ActionButton
+                    busyAction={busyAction}
+                    className="action-secondary"
+                    currentAction="generate"
+                    label="生成日报"
+                    onClick={() => void handleCommand("generate")}
+                  />
+                  <ActionButton
+                    busyAction={busyAction}
+                    className="action-secondary"
+                    currentAction="generate-send"
+                    label="生成并发送"
+                    onClick={() => void handleCommand("generate-send")}
+                  />
+                  <ActionButton
+                    busyAction={busyAction}
+                    className="action-ghost"
+                    currentAction="send-sample"
+                    label="发送样例"
+                    onClick={() => void handleCommand("send-sample")}
+                  />
+                </div>
               </div>
-              <div className="quick-actions">
-                <button
-                  className="primary"
-                  disabled={busyAction !== ""}
-                  onClick={() => void handleCommand("validate")}
-                  type="button"
-                >
-                  规则校验
-                </button>
-                <button
-                  className="secondary"
-                  disabled={busyAction !== ""}
-                  onClick={() => void handleCommand("generate")}
-                  type="button"
-                >
-                  生成日报
-                </button>
-                <button
-                  className="secondary"
-                  disabled={busyAction !== ""}
-                  onClick={() => void handleCommand("generate-send")}
-                  type="button"
-                >
-                  生成并发送
-                </button>
-                <button
-                  className="secondary"
-                  disabled={busyAction !== ""}
-                  onClick={() => void handleCommand("send-sample")}
-                  type="button"
-                >
-                  发送样例
-                </button>
-              </div>
-            </section>
+            </div>
 
-            <section className="wide-panel">
-              <div className="panel-heading">
-                <h3>最近执行记录</h3>
-                <p>执行中心会保留完整 stdout、stderr 与退出码。</p>
+            <div className="dashboard-stats panel">
+              <div className="panel-head">
+                <div>
+                  <span className="eyebrow">Snapshot</span>
+                  <h3>系统快照</h3>
+                </div>
               </div>
-              <div className="job-list compact">
-                {jobs.slice(0, 4).map((job) => (
+              <div className="stats-grid">
+                <StatBlock
+                  label="主题数"
+                  value={String(config?.themes.length ?? 0)}
+                  detail="当前参与 shortlist 和候选池多样性控制"
+                />
+                <StatBlock
+                  label="最近归档"
+                  value={recentArchive?.date ?? "暂无"}
+                  detail={recentArchive?.title ?? "还没有可浏览的日报归档"}
+                />
+                <StatBlock
+                  label="最近命令"
+                  value={latestJob?.status ?? "暂无"}
+                  detail={latestJob?.command ?? "尚未从网页触发任务"}
+                />
+                <StatBlock
+                  label="归档数量"
+                  value={String(archives.length)}
+                  detail="页面会优先展示最新一条归档"
+                />
+              </div>
+            </div>
+
+            <div className="dashboard-columns">
+              <section className="panel">
+                <div className="panel-head">
+                  <div>
+                    <span className="eyebrow">Activity</span>
+                    <h3>最近任务</h3>
+                  </div>
                   <button
-                    key={job.id}
-                    className="job-item"
-                    onClick={() => {
-                      setSelectedJobId(job.id);
-                      setActiveTab("commands");
-                    }}
+                    className="text-button"
+                    onClick={() => setActiveTab("commands")}
                     type="button"
                   >
-                    <strong>{job.command}</strong>
-                    <span>{job.status}</span>
-                    <small>{formatDateTime(job.startedAt)}</small>
+                    打开执行中心
                   </button>
-                ))}
-                {jobs.length === 0 ? (
-                  <div className="empty-box">暂无命令记录。</div>
-                ) : null}
-              </div>
-            </section>
+                </div>
+                <div className="stack-list">
+                  {jobs.slice(0, 5).map((job) => (
+                    <button
+                      key={job.id}
+                      className="stack-item"
+                      onClick={() => {
+                        setSelectedJobId(job.id);
+                        setActiveTab("commands");
+                      }}
+                      type="button"
+                    >
+                      <div className="stack-primary">
+                        <strong>{job.command}</strong>
+                        <StatusPill status={job.status} />
+                      </div>
+                      <small>{formatDateTime(job.startedAt)}</small>
+                    </button>
+                  ))}
+                  {jobs.length === 0 ? (
+                    <div className="empty-panel">还没有任务记录。</div>
+                  ) : null}
+                </div>
+              </section>
+
+              <section className="panel">
+                <div className="panel-head">
+                  <div>
+                    <span className="eyebrow">Archive Feed</span>
+                    <h3>最近归档</h3>
+                  </div>
+                  <button
+                    className="text-button"
+                    onClick={() => setActiveTab("archives")}
+                    type="button"
+                  >
+                    打开归档浏览
+                  </button>
+                </div>
+                <div className="stack-list">
+                  {archives.slice(0, 5).map((archive) => (
+                    <button
+                      key={archive.date}
+                      className="stack-item"
+                      onClick={() => {
+                        void handleSelectArchive(archive.date);
+                        setActiveTab("archives");
+                      }}
+                      type="button"
+                    >
+                      <div className="stack-primary">
+                        <strong>{archive.date}</strong>
+                        <span className="mono-tag">
+                          {archive.digestCount} 条
+                        </span>
+                      </div>
+                      <small>
+                        {archive.topRepos.join(" · ") || archive.title}
+                      </small>
+                    </button>
+                  ))}
+                  {archives.length === 0 ? (
+                    <div className="empty-panel">还没有可浏览的归档。</div>
+                  ) : null}
+                </div>
+              </section>
+            </div>
           </section>
         ) : null}
 
         {activeTab === "rules" && config ? (
-          <section className="rules-layout">
-            <div className="section-toolbar">
-              <div>
-                <h3>规则配置</h3>
-                <p>
-                  结构化编辑主题、阈值与权重，保存前会复用后端解析逻辑进行校验。
-                </p>
-              </div>
-              <div className="toolbar-actions">
-                <button
-                  className="secondary"
-                  disabled={busyAction !== ""}
-                  onClick={() => void handleValidateConfig()}
-                  type="button"
-                >
-                  {busyAction === "validate-config" ? "校验中…" : "校验草稿"}
-                </button>
-                <button
-                  className="primary"
-                  disabled={busyAction !== ""}
-                  onClick={() => void handleSaveConfig()}
-                  type="button"
-                >
-                  {busyAction === "save-config" ? "保存中…" : "保存配置"}
-                </button>
-              </div>
-            </div>
-
-            <div className="issue-ribbon">
-              {issues.length === 0 ? (
-                <span>当前没有规则校验错误。</span>
-              ) : (
-                issues.map((issue) => (
-                  <div
-                    key={`${issue.path}-${issue.message}`}
-                    className="issue-pill"
-                  >
-                    <strong>{issue.path}</strong>
-                    <span>{issue.message}</span>
+          <section className="rules-workspace">
+            <div className="rules-header panel">
+              <div className="panel-head">
+                <div>
+                  <span className="eyebrow">Rule Editor</span>
+                  <h3>digest-rules 配置编辑器</h3>
+                  <p className="subtle-copy">
+                    所有保存动作都会复用后端解析逻辑，草稿不会绕过真实校验。
+                  </p>
+                </div>
+                <div className="rules-actions">
+                  <div className="rules-meta">
+                    <span>路径</span>
+                    <strong>{configPath}</strong>
                   </div>
-                ))
-              )}
+                  <ActionButton
+                    busyAction={busyAction}
+                    className="action-ghost"
+                    currentAction="validate-config"
+                    label="校验草稿"
+                    onClick={() => void handleValidateConfig()}
+                  />
+                  <ActionButton
+                    busyAction={busyAction}
+                    className="action-primary"
+                    currentAction="save-config"
+                    label="保存配置"
+                    onClick={() => void handleSaveConfig()}
+                  />
+                </div>
+              </div>
+
+              <div
+                className="section-pills"
+                role="navigation"
+                aria-label="规则分区"
+              >
+                {RULE_SECTIONS.map((section) => (
+                  <a
+                    key={section.id}
+                    className="section-pill"
+                    href={`#${section.id}`}
+                  >
+                    {section.label}
+                  </a>
+                ))}
+              </div>
             </div>
 
-            <section className="rules-panel">
-              <div className="panel-heading">
-                <h3>主题配置</h3>
-                <p>
-                  每个主题用独立卡片维护主题名和关键词，多样性逻辑仍由后端执行。
-                </p>
-              </div>
-              <div className="theme-grid">
-                {config.themes.map((theme, index) => (
-                  <div key={`${theme.theme}-${index}`} className="theme-card">
-                    <label>
-                      <span>主题名</span>
-                      <input
-                        value={theme.theme}
-                        onChange={(event) =>
-                          setConfig(
-                            updateTheme(
-                              config,
-                              index,
-                              "theme",
-                              event.target.value,
-                            ),
-                          )
-                        }
-                      />
-                    </label>
-                    <label>
-                      <span>关键词（每行一个）</span>
+            <div className="rules-grid">
+              <section className="panel rules-main" id="themes">
+                <div className="panel-head">
+                  <div>
+                    <span className="eyebrow">Themes</span>
+                    <h3>主题与关键词</h3>
+                  </div>
+                </div>
+                <div className="theme-list">
+                  {config.themes.map((theme, index) => (
+                    <article
+                      key={`${theme.theme}-${index}`}
+                      className="theme-row"
+                    >
+                      <div className="theme-row-head">
+                        <span className="mono-tag">
+                          T-{String(index + 1).padStart(2, "0")}
+                        </span>
+                        <input
+                          className="theme-title-input"
+                          value={theme.theme}
+                          onChange={(event) =>
+                            setConfig(
+                              updateTheme(
+                                config,
+                                index,
+                                "theme",
+                                event.target.value,
+                              ),
+                            )
+                          }
+                        />
+                      </div>
                       <textarea
-                        rows={6}
+                        rows={4}
                         value={theme.keywords.join("\n")}
                         onChange={(event) =>
                           setConfig(
@@ -550,117 +672,166 @@ export default function App() {
                           )
                         }
                       />
+                    </article>
+                  ))}
+                </div>
+              </section>
+
+              <aside className="rules-side">
+                <section className="panel diagnostics-panel">
+                  <div className="panel-head">
+                    <div>
+                      <span className="eyebrow">Diagnostics</span>
+                      <h3>草稿诊断</h3>
+                    </div>
+                  </div>
+                  <div className="diagnostic-list">
+                    {issues.length === 0 ? (
+                      <div className="empty-panel">当前没有校验问题。</div>
+                    ) : (
+                      issues.map((issue) => (
+                        <div
+                          key={`${issue.path}-${issue.message}`}
+                          className="diagnostic-item"
+                        >
+                          <strong>{issue.path}</strong>
+                          <span>{issue.message}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </section>
+
+                <section className="panel" id="selection">
+                  <div className="panel-head">
+                    <div>
+                      <span className="eyebrow">Selection</span>
+                      <h3>选择策略</h3>
+                    </div>
+                  </div>
+                  <div className="compact-form">
+                    <label>
+                      <span>Shortlist 每主题上限</span>
+                      <input
+                        type="number"
+                        value={config.selection.shortlistMaxPerTheme}
+                        onChange={(event) =>
+                          setConfig({
+                            ...config,
+                            selection: {
+                              ...config.selection,
+                              shortlistMaxPerTheme: Number(event.target.value),
+                            },
+                          })
+                        }
+                      />
+                    </label>
+                    <label>
+                      <span>候选池每主题上限</span>
+                      <input
+                        type="number"
+                        value={config.selection.poolMaxPerTheme}
+                        onChange={(event) =>
+                          setConfig({
+                            ...config,
+                            selection: {
+                              ...config.selection,
+                              poolMaxPerTheme: Number(event.target.value),
+                            },
+                          })
+                        }
+                      />
+                    </label>
+                    <label className="switch-row">
+                      <span>保留成熟回暖项目</span>
+                      <input
+                        checked={config.selection.ensureMatureMomentum}
+                        onChange={(event) =>
+                          setConfig({
+                            ...config,
+                            selection: {
+                              ...config.selection,
+                              ensureMatureMomentum: event.target.checked,
+                            },
+                          })
+                        }
+                        type="checkbox"
+                      />
                     </label>
                   </div>
-                ))}
+                </section>
+              </aside>
+            </div>
+
+            <section className="panel" id="blacklists">
+              <div className="panel-head">
+                <div>
+                  <span className="eyebrow">Blacklists</span>
+                  <h3>黑名单词库</h3>
+                </div>
+              </div>
+              <div className="triple-grid">
+                <label>
+                  <span>描述黑名单</span>
+                  <textarea
+                    rows={8}
+                    value={config.blacklists.descriptionKeywords.join("\n")}
+                    onChange={(event) =>
+                      setConfig({
+                        ...config,
+                        blacklists: {
+                          ...config.blacklists,
+                          descriptionKeywords: parseMultiline(
+                            event.target.value,
+                          ),
+                        },
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  <span>README 黑名单</span>
+                  <textarea
+                    rows={8}
+                    value={config.blacklists.readmeKeywords.join("\n")}
+                    onChange={(event) =>
+                      setConfig({
+                        ...config,
+                        blacklists: {
+                          ...config.blacklists,
+                          readmeKeywords: parseMultiline(event.target.value),
+                        },
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  <span>Topic 黑名单</span>
+                  <textarea
+                    rows={8}
+                    value={config.blacklists.topics.join("\n")}
+                    onChange={(event) =>
+                      setConfig({
+                        ...config,
+                        blacklists: {
+                          ...config.blacklists,
+                          topics: parseMultiline(event.target.value),
+                        },
+                      })
+                    }
+                  />
+                </label>
               </div>
             </section>
 
-            <section className="rules-panel two-column">
-              <label>
-                <span>描述黑名单</span>
-                <textarea
-                  rows={7}
-                  value={config.blacklists.descriptionKeywords.join("\n")}
-                  onChange={(event) =>
-                    setConfig({
-                      ...config,
-                      blacklists: {
-                        ...config.blacklists,
-                        descriptionKeywords: parseMultiline(event.target.value),
-                      },
-                    })
-                  }
-                />
-              </label>
-              <label>
-                <span>README 黑名单</span>
-                <textarea
-                  rows={7}
-                  value={config.blacklists.readmeKeywords.join("\n")}
-                  onChange={(event) =>
-                    setConfig({
-                      ...config,
-                      blacklists: {
-                        ...config.blacklists,
-                        readmeKeywords: parseMultiline(event.target.value),
-                      },
-                    })
-                  }
-                />
-              </label>
-              <label>
-                <span>Topic 黑名单</span>
-                <textarea
-                  rows={7}
-                  value={config.blacklists.topics.join("\n")}
-                  onChange={(event) =>
-                    setConfig({
-                      ...config,
-                      blacklists: {
-                        ...config.blacklists,
-                        topics: parseMultiline(event.target.value),
-                      },
-                    })
-                  }
-                />
-              </label>
-              <label className="checkbox-row">
-                <span>成熟回暖保留</span>
-                <input
-                  checked={config.selection.ensureMatureMomentum}
-                  onChange={(event) =>
-                    setConfig({
-                      ...config,
-                      selection: {
-                        ...config.selection,
-                        ensureMatureMomentum: event.target.checked,
-                      },
-                    })
-                  }
-                  type="checkbox"
-                />
-              </label>
-              <label>
-                <span>Shortlist 每主题上限</span>
-                <input
-                  type="number"
-                  value={config.selection.shortlistMaxPerTheme}
-                  onChange={(event) =>
-                    setConfig({
-                      ...config,
-                      selection: {
-                        ...config.selection,
-                        shortlistMaxPerTheme: Number(event.target.value),
-                      },
-                    })
-                  }
-                />
-              </label>
-              <label>
-                <span>候选池每主题上限</span>
-                <input
-                  type="number"
-                  value={config.selection.poolMaxPerTheme}
-                  onChange={(event) =>
-                    setConfig({
-                      ...config,
-                      selection: {
-                        ...config.selection,
-                        poolMaxPerTheme: Number(event.target.value),
-                      },
-                    })
-                  }
-                />
-              </label>
-            </section>
-
-            <section className="rules-panel">
-              <div className="panel-heading">
-                <h3>阈值配置</h3>
-                <p>常规阈值使用数字输入，分段 bucket 用表格编辑。</p>
+            <section className="panel" id="thresholds">
+              <div className="panel-head">
+                <div>
+                  <span className="eyebrow">Thresholds</span>
+                  <h3>阈值与 bucket</h3>
+                </div>
               </div>
-              <div className="number-grid">
+              <div className="dense-grid">
                 {THRESHOLD_FIELDS.map((field) => (
                   <label key={field.key}>
                     <span>{field.label}</span>
@@ -680,7 +851,7 @@ export default function App() {
                   </label>
                 ))}
               </div>
-              <div className="bucket-grid">
+              <div className="bucket-columns">
                 <BucketEditor
                   items={config.thresholds.recentPushMomentum}
                   onChange={(items) =>
@@ -710,16 +881,20 @@ export default function App() {
               </div>
             </section>
 
-            <section className="rules-panel">
-              <div className="panel-heading">
-                <h3>权重配置</h3>
-                <p>保留现有结构，按打分维度分组展示。</p>
+            <section className="panel" id="weights">
+              <div className="panel-head">
+                <div>
+                  <span className="eyebrow">Weights</span>
+                  <h3>评分权重</h3>
+                </div>
               </div>
-              <div className="weight-groups">
+              <div className="weight-sections">
                 {WEIGHT_FIELDS.map((group) => (
-                  <div key={group.title} className="weight-group">
-                    <h4>{group.title}</h4>
-                    <div className="number-grid">
+                  <section key={group.title} className="weight-section">
+                    <header>
+                      <h4>{group.title}</h4>
+                    </header>
+                    <div className="dense-grid">
                       {group.items.map(([fieldPath, label]) => (
                         <label key={fieldPath}>
                           <span>{label}</span>
@@ -739,7 +914,7 @@ export default function App() {
                         </label>
                       ))}
                     </div>
-                  </div>
+                  </section>
                 ))}
               </div>
             </section>
@@ -747,216 +922,373 @@ export default function App() {
         ) : null}
 
         {activeTab === "commands" ? (
-          <section className="commands-layout">
-            <div className="command-actions">
-              <button
-                className="primary"
-                disabled={busyAction !== ""}
-                onClick={() => void handleCommand("validate")}
-                type="button"
-              >
-                规则校验
-              </button>
-              <button
-                className="secondary"
-                disabled={busyAction !== ""}
-                onClick={() => void handleCommand("generate")}
-                type="button"
-              >
-                生成日报
-              </button>
-              <button
-                className="secondary"
-                disabled={busyAction !== ""}
-                onClick={() => void handleCommand("generate-send")}
-                type="button"
-              >
-                生成并发送
-              </button>
-              <button
-                className="secondary"
-                disabled={busyAction !== ""}
-                onClick={() => void handleCommand("send-sample")}
-                type="button"
-              >
-                发送样例
-              </button>
-              <label className="inline-input">
-                <span>分析日期</span>
-                <input
-                  type="date"
-                  value={analyzeDate}
-                  onChange={(event) => setAnalyzeDate(event.target.value)}
-                />
-              </label>
-              <button
-                className="secondary"
-                disabled={busyAction !== "" || analyzeDate.length === 0}
-                onClick={() => void handleCommand("analyze")}
-                type="button"
-              >
-                分析归档
-              </button>
-            </div>
-
-            <div className="command-grid">
-              <div className="job-list">
-                {jobs.map((job) => (
-                  <button
-                    key={job.id}
-                    className={
-                      job.id === selectedJobId ? "job-item active" : "job-item"
-                    }
-                    onClick={() => setSelectedJobId(job.id)}
-                    type="button"
-                  >
-                    <strong>{job.command}</strong>
-                    <span>{job.status}</span>
-                    <small>{formatDateTime(job.startedAt)}</small>
-                  </button>
-                ))}
-                {jobs.length === 0 ? (
-                  <div className="empty-box">暂无执行记录。</div>
-                ) : null}
+          <section className="command-workspace">
+            <section className="panel command-toolbar">
+              <div className="panel-head">
+                <div>
+                  <span className="eyebrow">Task Launcher</span>
+                  <h3>执行中心</h3>
+                </div>
               </div>
+              <div className="launcher-grid">
+                <div className="launcher-actions">
+                  <ActionButton
+                    busyAction={busyAction}
+                    className="action-primary"
+                    currentAction="validate"
+                    label="规则校验"
+                    onClick={() => void handleCommand("validate")}
+                  />
+                  <ActionButton
+                    busyAction={busyAction}
+                    className="action-secondary"
+                    currentAction="generate"
+                    label="生成日报"
+                    onClick={() => void handleCommand("generate")}
+                  />
+                  <ActionButton
+                    busyAction={busyAction}
+                    className="action-secondary"
+                    currentAction="generate-send"
+                    label="生成并发送"
+                    onClick={() => void handleCommand("generate-send")}
+                  />
+                  <ActionButton
+                    busyAction={busyAction}
+                    className="action-ghost"
+                    currentAction="send-sample"
+                    label="发送样例"
+                    onClick={() => void handleCommand("send-sample")}
+                  />
+                </div>
+                <div className="launcher-analyze">
+                  <label>
+                    <span>分析归档日期</span>
+                    <input
+                      type="date"
+                      value={analyzeDate}
+                      onChange={(event) => setAnalyzeDate(event.target.value)}
+                    />
+                  </label>
+                  <ActionButton
+                    busyAction={busyAction}
+                    className="action-secondary"
+                    currentAction="analyze"
+                    disabled={!analyzeDate}
+                    label="分析归档"
+                    onClick={() => void handleCommand("analyze")}
+                  />
+                </div>
+              </div>
+            </section>
 
-              <div className="terminal-panel">
+            <div className="task-grid">
+              <section className="panel">
+                <div className="panel-head">
+                  <div>
+                    <span className="eyebrow">Queue</span>
+                    <h3>任务队列</h3>
+                  </div>
+                </div>
+                <div className="task-list">
+                  {jobs.map((job) => (
+                    <button
+                      key={job.id}
+                      className={
+                        job.id === selectedJobId
+                          ? "task-row active"
+                          : "task-row"
+                      }
+                      onClick={() => setSelectedJobId(job.id)}
+                      type="button"
+                    >
+                      <div className="stack-primary">
+                        <strong>{job.command}</strong>
+                        <StatusPill status={job.status} />
+                      </div>
+                      <small>{formatDateTime(job.startedAt)}</small>
+                    </button>
+                  ))}
+                  {jobs.length === 0 ? (
+                    <div className="empty-panel">
+                      还没有从控制台触发过任务。
+                    </div>
+                  ) : null}
+                </div>
+              </section>
+
+              <section className="panel terminal-surface">
                 {selectedJob ? (
                   <>
-                    <div className="terminal-meta">
+                    <div className="panel-head">
                       <div>
-                        <span>命令</span>
-                        <strong>{selectedJob.command}</strong>
+                        <span className="eyebrow">Selected Job</span>
+                        <h3>{selectedJob.command}</h3>
                       </div>
-                      <div>
-                        <span>状态</span>
-                        <strong>{selectedJob.status}</strong>
-                      </div>
-                      <div>
-                        <span>退出码</span>
-                        <strong>{selectedJob.exitCode ?? "-"}</strong>
+                      <div className="terminal-summary">
+                        <StatusPill status={selectedJob.status} />
+                        <span className="mono-tag">
+                          exit {selectedJob.exitCode ?? "-"}
+                        </span>
                       </div>
                     </div>
-                    <div className="terminal-block">
-                      <h4>stdout</h4>
-                      <pre>{selectedJob.stdout || "暂无输出"}</pre>
+                    <div className="terminal-meta-grid">
+                      <MetaDatum
+                        label="启动时间"
+                        value={formatDateTime(selectedJob.startedAt)}
+                      />
+                      <MetaDatum
+                        label="结束时间"
+                        value={
+                          selectedJob.finishedAt
+                            ? formatDateTime(selectedJob.finishedAt)
+                            : "running"
+                        }
+                      />
                     </div>
-                    <div className="terminal-block">
-                      <h4>stderr</h4>
-                      <pre>{selectedJob.stderr || "暂无输出"}</pre>
+                    <div className="terminal-stream">
+                      <div className="stream-block">
+                        <header>
+                          <span>stdout</span>
+                        </header>
+                        <pre>{selectedJob.stdout || "暂无输出"}</pre>
+                      </div>
+                      <div className="stream-block">
+                        <header>
+                          <span>stderr</span>
+                        </header>
+                        <pre>{selectedJob.stderr || "暂无输出"}</pre>
+                      </div>
                     </div>
                   </>
                 ) : (
-                  <div className="empty-box">请选择一条命令查看终端日志。</div>
+                  <div className="empty-panel">
+                    请选择一条任务查看完整终端输出。
+                  </div>
                 )}
-              </div>
+              </section>
             </div>
           </section>
         ) : null}
 
         {activeTab === "archives" ? (
-          <section className="archives-grid">
-            <div className="archive-list">
-              {archives.map((archive) => (
+          <section className="archive-workspace">
+            <section className="panel archive-list-panel">
+              <div className="panel-head">
+                <div>
+                  <span className="eyebrow">Archive Index</span>
+                  <h3>归档索引</h3>
+                </div>
                 <button
-                  key={archive.date}
-                  className={
-                    archive.date === selectedArchiveDate
-                      ? "archive-item active"
-                      : "archive-item"
-                  }
-                  onClick={() => void handleSelectArchive(archive.date)}
+                  className="text-button"
+                  onClick={() => void refreshArchives()}
                   type="button"
                 >
-                  <strong>{archive.date}</strong>
-                  <span>{archive.digestCount} 条日报</span>
-                  <small>{archive.rulesVersion}</small>
+                  刷新列表
                 </button>
-              ))}
-              {archives.length === 0 ? (
-                <div className="empty-box">暂无历史归档。</div>
-              ) : null}
-            </div>
+              </div>
+              <div className="archive-feed">
+                {archives.map((archive) => (
+                  <button
+                    key={archive.date}
+                    className={
+                      archive.date === selectedArchiveDate
+                        ? "archive-row active"
+                        : "archive-row"
+                    }
+                    onClick={() => void handleSelectArchive(archive.date)}
+                    type="button"
+                  >
+                    <div className="stack-primary">
+                      <strong>{archive.date}</strong>
+                      <span className="mono-tag">{archive.digestCount} 条</span>
+                    </div>
+                    <small>{archive.rulesVersion}</small>
+                    <span>{archive.topRepos.join(" · ") || archive.title}</span>
+                  </button>
+                ))}
+                {archives.length === 0 ? (
+                  <div className="empty-panel">暂无历史归档。</div>
+                ) : null}
+              </div>
+            </section>
 
-            <div className="archive-detail">
+            <section className="panel archive-detail-panel">
               {archiveDetail ? (
                 <>
-                  <div className="panel-heading">
-                    <h3>{archiveDetail.digest.title}</h3>
-                    <p>
-                      生成于 {formatDateTime(archiveDetail.generatedAt)} ·
-                      schema {archiveDetail.schemaVersion}
-                    </p>
+                  <div className="panel-head">
+                    <div>
+                      <span className="eyebrow">Archive Detail</span>
+                      <h3>{archiveDetail.digest.title}</h3>
+                      <p className="subtle-copy">
+                        生成于 {formatDateTime(archiveDetail.generatedAt)} ·
+                        schema {archiveDetail.schemaVersion}
+                      </p>
+                    </div>
+                    <div className="archive-meta">
+                      <MetaDatum
+                        label="规则版本"
+                        value={archiveDetail.generationMeta.rulesVersion}
+                      />
+                      <MetaDatum
+                        label="成稿模式"
+                        value={
+                          archiveDetail.generationMeta.editorialMode ?? "llm"
+                        }
+                      />
+                    </div>
                   </div>
 
                   <section className="archive-section">
-                    <h4>最终日报</h4>
-                    {archiveDetail.digest.items.map((item, index) => (
-                      <article
-                        key={`${item.repo}-${index}`}
-                        className="digest-item"
-                      >
-                        <header>
-                          <strong>
-                            {index + 1}. {item.repo}
-                          </strong>
-                          <span>{item.theme}</span>
-                        </header>
-                        <p>{item.summary}</p>
-                        <ul>
-                          <li>为什么值得看：{item.whyItMatters}</li>
-                          <li>为什么是现在：{item.whyNow}</li>
-                          <li>证据：{item.evidence.join("；") || "未记录"}</li>
-                        </ul>
-                      </article>
-                    ))}
+                    <header className="section-header">
+                      <span className="eyebrow">Digest</span>
+                      <h4>最终日报</h4>
+                    </header>
+                    <div className="digest-feed">
+                      {archiveDetail.digest.items.map((item, index) => (
+                        <article
+                          key={`${item.repo}-${index}`}
+                          className="digest-row"
+                        >
+                          <div className="digest-head">
+                            <strong>
+                              {String(index + 1).padStart(2, "0")} {item.repo}
+                            </strong>
+                            <span className="mono-tag">{item.theme}</span>
+                          </div>
+                          <p>{item.summary}</p>
+                          <dl>
+                            <div>
+                              <dt>为什么值得看</dt>
+                              <dd>{item.whyItMatters}</dd>
+                            </div>
+                            <div>
+                              <dt>为什么是现在</dt>
+                              <dd>{item.whyNow}</dd>
+                            </div>
+                            <div>
+                              <dt>证据</dt>
+                              <dd>{item.evidence.join("；") || "未记录"}</dd>
+                            </div>
+                          </dl>
+                        </article>
+                      ))}
+                    </div>
                   </section>
 
-                  <section className="archive-section split">
-                    <div>
-                      <h4>LLM 候选池</h4>
-                      {archiveDetail.selection.selected.map((item) => (
-                        <div key={item.repo} className="archive-note">
-                          <strong>{item.repo}</strong>
-                          <p>{item.reason}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <div>
-                      <h4>被排除项目</h4>
-                      {archiveDetail.selection.rejected.map((item) => (
-                        <div key={item.repo} className="archive-note">
-                          <strong>{item.repo}</strong>
-                          <p>{item.reason}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
+                  <div className="archive-columns">
+                    <section className="archive-subsection">
+                      <header className="section-header">
+                        <span className="eyebrow">LLM Pool</span>
+                        <h4>候选池</h4>
+                      </header>
+                      <div className="note-feed">
+                        {archiveDetail.selection.selected.map((item) => (
+                          <article key={item.repo} className="note-card">
+                            <strong>{item.repo}</strong>
+                            <p>{item.reason}</p>
+                          </article>
+                        ))}
+                        {archiveDetail.selection.selected.length === 0 ? (
+                          <div className="empty-panel">没有候选池记录。</div>
+                        ) : null}
+                      </div>
+                    </section>
+                    <section className="archive-subsection">
+                      <header className="section-header">
+                        <span className="eyebrow">Rejected</span>
+                        <h4>被排除项目</h4>
+                      </header>
+                      <div className="note-feed">
+                        {archiveDetail.selection.rejected.map((item) => (
+                          <article key={item.repo} className="note-card">
+                            <strong>{item.repo}</strong>
+                            <p>{item.reason}</p>
+                          </article>
+                        ))}
+                        {archiveDetail.selection.rejected.length === 0 ? (
+                          <div className="empty-panel">没有排除项记录。</div>
+                        ) : null}
+                      </div>
+                    </section>
+                  </div>
                 </>
               ) : (
-                <div className="empty-box">请选择一个归档查看详情。</div>
+                <div className="empty-panel">请选择一个归档查看详情。</div>
               )}
-            </div>
+            </section>
           </section>
         ) : null}
 
-        <footer className="footer-bar">
+        <footer className="console-footer">
           <button
-            className="ghost"
+            className="text-button"
             onClick={() => void hydrate()}
             type="button"
           >
             刷新控制台状态
           </button>
-          <button
-            className="ghost"
-            onClick={() => void refreshArchives()}
-            type="button"
-          >
-            刷新归档列表
-          </button>
+          <span>GitRadar v{health?.version ?? "1.3.0"} · local-first</span>
         </footer>
       </main>
+    </div>
+  );
+}
+
+function ActionButton(props: {
+  busyAction: string;
+  className: string;
+  currentAction: string;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  const isBusy = props.busyAction === props.currentAction;
+
+  return (
+    <button
+      className={props.className}
+      disabled={props.busyAction !== "" || props.disabled}
+      onClick={props.onClick}
+      type="button"
+    >
+      {isBusy ? "执行中…" : props.label}
+    </button>
+  );
+}
+
+function MetricChip(props: {
+  label: string;
+  value: string;
+  tone: "neutral" | "info" | "success" | "danger";
+}) {
+  return (
+    <div className={`metric-chip ${props.tone}`}>
+      <span>{props.label}</span>
+      <strong>{props.value}</strong>
+    </div>
+  );
+}
+
+function StatBlock(props: { label: string; value: string; detail: string }) {
+  return (
+    <article className="stat-block">
+      <span>{props.label}</span>
+      <strong>{props.value}</strong>
+      <small>{props.detail}</small>
+    </article>
+  );
+}
+
+function StatusPill(props: { status: CommandJob["status"] }) {
+  return <span className={`status-pill ${props.status}`}>{props.status}</span>;
+}
+
+function MetaDatum(props: { label: string; value: string }) {
+  return (
+    <div className="meta-datum">
+      <span>{props.label}</span>
+      <strong>{props.value}</strong>
     </div>
   );
 }
@@ -967,52 +1299,67 @@ function BucketEditor(props: {
   onChange: (items: ReadonlyArray<{ maxDays: number; score: number }>) => void;
 }) {
   return (
-    <div className="bucket-editor">
-      <h4>{props.title}</h4>
-      {props.items.map((item, index) => (
-        <div key={`${props.title}-${index}`} className="bucket-row">
-          <label>
-            <span>maxDays</span>
-            <input
-              type="number"
-              value={item.maxDays}
-              onChange={(event) =>
-                props.onChange(
-                  props.items.map((bucket, bucketIndex) =>
-                    bucketIndex === index
-                      ? {
-                          ...bucket,
-                          maxDays: Number(event.target.value),
-                        }
-                      : { ...bucket },
-                  ),
-                )
-              }
-            />
-          </label>
-          <label>
-            <span>score</span>
-            <input
-              type="number"
-              value={item.score}
-              onChange={(event) =>
-                props.onChange(
-                  props.items.map((bucket, bucketIndex) =>
-                    bucketIndex === index
-                      ? {
-                          ...bucket,
-                          score: Number(event.target.value),
-                        }
-                      : { ...bucket },
-                  ),
-                )
-              }
-            />
-          </label>
-        </div>
-      ))}
-    </div>
+    <section className="bucket-editor">
+      <header>
+        <h4>{props.title}</h4>
+      </header>
+      <div className="bucket-table">
+        {props.items.map((item, index) => (
+          <div key={`${props.title}-${index}`} className="bucket-row">
+            <span className="mono-tag">#{index + 1}</span>
+            <label>
+              <span>maxDays</span>
+              <input
+                type="number"
+                value={item.maxDays}
+                onChange={(event) =>
+                  props.onChange(
+                    props.items.map((bucket, bucketIndex) =>
+                      bucketIndex === index
+                        ? { ...bucket, maxDays: Number(event.target.value) }
+                        : { ...bucket },
+                    ),
+                  )
+                }
+              />
+            </label>
+            <label>
+              <span>score</span>
+              <input
+                type="number"
+                value={item.score}
+                onChange={(event) =>
+                  props.onChange(
+                    props.items.map((bucket, bucketIndex) =>
+                      bucketIndex === index
+                        ? { ...bucket, score: Number(event.target.value) }
+                        : { ...bucket },
+                    ),
+                  )
+                }
+              />
+            </label>
+          </div>
+        ))}
+      </div>
+    </section>
   );
+}
+
+function getTabTitle(tab: TabId): string {
+  if (tab === "dashboard") {
+    return "运行总览";
+  }
+
+  if (tab === "rules") {
+    return "规则编辑器";
+  }
+
+  if (tab === "commands") {
+    return "命令与日志";
+  }
+
+  return "归档情报";
 }
 
 function updateTheme(
@@ -1024,12 +1371,7 @@ function updateTheme(
   return {
     ...config,
     themes: config.themes.map((theme, themeIndex) =>
-      themeIndex === index
-        ? {
-            ...theme,
-            [field]: value,
-          }
-        : { ...theme },
+      themeIndex === index ? { ...theme, [field]: value } : { ...theme },
     ),
   };
 }
