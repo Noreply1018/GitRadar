@@ -3,7 +3,8 @@
 set -euo pipefail
 
 TZ_VALUE="${TZ:-Asia/Shanghai}"
-SCHEDULE="${GITRADAR_CRON_SCHEDULE:-17 8 * * *}"
+SCHEDULE_CONFIG_FILE="/app/config/schedule.json"
+SCHEDULE="${GITRADAR_CRON_SCHEDULE:-}"
 CRON_FILE="/etc/cron.d/gitradar"
 CRON_LOG="/var/log/gitradar-cron.log"
 
@@ -16,6 +17,35 @@ mkdir -p \
 
 ln -snf "/usr/share/zoneinfo/${TZ_VALUE}" /etc/localtime
 echo "${TZ_VALUE}" > /etc/timezone
+
+if [[ -f "${SCHEDULE_CONFIG_FILE}" ]]; then
+  CONFIGURED_SCHEDULE="$(node -e '
+const fs = require("node:fs");
+
+try {
+  const raw = fs.readFileSync(process.argv[1], "utf8");
+  const parsed = JSON.parse(raw);
+  const value = parsed?.dailySendTime;
+
+  if (typeof value !== "string" || !/^([01]\d|2[0-3]):([0-5]\d)$/.test(value)) {
+    process.exit(1);
+  }
+
+  const [hour, minute] = value.split(":").map(Number);
+  process.stdout.write(`${minute} ${hour} * * *`);
+} catch {
+  process.exit(1);
+}
+' "${SCHEDULE_CONFIG_FILE}" 2>/dev/null || true)"
+
+  if [[ -n "${CONFIGURED_SCHEDULE}" ]]; then
+    SCHEDULE="${CONFIGURED_SCHEDULE}"
+  fi
+fi
+
+if [[ -z "${SCHEDULE}" ]]; then
+  SCHEDULE="17 8 * * *"
+fi
 
 touch "${CRON_LOG}"
 

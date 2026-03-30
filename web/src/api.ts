@@ -1,27 +1,4 @@
-import type { DigestRulesConfig } from "../../src/config/digest-rules";
 import type { DailyDigestArchive } from "../../src/core/archive";
-
-export interface DigestRulesIssue {
-  path: string;
-  message: string;
-}
-
-export interface CommandJob {
-  id: string;
-  commandId:
-    | "validate-digest-rules"
-    | "generate-digest"
-    | "generate-digest-send"
-    | "analyze-digest"
-    | "send-wecom-sample";
-  command: string;
-  status: "queued" | "running" | "succeeded" | "failed";
-  startedAt: string;
-  finishedAt?: string;
-  exitCode?: number;
-  stdout: string;
-  stderr: string;
-}
 
 export interface ArchiveSummary {
   date: string;
@@ -34,6 +11,11 @@ export interface ArchiveSummary {
   topRepos: string[];
 }
 
+export interface ScheduleSettings {
+  timezone: "Asia/Shanghai";
+  dailySendTime: string;
+}
+
 export async function fetchHealth(): Promise<{
   status: string;
   app: string;
@@ -43,67 +25,20 @@ export async function fetchHealth(): Promise<{
   return fetchJson("/api/health");
 }
 
-export async function fetchDigestRules(): Promise<{
-  config: DigestRulesConfig;
+export async function fetchScheduleSettings(): Promise<{
   path: string;
+  settings: ScheduleSettings;
 }> {
-  return fetchJson("/api/config/digest-rules");
+  return fetchJson("/api/settings/schedule");
 }
 
-export async function validateDigestRules(
-  draft: DigestRulesConfig,
-): Promise<{ valid: boolean; issues: DigestRulesIssue[] }> {
-  return fetchJson("/api/config/digest-rules/validate", {
-    method: "POST",
-    body: JSON.stringify(draft),
-  });
-}
-
-export async function saveDigestRules(draft: DigestRulesConfig): Promise<{
-  config: DigestRulesConfig;
+export async function saveScheduleSettings(draft: ScheduleSettings): Promise<{
   path: string;
+  settings: ScheduleSettings;
 }> {
-  return fetchJson("/api/config/digest-rules", {
+  return fetchJson("/api/settings/schedule", {
     method: "PUT",
     body: JSON.stringify(draft),
-  });
-}
-
-export async function fetchJobs(): Promise<{ jobs: CommandJob[] }> {
-  return fetchJson("/api/commands");
-}
-
-export async function fetchJob(jobId: string): Promise<{ job: CommandJob }> {
-  return fetchJson(`/api/commands/${jobId}`);
-}
-
-export async function startValidateRules(): Promise<{ job: CommandJob }> {
-  return fetchJson("/api/commands/validate-digest-rules", {
-    method: "POST",
-  });
-}
-
-export async function startGenerateDigest(send = false): Promise<{
-  job: CommandJob;
-}> {
-  return fetchJson("/api/commands/generate-digest", {
-    method: "POST",
-    body: JSON.stringify({ send }),
-  });
-}
-
-export async function startAnalyzeDigest(date: string): Promise<{
-  job: CommandJob;
-}> {
-  return fetchJson("/api/commands/analyze-digest", {
-    method: "POST",
-    body: JSON.stringify({ date }),
-  });
-}
-
-export async function startSendSample(): Promise<{ job: CommandJob }> {
-  return fetchJson("/api/commands/send-wecom-sample", {
-    method: "POST",
   });
 }
 
