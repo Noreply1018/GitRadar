@@ -285,7 +285,13 @@ label span {
 
 .schedule-page {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 0.72fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.saved-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 22px;
 }
 
@@ -351,8 +357,108 @@ label span {
   gap: 18px;
 }
 
+.wecom-panel,
+.llm-panel,
+.feedback-summary-panel,
+.saved-panel {
+  display: grid;
+  gap: 18px;
+}
+
 .feedback-summary-panel {
   align-self: start;
+}
+
+.wecom-status {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.52);
+  color: var(--ink-soft);
+}
+
+.wecom-details {
+  display: grid;
+  gap: 12px;
+}
+
+.wecom-row,
+.saved-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.wecom-row span,
+.saved-item-meta,
+.saved-item-state {
+  color: var(--ink-soft);
+}
+
+.dual-actions {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.collection-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(128px, 1fr));
+  gap: 12px;
+  min-width: min(100%, 280px);
+}
+
+.saved-filter-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.saved-list {
+  display: grid;
+  gap: 12px;
+}
+
+.saved-item {
+  align-items: flex-start;
+}
+
+.saved-item-main,
+.saved-item-side,
+.saved-item-heading {
+  display: grid;
+  gap: 10px;
+}
+
+.saved-item-main {
+  min-width: 0;
+}
+
+.saved-item-heading h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.saved-item-meta {
+  margin: 0;
+  line-height: 1.75;
+}
+
+.saved-item-side {
+  justify-items: end;
+}
+
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
 .theme-picker {
@@ -607,6 +713,7 @@ label span {
 @media (max-width: 1120px) {
   .masthead,
   .schedule-page,
+  .saved-page,
   .archive-page,
   .reader-body,
   .schedule-grid {
@@ -621,16 +728,23 @@ label span {
   .custom-topic-input,
   .reader-header,
   .feedback-bar,
-  .toolbar {
+  .toolbar,
+  .saved-item,
+  .wecom-row {
     grid-template-columns: 1fr;
     flex-direction: column;
     align-items: stretch;
   }
 
   .reader-counter,
-  .schedule-preview {
+  .schedule-preview,
+  .saved-item-side {
     justify-items: start;
     text-align: left;
+  }
+
+  .collection-summary {
+    min-width: 0;
   }
 }
 

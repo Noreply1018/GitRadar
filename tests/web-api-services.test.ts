@@ -1,8 +1,9 @@
 import { mkdtemp, readFile } from "node:fs/promises";
+import { createServer } from "node:http";
 import os from "node:os";
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { DIGEST_RULES_CONFIG } from "../src/config/digest-rules";
 import { type DailyDigestArchive } from "../src/core/archive";
@@ -21,7 +22,40 @@ import {
   readUserPreferences,
   saveUserPreferences,
 } from "../src/web-api/services/user-preferences-service";
-import { readFeedbackState, recordFeedback } from "../src/feedback/store";
+import {
+  listFeedbackItems,
+  readFeedbackState,
+  recordFeedback,
+} from "../src/feedback/store";
+import {
+  readWecomSettings,
+  saveWecomSettings,
+} from "../src/web-api/services/wecom-settings-service";
+import {
+  readLlmSettings,
+  saveLlmSettings,
+  testLlmSettings,
+} from "../src/web-api/services/llm-settings-service";
+
+let activeServer: ReturnType<typeof createServer> | null = null;
+
+afterEach(async () => {
+  if (!activeServer) {
+    return;
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    activeServer?.close((error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+  });
+  activeServer = null;
+});
 
 describe("validateDigestRulesDraft", () => {
   it("accepts the current repository config", () => {
@@ -292,5 +326,191 @@ describe("feedback store", () => {
         action: "opened" as "saved",
       }),
     ).rejects.toThrow(/saved、skipped 或 later/);
+  });
+
+  it("lists current saved and later items from the latest repo state", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-feedback-"));
+
+    await recordFeedback(rootDir, {
+      repo: "owner/repo-a",
+      date: "2026-03-30",
+      action: "saved",
+      theme: "AI Agents",
+    });
+    await recordFeedback(rootDir, {
+      repo: "owner/repo-b",
+      date: "2026-03-30",
+      action: "later",
+      theme: "Frontend & Design",
+    });
+    await recordFeedback(rootDir, {
+      repo: "owner/repo-a",
+      date: "2026-03-31",
+      action: "skipped",
+      theme: "AI Agents",
+    });
+
+    const savedItems = await listFeedbackItems(rootDir, { action: "saved" });
+    const laterItems = await listFeedbackItems(rootDir, { action: "later" });
+
+    expect(savedItems).toEqual([]);
+    expect(laterItems).toHaveLength(1);
+    expect(laterItems[0]).toMatchObject({
+      repo: "owner/repo-b",
+      action: "later",
+      theme: "Frontend & Design",
+    });
+  });
+});
+
+describe("wecom settings", () => {
+  it("returns an unconfigured state when .env does not exist", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-wecom-"));
+
+    await expect(readWecomSettings(rootDir)).resolves.toMatchObject({
+      configured: false,
+      maskedWebhookUrl: null,
+      envFilePath: path.join(rootDir, ".env"),
+    });
+  });
+
+  it("saves the webhook into .env and returns the masked value", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-wecom-"));
+
+    const response = await saveWecomSettings(rootDir, {
+      webhookUrl:
+        "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=test-key",
+    });
+
+    expect(response).toEqual({
+      configured: true,
+      maskedWebhookUrl: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?***",
+      envFilePath: path.join(rootDir, ".env"),
+    });
+
+    const envFile = await readFile(path.join(rootDir, ".env"), "utf8");
+    expect(envFile).toContain(
+      "GITRADAR_WECOM_WEBHOOK_URL=https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=test-key",
+    );
+  });
+
+  it("rejects an invalid webhook url", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-wecom-"));
+
+    await expect(
+      saveWecomSettings(rootDir, { webhookUrl: "not-a-url" }),
+    ).rejects.toThrow(/valid URL/);
+  });
+});
+
+describe("llm settings", () => {
+  it("returns an unconfigured state when .env does not exist", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-llm-"));
+
+    await expect(readLlmSettings(rootDir)).resolves.toMatchObject({
+      configured: false,
+      maskedApiKey: null,
+      baseUrl: null,
+      model: null,
+      envFilePath: path.join(rootDir, ".env"),
+    });
+  });
+
+  it("saves llm settings into .env and returns masked data", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-llm-"));
+
+    const response = await saveLlmSettings(rootDir, {
+      apiKey: "llm-token-sample-value",
+      baseUrl: "https://example.com/v1/",
+      model: "gpt-test",
+    });
+
+    expect(response).toEqual({
+      configured: true,
+      maskedApiKey: "llm-***alue",
+      baseUrl: "https://example.com/v1",
+      model: "gpt-test",
+      envFilePath: path.join(rootDir, ".env"),
+    });
+
+    const envFile = await readFile(path.join(rootDir, ".env"), "utf8");
+    expect(envFile).toContain("GR_API_KEY=llm-token-sample-value");
+    expect(envFile).toContain("GR_BASE_URL=https://example.com/v1");
+    expect(envFile).toContain("GR_MODEL=gpt-test");
+  });
+
+  it("keeps the existing api key when only base url and model are updated", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-llm-"));
+
+    await saveLlmSettings(rootDir, {
+      apiKey: "llm-token-sample-value",
+      baseUrl: "https://example.com/v1",
+      model: "gpt-test",
+    });
+
+    await saveLlmSettings(rootDir, {
+      baseUrl: "https://gateway.example.com/v1",
+      model: "gpt-next",
+    });
+
+    const envFile = await readFile(path.join(rootDir, ".env"), "utf8");
+    expect(envFile).toContain("GR_API_KEY=llm-token-sample-value");
+    expect(envFile).toContain("GR_BASE_URL=https://gateway.example.com/v1");
+    expect(envFile).toContain("GR_MODEL=gpt-next");
+  });
+
+  it("rejects an invalid llm base url", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-llm-"));
+
+    await expect(
+      saveLlmSettings(rootDir, {
+        apiKey: "llm-token-sample-value",
+        baseUrl: "not-a-url",
+        model: "gpt-test",
+      }),
+    ).rejects.toThrow(/valid URL/);
+  });
+
+  it("tests the current llm settings with a real http request", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-llm-"));
+    const server = createServer((request, response) => {
+      expect(request.url).toBe("/v1/chat/completions");
+      expect(request.headers.authorization).toBe(
+        "Bearer llm-token-sample-value",
+      );
+      response.writeHead(200, { "content-type": "application/json" });
+      response.end(
+        JSON.stringify({
+          choices: [{ message: { content: "OK" } }],
+        }),
+      );
+    });
+    activeServer = server;
+
+    const address = await new Promise<{ port: number }>((resolve, reject) => {
+      server.listen(0, "127.0.0.1", () => {
+        const value = server.address();
+
+        if (!value || typeof value === "string") {
+          reject(new Error("Failed to bind test server."));
+          return;
+        }
+
+        resolve({ port: value.port });
+      });
+    });
+
+    await saveLlmSettings(rootDir, {
+      apiKey: "llm-token-sample-value",
+      baseUrl: `http://127.0.0.1:${address.port}/v1`,
+      model: "gpt-test",
+    });
+
+    await expect(testLlmSettings(rootDir)).resolves.toEqual({
+      ok: true,
+      message: "LLM 连通性测试通过。",
+      model: "gpt-test",
+      baseUrl: `http://127.0.0.1:${address.port}/v1`,
+    });
   });
 });

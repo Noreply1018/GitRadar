@@ -31,6 +31,14 @@ export interface FeedbackQuery {
   limit?: number;
 }
 
+export interface FeedbackListItem {
+  repo: string;
+  date: string;
+  action: FeedbackAction;
+  theme?: string;
+  recordedAt: string;
+}
+
 export function getFeedbackEventsPath(rootDir: string): string {
   return path.join(rootDir, "data", "runtime", FEEDBACK_EVENTS_FILE);
 }
@@ -121,6 +129,27 @@ export async function listFeedbackEvents(
   query: FeedbackQuery = {},
 ): Promise<FeedbackEvent[]> {
   return filterFeedbackEvents(await readFeedbackEvents(rootDir), query);
+}
+
+export async function listFeedbackItems(
+  rootDir: string,
+  query: FeedbackQuery = {},
+): Promise<FeedbackListItem[]> {
+  const state = await readFeedbackState(rootDir);
+
+  return Object.values(state.repoStates)
+    .filter((item) => !query.action || item.action === query.action)
+    .filter((item) => !query.theme || item.theme === query.theme)
+    .filter((item) => !query.repo || item.repo === query.repo)
+    .sort((left, right) => right.recordedAt.localeCompare(left.recordedAt))
+    .slice(0, normalizeLimit(query.limit) ?? Number.MAX_SAFE_INTEGER)
+    .map((item) => ({
+      repo: item.repo,
+      date: item.date,
+      action: item.action,
+      theme: item.theme,
+      recordedAt: item.recordedAt,
+    }));
 }
 
 export function parseFeedbackSubmission(input: unknown): FeedbackEvent {
