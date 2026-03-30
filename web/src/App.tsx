@@ -1,29 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
 
 import type { DailyDigestArchive } from "../../src/core/archive";
-import type { ArchiveSummary, ScheduleSettings } from "./api";
+import type {
+  ArchiveSummary,
+  ScheduleSettings,
+  TimezoneOption,
+  UserPreferences,
+} from "./api";
 import {
   fetchArchiveDetail,
   fetchArchives,
   fetchHealth,
+  fetchPreferences,
   fetchScheduleSettings,
+  savePreferences,
   saveScheduleSettings,
 } from "./api";
 
 type ViewId = "schedule" | "archives";
 
-const VIEWS: Array<{ id: ViewId; label: string; detail: string }> = [
-  {
-    id: "schedule",
-    label: "发送设置",
-    detail: "每日时间与重启提示",
-  },
-  {
-    id: "archives",
-    label: "归档日报",
-    detail: "按日期阅读最终成稿",
-  },
+const VIEWS: Array<{ id: ViewId; label: string }> = [
+  { id: "schedule", label: "调度与主题" },
+  { id: "archives", label: "归档日报" },
 ];
+
+const EMPTY_PREFERENCES: UserPreferences = {
+  preferredThemes: [],
+  customTopics: [],
+};
 
 export default function App() {
   const [activeView, setActiveView] = useState<ViewId>("schedule");
@@ -33,20 +37,25 @@ export default function App() {
     version: string;
     mode: string;
   } | null>(null);
-  const [schedulePath, setSchedulePath] = useState("");
   const [scheduleDraft, setScheduleDraft] = useState<ScheduleSettings | null>(
     null,
   );
+  const [timezoneOptions, setTimezoneOptions] = useState<TimezoneOption[]>([]);
+  const [preferencesDraft, setPreferencesDraft] =
+    useState<UserPreferences>(EMPTY_PREFERENCES);
+  const [availableThemes, setAvailableThemes] = useState<string[]>([]);
+  const [customTopicInput, setCustomTopicInput] = useState("");
   const [archives, setArchives] = useState<ArchiveSummary[]>([]);
   const [selectedArchiveDate, setSelectedArchiveDate] = useState("");
   const [archiveDetail, setArchiveDetail] = useState<DailyDigestArchive | null>(
     null,
   );
+  const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [busyAction, setBusyAction] = useState<
-    "" | "save-schedule" | "hydrate"
+    "" | "hydrate" | "save-schedule" | "save-preferences"
   >("hydrate");
   const [statusMessage, setStatusMessage] = useState(
-    "正在读取 GitRadar 当前配置与归档…",
+    "正在同步 GitRadar 当前状态…",
   );
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -54,31 +63,63 @@ export default function App() {
     void hydrate();
   }, []);
 
+  useEffect(() => {
+    if (activeView !== "archives" || !archiveDetail) {
+      return;
+    }
+
+    const maxIndex = archiveDetail.digest.items.length - 1;
+
+    function handleKeydown(event: KeyboardEvent): void {
+      if (event.key === "ArrowLeft") {
+        setCurrentItemIndex((current) => Math.max(current - 1, 0));
+      }
+
+      if (event.key === "ArrowRight") {
+        setCurrentItemIndex((current) => Math.min(current + 1, maxIndex));
+      }
+    }
+
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [activeView, archiveDetail]);
+
   const selectedArchiveSummary = useMemo(
     () =>
       archives.find((archive) => archive.date === selectedArchiveDate) ?? null,
     [archives, selectedArchiveDate],
   );
 
+  const currentDigestItem =
+    archiveDetail?.digest.items[currentItemIndex] ?? null;
+
   async function hydrate(): Promise<void> {
     setBusyAction("hydrate");
     setErrorMessage("");
 
     try {
-      const [healthResponse, scheduleResponse, archiveResponse] =
-        await Promise.all([
-          fetchHealth(),
-          fetchScheduleSettings(),
-          fetchArchives(),
-        ]);
+      const [
+        healthResponse,
+        scheduleResponse,
+        preferencesResponse,
+        archiveResponse,
+      ] = await Promise.all([
+        fetchHealth(),
+        fetchScheduleSettings(),
+        fetchPreferences(),
+        fetchArchives(),
+      ]);
 
       setHealth(healthResponse);
-      setSchedulePath(scheduleResponse.path);
       setScheduleDraft(scheduleResponse.settings);
+      setTimezoneOptions(scheduleResponse.availableTimezones);
+      setPreferencesDraft(preferencesResponse.preferences);
+      setAvailableThemes(preferencesResponse.availableThemes);
       setArchives(archiveResponse.archives);
 
       const initialDate = archiveResponse.archives[0]?.date ?? "";
       setSelectedArchiveDate(initialDate);
+      setCurrentItemIndex(0);
 
       if (initialDate) {
         const detailResponse = await fetchArchiveDetail(initialDate);
@@ -87,7 +128,7 @@ export default function App() {
         setArchiveDetail(null);
       }
 
-      setStatusMessage("极简日报面板已就绪。");
+      setStatusMessage("GitRadar 已同步到当前配置与归档状态。");
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -106,10 +147,24 @@ export default function App() {
     try {
       const response = await saveScheduleSettings(scheduleDraft);
       setScheduleDraft(response.settings);
-      setSchedulePath(response.path);
-      setStatusMessage(
-        "每日发送时间已保存。请重启 Docker 容器或重新启动 GitRadar 后生效。",
-      );
+      setTimezoneOptions(response.availableTimezones);
+      setStatusMessage("发送时间已更新，重启 GitRadar 后生效。");
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setBusyAction("");
+    }
+  }
+
+  async function handleSavePreferences(): Promise<void> {
+    setBusyAction("save-preferences");
+    setErrorMessage("");
+
+    try {
+      const response = await savePreferences(preferencesDraft);
+      setPreferencesDraft(response.preferences);
+      setAvailableThemes(response.availableThemes);
+      setStatusMessage("关心主题已保存，后续日报会按偏好增加权重。");
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -119,292 +174,416 @@ export default function App() {
 
   async function handleSelectArchive(date: string): Promise<void> {
     setSelectedArchiveDate(date);
+    setCurrentItemIndex(0);
     setErrorMessage("");
 
     try {
       const detailResponse = await fetchArchiveDetail(date);
       setArchiveDetail(detailResponse.archive);
-      setStatusMessage(`已切换到 ${date} 的归档日报。`);
+      setStatusMessage("已切换到新的归档日报。");
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     }
   }
 
-  return (
-    <div className="app-shell">
-      <div className="page-backdrop" aria-hidden="true" />
+  function handleToggleTheme(theme: string): void {
+    setPreferencesDraft((current) => {
+      const exists = current.preferredThemes.includes(theme);
+      return {
+        ...current,
+        preferredThemes: exists
+          ? current.preferredThemes.filter((item) => item !== theme)
+          : [...current.preferredThemes, theme],
+      };
+    });
+  }
 
-      <header className="hero">
-        <div className="hero-copy">
-          <p className="eyebrow">GitRadar / Daily Digest Desk</p>
-          <h1>只保留每天真正要看的两件事。</h1>
-          <p className="hero-summary">
-            一处调整每日发送时间，一处阅读已经生成的日报归档。其余复杂控制从网页里退出，留给命令行和底层配置。
-          </p>
+  function handleAddCustomTopic(): void {
+    const topic = customTopicInput.trim();
+
+    if (!topic) {
+      return;
+    }
+
+    setPreferencesDraft((current) => {
+      if (
+        current.customTopics.some(
+          (item) => item.toLowerCase() === topic.toLowerCase(),
+        )
+      ) {
+        return current;
+      }
+
+      return {
+        ...current,
+        customTopics: [...current.customTopics, topic],
+      };
+    });
+    setCustomTopicInput("");
+  }
+
+  function handleRemoveCustomTopic(topic: string): void {
+    setPreferencesDraft((current) => ({
+      ...current,
+      customTopics: current.customTopics.filter((item) => item !== topic),
+    }));
+  }
+
+  return (
+    <div className="page-shell">
+      <div className="page-texture" aria-hidden="true" />
+
+      <header className="masthead">
+        <div className="masthead-copy">
+          <p className="eyebrow">Open Source Daily Digest</p>
+          <h1>GitRadar</h1>
+          <p className="masthead-subtitle">每日开源雷达与归档阅读</p>
         </div>
 
-        <div className="hero-meta">
-          <MetaStrip label="服务状态" value={health?.status ?? "loading"} />
-          <MetaStrip
-            label="当前版本"
+        <div className="masthead-meta">
+          <MetaPill label="服务状态" value={health?.status ?? "loading"} />
+          <MetaPill
+            label="版本"
             value={health ? `v${health.version}` : "loading"}
           />
-          <MetaStrip label="运行模式" value={health?.mode ?? "loading"} />
+          <MetaPill label="模式" value={health?.mode ?? "loading"} />
         </div>
       </header>
 
-      <section className="status-bar">
-        <div>
+      <section className="toolbar">
+        <nav className="view-tabs" aria-label="页面视图">
+          {VIEWS.map((view) => (
+            <button
+              key={view.id}
+              className={
+                view.id === activeView ? "view-tab active" : "view-tab"
+              }
+              onClick={() => setActiveView(view.id)}
+              type="button"
+            >
+              {view.label}
+            </button>
+          ))}
+        </nav>
+
+        <button
+          className="ghost-button"
+          onClick={() => void hydrate()}
+          type="button"
+        >
+          刷新
+        </button>
+      </section>
+
+      <section className="feedback-bar">
+        <div className="feedback-main">
           <strong>{statusMessage}</strong>
-          <span>
-            {schedulePath
-              ? `配置文件：${schedulePath}`
-              : "正在定位发送时间配置文件"}
-          </span>
+          <span>保存设置后重新启动 GitRadar，即可让新的调度配置生效。</span>
         </div>
 
         {errorMessage ? (
-          <div className="status-error">
+          <div className="feedback-error">
             <strong>错误</strong>
             <span>{errorMessage}</span>
           </div>
         ) : null}
       </section>
 
-      <main className="workspace">
-        <aside className="workspace-nav">
-          <div className="nav-header">
-            <span className="eyebrow">Views</span>
-            <h2>极简面板</h2>
-          </div>
+      {activeView === "schedule" ? (
+        <main className="schedule-page">
+          <section className="panel schedule-panel">
+            <header className="panel-header">
+              <div>
+                <p className="eyebrow">Schedule</p>
+                <h2>发送时间</h2>
+              </div>
+              <SchedulePreview
+                schedule={scheduleDraft}
+                timezones={timezoneOptions}
+              />
+            </header>
 
-          <nav className="view-switcher" aria-label="页面视图">
-            {VIEWS.map((view) => (
+            <div className="schedule-grid">
+              <label className="field">
+                <span>时间</span>
+                <input
+                  type="time"
+                  value={scheduleDraft?.dailySendTime ?? ""}
+                  onChange={(event) =>
+                    setScheduleDraft((current) =>
+                      current
+                        ? { ...current, dailySendTime: event.target.value }
+                        : current,
+                    )
+                  }
+                />
+              </label>
+
+              <label className="field">
+                <span>时区</span>
+                <select
+                  value={scheduleDraft?.timezone ?? "Asia/Shanghai"}
+                  onChange={(event) =>
+                    setScheduleDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            timezone: event.target
+                              .value as ScheduleSettings["timezone"],
+                          }
+                        : current,
+                    )
+                  }
+                >
+                  {timezoneOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="action-row">
               <button
-                key={view.id}
-                className={
-                  view.id === activeView ? "view-button active" : "view-button"
-                }
-                onClick={() => setActiveView(view.id)}
+                className="primary-button"
+                disabled={!scheduleDraft || busyAction !== ""}
+                onClick={() => void handleSaveSchedule()}
                 type="button"
               >
-                <strong>{view.label}</strong>
-                <span>{view.detail}</span>
+                {busyAction === "save-schedule" ? "保存中…" : "保存调度设置"}
               </button>
-            ))}
-          </nav>
+            </div>
+          </section>
 
-          <div className="nav-note">
-            <strong>这版网页不再承担完整控制台职责。</strong>
-            <p>
-              规则调参、任务执行、日志排错和候选池分析仍保留在项目内部，但不再放进默认网页界面。
-            </p>
-          </div>
-        </aside>
+          <section className="panel preferences-panel">
+            <header className="panel-header">
+              <div>
+                <p className="eyebrow">Preferences</p>
+                <h2>关心主题</h2>
+              </div>
+            </header>
 
-        <section className="workspace-main">
-          {activeView === "schedule" ? (
-            <section className="surface schedule-surface">
-              <header className="surface-header">
-                <div>
-                  <span className="eyebrow">Schedule</span>
-                  <h2>每日发送时间</h2>
-                </div>
-                <button
-                  className="ghost-button"
-                  onClick={() => void hydrate()}
-                  type="button"
-                >
-                  刷新
-                </button>
-              </header>
-
-              <div className="schedule-layout">
-                <div className="schedule-form">
-                  <label>
-                    <span>发送时间</span>
-                    <input
-                      type="time"
-                      value={scheduleDraft?.dailySendTime ?? ""}
-                      onChange={(event) =>
-                        setScheduleDraft((current) =>
-                          current
-                            ? {
-                                ...current,
-                                dailySendTime: event.target.value,
-                              }
-                            : current,
-                        )
-                      }
-                    />
-                  </label>
-
-                  <label>
-                    <span>时区</span>
-                    <input
-                      type="text"
-                      value={scheduleDraft?.timezone ?? "Asia/Shanghai"}
-                      disabled
-                    />
-                  </label>
-
+            <div className="theme-picker">
+              {availableThemes.map((theme) => {
+                const active = preferencesDraft.preferredThemes.includes(theme);
+                return (
                   <button
-                    className="primary-button"
-                    disabled={!scheduleDraft || busyAction !== ""}
-                    onClick={() => void handleSaveSchedule()}
+                    key={theme}
+                    className={active ? "theme-chip active" : "theme-chip"}
+                    onClick={() => handleToggleTheme(theme)}
                     type="button"
                   >
-                    {busyAction === "save-schedule"
-                      ? "保存中…"
-                      : "保存发送时间"}
+                    {theme}
                   </button>
-                </div>
+                );
+              })}
+            </div>
 
-                <div className="schedule-guide">
-                  <article>
-                    <h3>生效方式</h3>
-                    <p>
-                      保存后会写入
-                      `config/schedule.json`，不会即时热更新运行中的定时器。
-                    </p>
-                  </article>
-                  <article>
-                    <h3>Docker 用户</h3>
-                    <p>
-                      执行 `docker compose restart
-                      gitradar`，新的每日发送时间会在容器启动时写入 cron。
-                    </p>
-                  </article>
-                  <article>
-                    <h3>Windows 双击启动</h3>
-                    <p>
-                      先关闭 GitRadar，再重新双击 `start-gitradar.bat`
-                      启动即可。
-                    </p>
-                  </article>
-                </div>
-              </div>
-            </section>
-          ) : null}
-
-          {activeView === "archives" ? (
-            <section className="surface archive-surface">
-              <header className="surface-header">
-                <div>
-                  <span className="eyebrow">Archive Reader</span>
-                  <h2>归档日报</h2>
-                </div>
+            <div className="custom-topic-block">
+              <div className="custom-topic-input">
+                <label className="field">
+                  <span>自定义主题词</span>
+                  <input
+                    type="text"
+                    placeholder="例如：Fabric, FPGA, agents runtime"
+                    value={customTopicInput}
+                    onChange={(event) =>
+                      setCustomTopicInput(event.target.value)
+                    }
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        handleAddCustomTopic();
+                      }
+                    }}
+                  />
+                </label>
                 <button
                   className="ghost-button"
-                  onClick={() => void hydrate()}
+                  onClick={handleAddCustomTopic}
                   type="button"
                 >
-                  刷新
+                  添加
                 </button>
-              </header>
-
-              <div className="archive-layout">
-                <aside className="archive-index">
-                  {archives.map((archive) => (
-                    <button
-                      key={archive.date}
-                      className={
-                        archive.date === selectedArchiveDate
-                          ? "archive-link active"
-                          : "archive-link"
-                      }
-                      onClick={() => void handleSelectArchive(archive.date)}
-                      type="button"
-                    >
-                      <strong>{archive.date}</strong>
-                      <span>{archive.title}</span>
-                    </button>
-                  ))}
-
-                  {archives.length === 0 ? (
-                    <div className="empty-state">
-                      当前还没有可阅读的归档日报。
-                    </div>
-                  ) : null}
-                </aside>
-
-                <section className="archive-reader">
-                  {archiveDetail && selectedArchiveSummary ? (
-                    <>
-                      <header className="reader-header">
-                        <div>
-                          <p className="eyebrow">Selected Digest</p>
-                          <h3>{archiveDetail.digest.title}</h3>
-                        </div>
-                        <div className="reader-meta">
-                          <MetaStrip
-                            label="日期"
-                            value={archiveDetail.digest.date}
-                          />
-                          <MetaStrip
-                            label="生成时间"
-                            value={formatDateTime(archiveDetail.generatedAt)}
-                          />
-                          <MetaStrip
-                            label="规则版本"
-                            value={selectedArchiveSummary.rulesVersion}
-                          />
-                        </div>
-                      </header>
-
-                      <div className="digest-list">
-                        {archiveDetail.digest.items.map((item, index) => (
-                          <article
-                            key={`${item.repo}-${index}`}
-                            className="digest-item"
-                          >
-                            <div className="digest-title-row">
-                              <strong>
-                                {String(index + 1).padStart(2, "0")} {item.repo}
-                              </strong>
-                              <span className="theme-tag">{item.theme}</span>
-                            </div>
-
-                            <p className="digest-summary">{item.summary}</p>
-
-                            <dl className="digest-facts">
-                              <div>
-                                <dt>为什么值得看</dt>
-                                <dd>{item.whyItMatters}</dd>
-                              </div>
-                              <div>
-                                <dt>为什么是现在</dt>
-                                <dd>{item.whyNow}</dd>
-                              </div>
-                              <div>
-                                <dt>证据</dt>
-                                <dd>{item.evidence.join("；") || "未记录"}</dd>
-                              </div>
-                            </dl>
-                          </article>
-                        ))}
-                      </div>
-                    </>
-                  ) : (
-                    <div className="empty-state">
-                      请选择一条归档日报开始阅读。
-                    </div>
-                  )}
-                </section>
               </div>
-            </section>
-          ) : null}
-        </section>
-      </main>
+
+              <div className="custom-topic-list">
+                {preferencesDraft.customTopics.map((topic) => (
+                  <button
+                    key={topic}
+                    className="topic-tag"
+                    onClick={() => handleRemoveCustomTopic(topic)}
+                    type="button"
+                  >
+                    {topic}
+                    <span>移除</span>
+                  </button>
+                ))}
+                {preferencesDraft.customTopics.length === 0 ? (
+                  <div className="empty-inline">还没有添加自定义主题词。</div>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="action-row">
+              <button
+                className="primary-button"
+                disabled={busyAction !== ""}
+                onClick={() => void handleSavePreferences()}
+                type="button"
+              >
+                {busyAction === "save-preferences" ? "保存中…" : "保存关心主题"}
+              </button>
+            </div>
+          </section>
+        </main>
+      ) : null}
+
+      {activeView === "archives" ? (
+        <main className="archive-page">
+          <aside className="panel archive-index">
+            <header className="panel-header compact">
+              <div>
+                <p className="eyebrow">Archive</p>
+                <h2>归档日期</h2>
+              </div>
+            </header>
+
+            <div className="archive-date-list">
+              {archives.map((archive) => (
+                <button
+                  key={archive.date}
+                  className={
+                    archive.date === selectedArchiveDate
+                      ? "archive-date active"
+                      : "archive-date"
+                  }
+                  onClick={() => void handleSelectArchive(archive.date)}
+                  type="button"
+                >
+                  <strong>{archive.date}</strong>
+                  <span>{archive.digestCount} 条项目</span>
+                </button>
+              ))}
+
+              {archives.length === 0 ? (
+                <div className="empty-inline">当前还没有归档日报。</div>
+              ) : null}
+            </div>
+          </aside>
+
+          <section className="panel archive-reader">
+            {archiveDetail && currentDigestItem && selectedArchiveSummary ? (
+              <>
+                <header className="reader-header">
+                  <div>
+                    <p className="eyebrow">Reader</p>
+                    <h2>{archiveDetail.digest.title}</h2>
+                    <p className="reader-meta-line">
+                      生成于 {formatDateTime(archiveDetail.generatedAt)} ·
+                      规则版本 {selectedArchiveSummary.rulesVersion}
+                    </p>
+                  </div>
+
+                  <div className="reader-counter">
+                    第 {currentItemIndex + 1} 篇 / 共{" "}
+                    {archiveDetail.digest.items.length} 篇
+                  </div>
+                </header>
+
+                <div className="reader-body">
+                  <button
+                    className="pager-button"
+                    disabled={currentItemIndex === 0}
+                    onClick={() =>
+                      setCurrentItemIndex((current) => Math.max(current - 1, 0))
+                    }
+                    type="button"
+                  >
+                    上一篇
+                  </button>
+
+                  <article className="story-sheet">
+                    <div className="story-heading">
+                      <span className="story-theme">
+                        {currentDigestItem.theme}
+                      </span>
+                      <h3>{currentDigestItem.repo}</h3>
+                    </div>
+
+                    <p className="story-lead">{currentDigestItem.summary}</p>
+
+                    <div className="story-columns">
+                      <section>
+                        <h4>为什么值得看</h4>
+                        <p>{currentDigestItem.whyItMatters}</p>
+                      </section>
+                      <section>
+                        <h4>为什么是现在</h4>
+                        <p>{currentDigestItem.whyNow}</p>
+                      </section>
+                      <section className="evidence-section">
+                        <h4>证据</h4>
+                        <ul>
+                          {currentDigestItem.evidence.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                      </section>
+                    </div>
+                  </article>
+
+                  <button
+                    className="pager-button"
+                    disabled={
+                      currentItemIndex >= archiveDetail.digest.items.length - 1
+                    }
+                    onClick={() =>
+                      setCurrentItemIndex((current) =>
+                        Math.min(
+                          current + 1,
+                          archiveDetail.digest.items.length - 1,
+                        ),
+                      )
+                    }
+                    type="button"
+                  >
+                    下一篇
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="empty-state">请选择一条归档日报开始阅读。</div>
+            )}
+          </section>
+        </main>
+      ) : null}
     </div>
   );
 }
 
-function MetaStrip(props: { label: string; value: string }) {
+function MetaPill(props: { label: string; value: string }) {
   return (
-    <div className="meta-strip">
+    <div className="meta-pill">
       <span>{props.label}</span>
       <strong>{props.value}</strong>
+    </div>
+  );
+}
+
+function SchedulePreview(props: {
+  schedule: ScheduleSettings | null;
+  timezones: TimezoneOption[];
+}) {
+  const label =
+    props.timezones.find((option) => option.value === props.schedule?.timezone)
+      ?.label ?? "上海";
+
+  return (
+    <div className="schedule-preview">
+      <strong>{props.schedule?.dailySendTime ?? "--:--"}</strong>
+      <span>{label}</span>
     </div>
   );
 }

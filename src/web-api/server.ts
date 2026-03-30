@@ -21,6 +21,10 @@ import {
   readScheduleSettings,
   saveScheduleSettings,
 } from "./services/schedule-service";
+import {
+  readUserPreferences,
+  saveUserPreferences,
+} from "./services/user-preferences-service";
 import type { HealthResponse } from "./types/api";
 
 const DEFAULT_HOST = "127.0.0.1";
@@ -77,6 +81,10 @@ async function handleRequest(
       return sendJson(response, 200, await readScheduleSettings(ROOT_DIR));
     }
 
+    if (request.method === "GET" && pathname === "/api/settings/preferences") {
+      return sendJson(response, 200, readUserPreferences(ROOT_DIR));
+    }
+
     if (
       request.method === "POST" &&
       pathname === "/api/config/digest-rules/validate"
@@ -105,6 +113,21 @@ async function handleRequest(
           response,
           200,
           await saveScheduleSettings(ROOT_DIR, body),
+        );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return sendJson(response, 400, { message });
+      }
+    }
+
+    if (request.method === "PUT" && pathname === "/api/settings/preferences") {
+      const body = await readJsonBody(request);
+
+      try {
+        return sendJson(
+          response,
+          200,
+          await saveUserPreferences(ROOT_DIR, body),
         );
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

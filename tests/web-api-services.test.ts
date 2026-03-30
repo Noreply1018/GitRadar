@@ -17,6 +17,10 @@ import {
   readScheduleSettings,
   saveScheduleSettings,
 } from "../src/web-api/services/schedule-service";
+import {
+  readUserPreferences,
+  saveUserPreferences,
+} from "../src/web-api/services/user-preferences-service";
 
 describe("validateDigestRulesDraft", () => {
   it("accepts the current repository config", () => {
@@ -133,23 +137,28 @@ describe("schedule settings", () => {
         timezone: "Asia/Shanghai",
         dailySendTime: "08:17",
       },
+      availableTimezones: expect.arrayContaining([
+        expect.objectContaining({ value: "Asia/Shanghai" }),
+        expect.objectContaining({ value: "America/New_York" }),
+      ]),
     });
   });
 
-  it("saves a valid daily send time to config/schedule.json", async () => {
+  it("saves a valid daily send time and timezone to config/schedule.json", async () => {
     const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-schedule-"));
 
     const saved = await saveScheduleSettings(rootDir, {
-      timezone: "Asia/Shanghai",
+      timezone: "America/New_York",
       dailySendTime: "09:45",
     });
 
     expect(saved.settings.dailySendTime).toBe("09:45");
+    expect(saved.settings.timezone).toBe("America/New_York");
     expect(saved.path).toBe(path.join(rootDir, "config", "schedule.json"));
 
     const file = await readFile(saved.path, "utf8");
     expect(JSON.parse(file)).toEqual({
-      timezone: "Asia/Shanghai",
+      timezone: "America/New_York",
       dailySendTime: "09:45",
     });
   });
@@ -165,8 +174,70 @@ describe("schedule settings", () => {
     ).rejects.toThrow(/HH:mm/);
   });
 
+  it("rejects unsupported timezone values", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-schedule-"));
+
+    await expect(
+      saveScheduleSettings(rootDir, {
+        timezone: "UTC" as "Asia/Shanghai",
+        dailySendTime: "09:45",
+      }),
+    ).rejects.toThrow(/常用城市时区/);
+  });
+
   it("converts a saved time into the cron expression used by Docker", () => {
     expect(convertDailySendTimeToCron("08:17")).toBe("17 8 * * *");
     expect(convertDailySendTimeToCron("21:05")).toBe("5 21 * * *");
+  });
+});
+
+describe("user preferences", () => {
+  it("falls back to empty preferences when no file exists", async () => {
+    const rootDir = await mkdtemp(
+      path.join(os.tmpdir(), "gitradar-preferences-"),
+    );
+
+    expect(readUserPreferences(rootDir)).toMatchObject({
+      preferences: {
+        preferredThemes: [],
+        customTopics: [],
+      },
+      availableThemes: expect.arrayContaining(["AI Agents", "AI Research"]),
+    });
+  });
+
+  it("saves preferred themes and custom topics", async () => {
+    const rootDir = await mkdtemp(
+      path.join(os.tmpdir(), "gitradar-preferences-"),
+    );
+
+    const saved = await saveUserPreferences(rootDir, {
+      preferredThemes: ["AI Agents", "Frontend & Design"],
+      customTopics: ["Fabric", "FPGA"],
+    });
+
+    expect(saved.preferences).toEqual({
+      preferredThemes: ["AI Agents", "Frontend & Design"],
+      customTopics: ["Fabric", "FPGA"],
+    });
+
+    const file = await readFile(saved.path, "utf8");
+    expect(JSON.parse(file)).toEqual({
+      preferredThemes: ["AI Agents", "Frontend & Design"],
+      customTopics: ["Fabric", "FPGA"],
+    });
+  });
+
+  it("rejects unknown preferred themes", async () => {
+    const rootDir = await mkdtemp(
+      path.join(os.tmpdir(), "gitradar-preferences-"),
+    );
+
+    await expect(
+      saveUserPreferences(rootDir, {
+        preferredThemes: ["Unknown Theme"],
+        customTopics: [],
+      }),
+    ).rejects.toThrow(/unknown theme/i);
   });
 });

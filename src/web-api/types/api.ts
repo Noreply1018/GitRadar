@@ -1,5 +1,6 @@
 import type { DailyDigestArchive } from "../../core/archive";
 import type { DigestRulesConfig } from "../../config/digest-rules";
+import type { UserPreferencesConfig } from "../../config/user-preferences";
 
 export interface HealthResponse {
   status: "ok";
@@ -23,14 +24,34 @@ export interface DigestRulesValidationResponse {
   issues: DigestRulesIssue[];
 }
 
+export type ScheduleTimezone =
+  | "Asia/Shanghai"
+  | "Asia/Tokyo"
+  | "Europe/Berlin"
+  | "Europe/London"
+  | "America/New_York"
+  | "America/Los_Angeles";
+
+export interface TimezoneOption {
+  value: ScheduleTimezone;
+  label: string;
+}
+
 export interface ScheduleSettings {
-  timezone: "Asia/Shanghai";
+  timezone: ScheduleTimezone;
   dailySendTime: string;
 }
 
 export interface ScheduleSettingsResponse {
   path: string;
   settings: ScheduleSettings;
+  availableTimezones: TimezoneOption[];
+}
+
+export interface UserPreferencesResponse {
+  path: string;
+  preferences: UserPreferencesConfig;
+  availableThemes: string[];
 }
 
 export interface CommandStartRequest {

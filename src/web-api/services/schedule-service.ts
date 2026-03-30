@@ -1,7 +1,20 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import type { ScheduleSettings, ScheduleSettingsResponse } from "../types/api";
+import type {
+  ScheduleSettings,
+  ScheduleSettingsResponse,
+  ScheduleTimezone,
+} from "../types/api";
+
+export const SCHEDULE_TIMEZONE_OPTIONS = [
+  { value: "Asia/Shanghai", label: "上海" },
+  { value: "Asia/Tokyo", label: "东京" },
+  { value: "Europe/Berlin", label: "柏林" },
+  { value: "Europe/London", label: "伦敦" },
+  { value: "America/New_York", label: "纽约" },
+  { value: "America/Los_Angeles", label: "洛杉矶" },
+] as const;
 
 export const DEFAULT_SCHEDULE_SETTINGS: ScheduleSettings = {
   timezone: "Asia/Shanghai",
@@ -20,12 +33,14 @@ export async function readScheduleSettings(
     return {
       path: filePath,
       settings: parseScheduleSettings(JSON.parse(raw)),
+      availableTimezones: [...SCHEDULE_TIMEZONE_OPTIONS],
     };
   } catch (error) {
     if (isMissingFileError(error)) {
       return {
         path: filePath,
         settings: { ...DEFAULT_SCHEDULE_SETTINGS },
+        availableTimezones: [...SCHEDULE_TIMEZONE_OPTIONS],
       };
     }
 
@@ -46,6 +61,7 @@ export async function saveScheduleSettings(
   return {
     path: filePath,
     settings,
+    availableTimezones: [...SCHEDULE_TIMEZONE_OPTIONS],
   };
 }
 
@@ -59,10 +75,11 @@ export function parseScheduleSettings(input: unknown): ScheduleSettings {
   const dailySendTime =
     "dailySendTime" in input ? (input.dailySendTime as unknown) : undefined;
 
-  if (timezone !== DEFAULT_SCHEDULE_SETTINGS.timezone) {
-    throw new Error(
-      `scheduleSettings.timezone 目前只支持 ${DEFAULT_SCHEDULE_SETTINGS.timezone}。`,
-    );
+  if (
+    typeof timezone !== "string" ||
+    !SCHEDULE_TIMEZONE_OPTIONS.some((option) => option.value === timezone)
+  ) {
+    throw new Error("scheduleSettings.timezone 必须是受支持的常用城市时区。");
   }
 
   if (typeof dailySendTime !== "string" || !TIME_PATTERN.test(dailySendTime)) {
@@ -72,7 +89,7 @@ export function parseScheduleSettings(input: unknown): ScheduleSettings {
   }
 
   return {
-    timezone: DEFAULT_SCHEDULE_SETTINGS.timezone,
+    timezone: timezone as ScheduleTimezone,
     dailySendTime,
   };
 }
