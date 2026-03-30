@@ -23,6 +23,14 @@ export interface UserPreferences {
   customTopics: string[];
 }
 
+export interface GitHubSettings {
+  configured: boolean;
+  maskedToken: string | null;
+  apiBaseUrl: string;
+  trendingUrl: string;
+  envFilePath: string;
+}
+
 export type FeedbackAction = "saved" | "skipped" | "later";
 
 export interface FeedbackEvent {
@@ -93,6 +101,13 @@ export interface LlmTestResult {
   baseUrl: string;
 }
 
+export interface GitHubTestResult {
+  ok: true;
+  message: string;
+  login: string;
+  apiBaseUrl: string;
+}
+
 export async function fetchHealth(): Promise<{
   status: string;
   app: string;
@@ -127,6 +142,25 @@ export async function fetchPreferences(): Promise<{
   availableThemes: string[];
 }> {
   return fetchJson("/api/settings/preferences");
+}
+
+export async function fetchGitHubSettings(): Promise<GitHubSettings> {
+  return fetchJson("/api/settings/github");
+}
+
+export async function saveGitHubSettings(input: {
+  token?: string;
+}): Promise<GitHubSettings> {
+  return fetchJson("/api/settings/github", {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function testGitHubSettings(): Promise<GitHubTestResult> {
+  return fetchJson("/api/settings/github/test", {
+    method: "POST",
+  });
 }
 
 export async function savePreferences(draft: UserPreferences): Promise<{

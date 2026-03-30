@@ -31,6 +31,11 @@ import {
   testLlmSettings,
 } from "./services/llm-settings-service";
 import {
+  readGitHubSettings,
+  saveGitHubSettings,
+  testGitHubSettings,
+} from "./services/github-settings-service";
+import {
   listFeedbackItems,
   readFeedbackState,
   recordFeedback,
@@ -98,6 +103,10 @@ async function handleRequest(
 
     if (request.method === "GET" && pathname === "/api/settings/preferences") {
       return sendJson(response, 200, readUserPreferences(ROOT_DIR));
+    }
+
+    if (request.method === "GET" && pathname === "/api/settings/github") {
+      return sendJson(response, 200, await readGitHubSettings(ROOT_DIR));
     }
 
     if (request.method === "GET" && pathname === "/api/settings/llm") {
@@ -176,6 +185,21 @@ async function handleRequest(
       }
     }
 
+    if (request.method === "PUT" && pathname === "/api/settings/github") {
+      const body = await readJsonBody(request);
+
+      try {
+        return sendJson(
+          response,
+          200,
+          await saveGitHubSettings(ROOT_DIR, body),
+        );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return sendJson(response, 400, { message });
+      }
+    }
+
     if (request.method === "PUT" && pathname === "/api/settings/llm") {
       const body = await readJsonBody(request);
 
@@ -201,6 +225,15 @@ async function handleRequest(
     if (request.method === "POST" && pathname === "/api/settings/llm/test") {
       try {
         return sendJson(response, 200, await testLlmSettings(ROOT_DIR));
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return sendJson(response, 400, { message });
+      }
+    }
+
+    if (request.method === "POST" && pathname === "/api/settings/github/test") {
+      try {
+        return sendJson(response, 200, await testGitHubSettings(ROOT_DIR));
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         return sendJson(response, 400, { message });

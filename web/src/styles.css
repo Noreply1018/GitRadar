@@ -283,12 +283,14 @@ label span {
   background: rgba(168, 76, 67, 0.06);
 }
 
+.environment-page,
 .schedule-page {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
 }
 
+.preferences-page,
 .saved-page {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -357,12 +359,59 @@ label span {
   gap: 18px;
 }
 
+.environment-summary-panel,
+.github-panel,
 .wecom-panel,
 .llm-panel,
 .feedback-summary-panel,
 .saved-panel {
   display: grid;
   gap: 18px;
+}
+
+.environment-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.environment-card {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.environment-card span,
+.environment-card p,
+.validation-hint,
+.environment-inline-note {
+  color: var(--ink-soft);
+}
+
+.environment-card span {
+  font-size: 0.84rem;
+}
+
+.environment-card strong {
+  font-size: 1.1rem;
+}
+
+.environment-card p,
+.validation-hint,
+.environment-inline-note {
+  margin: 0;
+  line-height: 1.75;
+}
+
+.validation-hint {
+  padding: 0 2px;
+}
+
+.validation-hint.failed {
+  color: var(--danger);
 }
 
 .feedback-summary-panel {
@@ -712,11 +761,14 @@ label span {
 
 @media (max-width: 1120px) {
   .masthead,
+  .environment-page,
   .schedule-page,
+  .preferences-page,
   .saved-page,
   .archive-page,
   .reader-body,
-  .schedule-grid {
+  .schedule-grid,
+  .environment-card-grid {
     grid-template-columns: 1fr;
   }
 

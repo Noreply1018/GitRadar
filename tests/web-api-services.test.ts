@@ -1,4 +1,4 @@
-import { mkdtemp, readFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import os from "node:os";
 import path from "node:path";
@@ -36,6 +36,11 @@ import {
   saveLlmSettings,
   testLlmSettings,
 } from "../src/web-api/services/llm-settings-service";
+import {
+  readGitHubSettings,
+  saveGitHubSettings,
+  testGitHubSettings,
+} from "../src/web-api/services/github-settings-service";
 
 let activeServer: ReturnType<typeof createServer> | null = null;
 
@@ -400,6 +405,84 @@ describe("wecom settings", () => {
     await expect(
       saveWecomSettings(rootDir, { webhookUrl: "not-a-url" }),
     ).rejects.toThrow(/valid URL/);
+  });
+});
+
+describe("github settings", () => {
+  it("returns an unconfigured state when .env does not exist", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-github-"));
+
+    await expect(readGitHubSettings(rootDir)).resolves.toMatchObject({
+      configured: false,
+      maskedToken: null,
+      apiBaseUrl: "https://api.github.com",
+      trendingUrl: "https://github.com/trending?since=daily",
+      envFilePath: path.join(rootDir, ".env"),
+    });
+  });
+
+  it("saves github token into .env and returns masked data", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-github-"));
+
+    const response = await saveGitHubSettings(rootDir, {
+      token: "github-token-sample-value",
+    });
+
+    expect(response).toEqual({
+      configured: true,
+      maskedToken: "gith***alue",
+      apiBaseUrl: "https://api.github.com",
+      trendingUrl: "https://github.com/trending?since=daily",
+      envFilePath: path.join(rootDir, ".env"),
+    });
+
+    const envFile = await readFile(path.join(rootDir, ".env"), "utf8");
+    expect(envFile).toContain("GITHUB_TOKEN=github-token-sample-value");
+  });
+
+  it("tests the current github token with a real http request", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-github-"));
+    const server = createServer((request, response) => {
+      expect(request.url).toBe("/user");
+      expect(request.headers.authorization).toBe(
+        "Bearer github-token-sample-value",
+      );
+      expect(request.headers["user-agent"]).toBe("GitRadar");
+      response.writeHead(200, { "content-type": "application/json" });
+      response.end(JSON.stringify({ login: "gitradar-bot" }));
+    });
+    activeServer = server;
+
+    const address = await new Promise<{ port: number }>((resolve, reject) => {
+      server.listen(0, "127.0.0.1", () => {
+        const value = server.address();
+
+        if (!value || typeof value === "string") {
+          reject(new Error("Failed to bind test server."));
+          return;
+        }
+
+        resolve({ port: value.port });
+      });
+    });
+
+    const apiBaseUrl = `http://127.0.0.1:${address.port}`;
+    await saveGitHubSettings(rootDir, {
+      token: "github-token-sample-value",
+    });
+    const currentEnvFile = await readFile(path.join(rootDir, ".env"), "utf8");
+    await writeFile(
+      path.join(rootDir, ".env"),
+      `${currentEnvFile}GR_GH_API_URL=${apiBaseUrl}\n`,
+      "utf8",
+    );
+
+    await expect(testGitHubSettings(rootDir)).resolves.toEqual({
+      ok: true,
+      message: "GitHub Token 连通性测试通过。",
+      login: "gitradar-bot",
+      apiBaseUrl,
+    });
   });
 });
 

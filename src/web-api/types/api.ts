@@ -60,6 +60,10 @@ export interface UserPreferencesResponse {
   availableThemes: string[];
 }
 
+export interface SaveGitHubSettingsInput {
+  token?: string;
+}
+
 export interface SaveLlmSettingsInput {
   apiKey?: string;
   baseUrl?: string;
@@ -125,6 +129,14 @@ export interface WecomSettingsResponse {
   envFilePath: string;
 }
 
+export interface GitHubSettingsResponse {
+  configured: boolean;
+  maskedToken: string | null;
+  apiBaseUrl: string;
+  trendingUrl: string;
+  envFilePath: string;
+}
+
 export interface LlmSettingsResponse {
   configured: boolean;
   maskedApiKey: string | null;
@@ -138,6 +150,13 @@ export interface LlmTestResponse {
   message: string;
   model: string;
   baseUrl: string;
+}
+
+export interface GitHubTestResponse {
+  ok: true;
+  message: string;
+  login: string;
+  apiBaseUrl: string;
 }
 
 export interface WecomTestResponse {
