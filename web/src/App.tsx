@@ -725,7 +725,10 @@ export default function App() {
               <span>新的 GitHub Token</span>
               <input
                 autoComplete="off"
-                onChange={(event) => setGitHubTokenInput(event.target.value)}
+                onChange={(event) => {
+                  setGitHubTokenInput(event.target.value);
+                  setGitHubValidation(IDLE_VALIDATION);
+                }}
                 placeholder="留空表示保留当前 Token，不会回显旧值"
                 type="password"
                 value={githubTokenInput}
@@ -791,7 +794,10 @@ export default function App() {
               <span>新的 API Key</span>
               <input
                 autoComplete="off"
-                onChange={(event) => setLlmApiKeyInput(event.target.value)}
+                onChange={(event) => {
+                  setLlmApiKeyInput(event.target.value);
+                  setLlmValidation(IDLE_VALIDATION);
+                }}
                 placeholder="留空表示保留当前 API Key，不会回显旧值"
                 type="password"
                 value={llmApiKeyInput}
@@ -802,7 +808,10 @@ export default function App() {
               <label className="field">
                 <span>Base URL</span>
                 <input
-                  onChange={(event) => setLlmBaseUrlInput(event.target.value)}
+                  onChange={(event) => {
+                    setLlmBaseUrlInput(event.target.value);
+                    setLlmValidation(IDLE_VALIDATION);
+                  }}
                   placeholder="例如：https://your-openai-compatible-endpoint/v1"
                   type="url"
                   value={llmBaseUrlInput}
@@ -812,7 +821,10 @@ export default function App() {
               <label className="field">
                 <span>Model</span>
                 <input
-                  onChange={(event) => setLlmModelInput(event.target.value)}
+                  onChange={(event) => {
+                    setLlmModelInput(event.target.value);
+                    setLlmValidation(IDLE_VALIDATION);
+                  }}
                   placeholder="例如：gpt-4.1-mini"
                   type="text"
                   value={llmModelInput}
@@ -821,6 +833,9 @@ export default function App() {
             </div>
 
             <ValidationHint validation={llmValidation} />
+            <div className="environment-inline-note">
+              这里显示的是最近一次手动测试结果，不代表实时自动健康检查。修改配置后会先回到未验证状态。
+            </div>
 
             <div className="action-row dual-actions">
               <button
@@ -868,7 +883,10 @@ export default function App() {
             <label className="field">
               <span>新的 Webhook 链接</span>
               <input
-                onChange={(event) => setWecomWebhookInput(event.target.value)}
+                onChange={(event) => {
+                  setWecomWebhookInput(event.target.value);
+                  setWecomValidation(IDLE_VALIDATION);
+                }}
                 placeholder="输入新的企业微信 Webhook 链接，保存后会覆盖当前配置"
                 type="url"
                 value={wecomWebhookInput}
@@ -1353,7 +1371,12 @@ function ValidationHint(props: { validation: ValidationStatus }) {
       ? "validation-hint failed"
       : "validation-hint";
 
-  return <div className={className}>{props.validation.detail}</div>;
+  const detail =
+    props.validation.state === "failed"
+      ? `上次验证失败：${props.validation.detail}`
+      : props.validation.detail;
+
+  return <div className={className}>{detail}</div>;
 }
 
 function SchedulePreview(props: {
@@ -1398,7 +1421,7 @@ function buildStatusLabel(
   }
 
   if (validation.state === "failed") {
-    return "验证失败";
+    return "上次验证失败";
   }
 
   return "已配置未验证";
