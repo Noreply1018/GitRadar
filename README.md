@@ -2,49 +2,108 @@
 
 ![Release](https://img.shields.io/github/v/release/Noreply1018/GitRadar?display_name=tag&label=release)
 ![CI](https://img.shields.io/github/actions/workflow/status/Noreply1018/GitRadar/ci.yml?branch=main&label=CI)
-![Docs](https://img.shields.io/badge/docs-showcase-1f6feb)
 ![License](https://img.shields.io/badge/license-MIT-2ea44f)
-![Topics](https://img.shields.io/badge/topics-github%20radar%20%7C%20wecom%20%7C%20typescript-2F6B8A)
+![Topics](https://img.shields.io/badge/topics-github%20radar%20%7C%20llm%20%7C%20wecom-2F6B8A)
 
-![GitRadar Showcase](./docs/assets/showcase-hero.svg)
+![GitRadar Symbol](./image.png)
 
-GitRadar 是一个面向个人和小团队的 GitHub 开源项目雷达。它每天从 GitHub Trending、最近更新、最近创建三类来源里抓取候选仓库，经过规则筛选、主题去重、候选池收敛和证据整理后，生成 6 到 8 条中文日报，支持企业微信群机器人发送，并把完整过程归档到本地。
+GitRadar 是一个面向个人与小团队的 GitHub 开源项目雷达。它每天从 GitHub 获取候选仓库，经过规则筛选、主题配额、候选池收敛和 LLM 编辑整理，产出一份中文日报，并支持企业微信群机器人发送、本地归档和网页控制台管理。
 
-当前版本把 GitRadar 收口成两层能力：
+现在的 GitRadar 是一个完整产品，而不是单一脚本。你可以直接跑 CLI，也可以打开本地网页，在同一个界面里管理规则、环境配置、执行流程和历史归档。
 
-- 产品内核：CLI + 规则配置 + 归档 + 企业微信发送
-- 本地使用层：中文网页控制台 + Docker 容器 + Windows 双击启动脚本
+## 当前版本定位
 
-这意味着你可以继续像开发者一样直接跑 CLI，也可以把仓库 clone 到 Windows 本机后，通过 `.bat` 双击直接启动 GitRadar 并打开网页前端。
+GitRadar 当前围绕两条主线工作：
 
-## 当前产品状态
+- 发现与编辑：从 GitHub 候选仓库里挑出当天值得看的项目，并给出中文说明
+- 本地运营台：把规则、LLM、企业微信、调度、执行日志和归档全部收口到本地控制台
 
-GitRadar 现在已经具备这些稳定能力：
+这张 `image.png` 现在作为 GitRadar 的主图与象征图使用，代表产品对外的统一视觉入口。
+
+## 核心能力
 
 - 多来源候选抓取：Trending、最近更新、最近创建
-- 结构化打分：动量、新鲜度、成熟度、覆盖度
-- digest 规则配置文件化：`config/digest-rules.json`
-- 规则独立校验：`npm run validate:digest-rules`
-- 日报归档、迁移、分析和历史重发
-- 反馈闭环：网页里可以对项目标记“收藏 / 稍后看 / 跳过”
-- 反馈终端复盘：`npm run feedback:list`
-- 企业微信群机器人发送与失败留痕
-- GitHub Actions 每日自动运行
-- 本地中文控制台：规则配置、执行中心、归档浏览
-- Docker 本地运行：控制台和每日任务一起封装进容器
-- Windows 双击启动：`start-gitradar.bat`
+- 规则化筛选：主题关键词、黑名单、时间阈值、成熟度和分桶规则
+- LLM 编辑整理：从候选池里生成中文日报条目
+- 企业微信发送：支持通过群机器人 webhook 推送日报
+- 本地归档：保存每日结果、反馈记录与分析结果
+- 网页控制台：用中文界面管理配置、执行任务和浏览归档
+- Docker 运行：适合本地长期挂起
+- Windows 双击启动：适合非命令行使用场景
 
-它不是一个“抄 GitHub 热榜”的脚本，而是一个强调“为什么今天值得看”的解释型发现引擎。
+## 网页控制台
+
+网页控制台是当前版本最直接的使用方式。它把原来分散在 `.env`、配置文件和命令行里的操作集中到了一个本地界面。
+
+当前主要包含这些页面：
+
+- 仪表盘：查看配置状态、最近归档和最近命令结果
+- 规则配置：维护主题、黑名单、权重、阈值和配额
+- 环境配置：独立管理 LLM、WeCom、调度三块设置
+- 执行中心：触发校验、生成、发送样例和归档分析
+- 归档浏览：查看日报内容并记录“收藏 / 稍后看 / 跳过”反馈
+
+### 环境配置页
+
+环境配置页是当前版本的关键变化。它把容易混在一起的运行参数拆成了 3 个独立区域：
+
+- LLM 配置：`GR_API_KEY`、`GR_BASE_URL`、`GR_MODEL`
+- 企业微信配置：`GITRADAR_WECOM_WEBHOOK_URL`
+- 调度配置：每日发送时间与时区，持久化到 `config/schedule.json`
+
+这意味着你不需要再手动翻 `.env` 和脚本去找入口，常用运行配置已经可以直接在网页里维护。
+
+## 快速开始
+
+### 1. 准备环境
+
+要求：
+
+- Node.js 20+
+- npm 10+
+- 可用的 GitHub Token
+- 可用的 LLM 网关配置
+- 如果要发群消息，需要企业微信群机器人 webhook
+
+初始化：
+
+```bash
+cp .env.example .env
+npm install
+```
+
+### 2. 启动本地控制台
+
+```bash
+npm run build:web
+npm run start:console
+```
+
+默认监听：
+
+- 控制台与本地 API：`http://127.0.0.1:3210`
+
+开发模式：
+
+```bash
+npm run dev:web-api
+npm run dev:web
+```
+
+开发时默认端口：
+
+- API：`http://127.0.0.1:3210`
+- 前端开发服务：`http://127.0.0.1:4173`
 
 ## Windows 双击启动
 
-这是当前最推荐的本地使用方式。
+如果你更希望以“本地应用”的方式使用 GitRadar，当前推荐直接用仓库自带脚本。
 
 前提：
 
 - 已安装并启动 Docker Desktop
-- 已把仓库 clone 到本机
 - 已准备好 `.env`
+- 仓库已经 clone 到本机
 
 首次准备：
 
@@ -52,35 +111,25 @@ GitRadar 现在已经具备这些稳定能力：
 cp .env.example .env
 ```
 
-Windows 上直接双击：
+Windows 上可直接双击：
 
-- `start-gitradar.bat`：启动 Docker 服务并自动打开网页前端
-- `stop-gitradar.bat`：停止 Docker 服务
+- `start-gitradar.bat`
+- `stop-gitradar.bat`
 
-双击 `start-gitradar.bat` 后，脚本会自动完成这些动作：
+`start-gitradar.bat` 会自动完成：
 
-1. 检查 Docker Desktop 和 `docker compose` 是否可用
-2. 检查 `.env` 是否存在
-3. 启动或构建 GitRadar 容器
-4. 等待控制台健康检查通过
-5. 自动打开 `http://127.0.0.1:3210`
-6. 保留一个 Docker 服务窗口显示日志
+1. 检查 Docker Desktop
+2. 检查 `docker compose`
+3. 检查 `.env`
+4. 构建或启动容器
+5. 等待控制台健康检查通过
+6. 打开 `http://127.0.0.1:3210`
 
-## Docker 本地运行
+## Docker 运行
 
-GitRadar 当前的 Docker 方案默认包含两部分：
+如果你希望 GitRadar 长期驻留在本机，Docker 是最稳的运行方式。
 
-- 中文网页控制台
-- 容器内每日定时任务
-
-默认行为：
-
-- 控制台端口：`http://127.0.0.1:3210`
-- 容器时区：`Asia/Shanghai`
-- 每日任务时间：`08:17`
-- 容器内定时命令：`npm run generate:digest:send`
-
-如果你不用 `.bat`，也可以直接手动运行：
+启动：
 
 ```bash
 docker compose up --build
@@ -92,97 +141,53 @@ docker compose up --build
 docker compose down
 ```
 
-挂载策略：
+默认行为：
 
-- `config/`：规则配置保留在宿主机
-- `data/`：历史归档、失败报告、缓存和导出保留在宿主机
-- `.env`：通过 `env_file` 和只读挂载注入容器
+- 控制台端口：`127.0.0.1:3210`
+- 时区：`Asia/Shanghai`
+- 容器内日报任务时间：`08:17`
+- 定时执行命令：`npm run generate:digest:send`
 
-这保证了你在网页里改规则、运行命令、生成归档后，本机仓库目录里能直接看到结果。
+宿主机保留数据：
 
-## 中文网页控制台
+- `config/`
+- `data/`
+- `.env`
 
-控制台当前包含 4 个主要区域：
+## 常用 CLI
 
-- 仪表盘：规则版本、最近归档、最近命令状态、快捷动作
-- 规则配置：主题、黑名单、阈值、权重的结构化编辑
-- 执行中心：校验、生成、发送样例、归档分析与终端日志
-- 归档浏览：日报详情、左右翻页阅读和“收藏 / 稍后看 / 跳过”反馈
-
-控制台通过本地 API 工作，默认只监听本机，不面向公网多用户部署。
-
-## 常用 CLI 命令
-
-GitRadar 仍然保留完整 CLI 能力，适合开发、调试和 CI：
+GitRadar 依然保留完整 CLI，适合调试、自动化和手工复盘。
 
 ```bash
-npm install
 npm run validate:digest-rules
-npm run validate:digest-rules -- --format json
 npm run generate:digest
 npm run generate:digest -- --send
 npm run analyze:digest -- --date 2026-03-26
-npm run analyze:digest -- --date 2026-03-26 --format json
 npm run feedback:list
-npm run feedback:list -- --action saved
-npm run feedback:list -- --action later --format json
 npm run migrate:archives
-npm run migrate:archives -- --dry-run
 npm run send:wecom:sample
 ```
 
-命令说明：
+常见用途：
 
 - `validate:digest-rules`：校验 `config/digest-rules.json`
-- `generate:digest`：抓取、筛选、成稿并写归档
-- `generate:digest -- --send`：生成后发送企业微信
-- `analyze:digest -- --date YYYY-MM-DD`：分析某天归档
-- `feedback:list`：查看本地反馈记录，支持按动作、主题、仓库筛选
+- `generate:digest`：抓取、筛选、编辑并写入日报归档
+- `generate:digest -- --send`：生成日报后发送企业微信
+- `analyze:digest`：分析某天归档结果
+- `feedback:list`：查看用户反馈记录
 - `migrate:archives`：把旧归档迁移到当前 schema
-- `send:wecom:sample`：发送样例消息验证机器人链路
+- `send:wecom:sample`：验证企业微信群机器人链路
 
-`feedback:list` 常用写法：
+## 配置结构
 
-```bash
-npm run feedback:list
-npm run feedback:list -- --action saved
-npm run feedback:list -- --action later --theme "AI Agents"
-npm run feedback:list -- --repo owner/alpha-agent --format json
-```
+当前版本的配置入口主要分成 4 类：
 
-支持参数：
+- 规则配置：`config/digest-rules.json`
+- 调度配置：`config/schedule.json`
+- 环境变量：`.env`
+- 运行数据：`data/`
 
-- `--action saved|later|skipped`
-- `--theme <主题名>`
-- `--repo <owner/name>`
-- `--limit <数量>`
-- `--format text|json`
-
-## 开发模式
-
-如果你是在本地继续开发网页控制台，而不是作为普通用户使用 Docker：
-
-```bash
-npm install
-npm run dev:web-api
-npm run dev:web
-```
-
-开发端口：
-
-- API：`http://127.0.0.1:3210`
-- 前端开发服务：`http://127.0.0.1:4173`
-
-如果只想构建网页前端并通过同源方式访问：
-
-```bash
-npm run build:web
-npm run start:console
-```
-
-## 环境变量
-
-必填环境变量：
+### 必填环境变量
 
 - `GITHUB_TOKEN`
 - `GR_API_KEY`
@@ -190,70 +195,59 @@ npm run start:console
 - `GR_MODEL`
 - `GITRADAR_WECOM_WEBHOOK_URL`
 
-可选调试覆盖：
+### 可选覆盖项
 
 - `GR_GH_API_URL`
 - `GR_GH_TRENDING_URL`
 
-## 规则配置
+## 归档与反馈
 
-digest 规则配置文件位于 `config/digest-rules.json`，当前集中维护：
+GitRadar 不只是发一条消息就结束。它会把日报和后续反馈都保存到本地，便于复盘。
 
-- 主题定义和关键词
-- 描述、README 和 topic 黑名单
-- shortlist 与候选池主题配额
-- 推送时间、新建时间、成熟项目等阈值
-- 打分权重和 bucket 分段
+你可以在归档浏览里：
 
-当前已做的配置有效性校验包括：
+- 阅读历史日报
+- 快速翻页查看不同日期
+- 标记“收藏 / 稍后看 / 跳过”
 
-- 主题名不能为空
-- 同一主题内关键词不能重复
-- 同一关键词最多复用到 2 个主题
-- 阈值必须是非负数
-- bucket 的 `maxDays` 必须严格递增
-- 权重字段缺失或类型错误时立即报错
+也可以通过命令行回看反馈：
 
-## 自动化与质量保证
+```bash
+npm run feedback:list
+npm run feedback:list -- --action saved
+npm run feedback:list -- --action later --format json
+```
 
-仓库内置两个 GitHub Actions workflow：
+## 质量保证
 
-- `CI`：格式、Markdown、YAML、规则配置校验、类型检查、测试、workflow lint
-- `Daily Digest`：每天 `08:17` 中国时间自动生成并发送日报，也支持手动触发
+仓库内置了基础质量检查与 CI 流程，覆盖：
 
-本地基线检查：
+- Prettier 格式检查
+- Markdown lint
+- TypeScript typecheck
+- 单元测试
+- GitHub Actions CI
+
+本地常用检查：
 
 ```bash
 npm run format:check
 npm run lint:md
-npm run lint:yaml
-npm run validate:digest-rules -- --format json
 npm run typecheck
 npm test
-npm run build:web
 ```
 
-## 真实验证口径
+## 适用场景
 
-GitRadar 对外汇报时严格区分：
+GitRadar 适合这些用法：
 
-- 代码已改
-- 测试已过
-- 真实终端已验证
-- 企业微信群内已实际收到
+- 每天快速发现值得跟进的新项目
+- 为团队做固定节奏的技术雷达播报
+- 把 GitHub 信息流整理成中文日报
+- 对某几个主题长期观察，例如 AI Agents、Infra、Runtime、DevTools
 
-没有真实终端复现前，不报告“链路已成功”。
+它不追求“抓得最多”，而是强调“今天为什么值得看”。
 
-## 文档索引
+## 许可证
 
-- [中文网页前端实施蓝图](./docs/web-frontend-blueprint.md)
-- [项目展示页](./docs/showcase.md)
-- [社交传播套件](./docs/social-preview-kit.md)
-- [GitHub Profile 置顶配置清单](./docs/profile-pinned-checklist.md)
-- [传播文案](./docs/promo-copy.md)
-- [企业微信样例展示图](./docs/assets/wecom-sample-digest.svg)
-- [架构设计与版本路线](./docs/architecture-roadmap.md)
-- [开发规范](./docs/development.md)
-- [推送与交付设计](./docs/push-delivery.md)
-- [版本管理说明](./docs/versioning.md)
-- [变更记录](./CHANGELOG.md)
+MIT
