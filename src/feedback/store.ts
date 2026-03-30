@@ -24,6 +24,13 @@ export interface FeedbackSubmission {
   theme?: string;
 }
 
+export interface FeedbackQuery {
+  action?: FeedbackAction;
+  theme?: string;
+  repo?: string;
+  limit?: number;
+}
+
 export function getFeedbackEventsPath(rootDir: string): string {
   return path.join(rootDir, "data", "runtime", FEEDBACK_EVENTS_FILE);
 }
@@ -107,6 +114,13 @@ export async function readFeedbackEvents(
 
     throw error;
   }
+}
+
+export async function listFeedbackEvents(
+  rootDir: string,
+  query: FeedbackQuery = {},
+): Promise<FeedbackEvent[]> {
+  return filterFeedbackEvents(await readFeedbackEvents(rootDir), query);
 }
 
 export function parseFeedbackSubmission(input: unknown): FeedbackEvent {
@@ -210,6 +224,27 @@ export function buildFeedbackState(events: FeedbackEvent[]): FeedbackState {
   };
 }
 
+export function filterFeedbackEvents(
+  events: FeedbackEvent[],
+  query: FeedbackQuery = {},
+): FeedbackEvent[] {
+  const theme = normalizeOptionalString(query.theme)?.toLowerCase();
+  const repo = normalizeOptionalString(query.repo)?.toLowerCase();
+  const limit = normalizeLimit(query.limit);
+
+  const filtered = [...events]
+    .filter((event) => !query.action || event.action === query.action)
+    .filter((event) => !theme || event.theme?.toLowerCase() === theme)
+    .filter((event) => !repo || event.repo.toLowerCase() === repo)
+    .sort((left, right) => right.recordedAt.localeCompare(left.recordedAt));
+
+  if (typeof limit === "number") {
+    return filtered.slice(0, limit);
+  }
+
+  return filtered;
+}
+
 export function stringifyFeedbackState(state: FeedbackState): string {
   return `${JSON.stringify(state, null, 2)}\n`;
 }
@@ -256,6 +291,18 @@ function normalizeThemeStats(
       ];
     }),
   );
+}
+
+function normalizeLimit(value: number | undefined): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error("feedback limit 必须是正整数。");
+  }
+
+  return value;
 }
 
 function requireNonEmptyString(value: unknown, source: string): string {
