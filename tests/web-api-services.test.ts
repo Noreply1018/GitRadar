@@ -1,3 +1,7 @@
+import { mkdtemp, readFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { DIGEST_RULES_CONFIG } from "../src/config/digest-rules";
@@ -8,6 +12,11 @@ import {
   listCommandSpecs,
 } from "../src/web-api/services/command-runner";
 import { validateDigestRulesDraft } from "../src/web-api/services/digest-rules-service";
+import {
+  convertDailySendTimeToCron,
+  readScheduleSettings,
+  saveScheduleSettings,
+} from "../src/web-api/services/schedule-service";
 
 describe("validateDigestRulesDraft", () => {
   it("accepts the current repository config", () => {
@@ -112,5 +121,52 @@ describe("CommandRunner", () => {
     const runner = new CommandRunner(process.cwd());
 
     expect(() => runner.startJob("analyze-digest")).toThrow(/requires a date/);
+  });
+});
+
+describe("schedule settings", () => {
+  it("falls back to the default daily send time when no file exists", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-schedule-"));
+
+    await expect(readScheduleSettings(rootDir)).resolves.toMatchObject({
+      settings: {
+        timezone: "Asia/Shanghai",
+        dailySendTime: "08:17",
+      },
+    });
+  });
+
+  it("saves a valid daily send time to config/schedule.json", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-schedule-"));
+
+    const saved = await saveScheduleSettings(rootDir, {
+      timezone: "Asia/Shanghai",
+      dailySendTime: "09:45",
+    });
+
+    expect(saved.settings.dailySendTime).toBe("09:45");
+    expect(saved.path).toBe(path.join(rootDir, "config", "schedule.json"));
+
+    const file = await readFile(saved.path, "utf8");
+    expect(JSON.parse(file)).toEqual({
+      timezone: "Asia/Shanghai",
+      dailySendTime: "09:45",
+    });
+  });
+
+  it("rejects unsupported time formats", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-schedule-"));
+
+    await expect(
+      saveScheduleSettings(rootDir, {
+        timezone: "Asia/Shanghai",
+        dailySendTime: "9:45",
+      }),
+    ).rejects.toThrow(/HH:mm/);
+  });
+
+  it("converts a saved time into the cron expression used by Docker", () => {
+    expect(convertDailySendTimeToCron("08:17")).toBe("17 8 * * *");
+    expect(convertDailySendTimeToCron("21:05")).toBe("5 21 * * *");
   });
 });

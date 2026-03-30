@@ -23,6 +23,16 @@ export interface DigestRulesValidationResponse {
   issues: DigestRulesIssue[];
 }
 
+export interface ScheduleSettings {
+  timezone: "Asia/Shanghai";
+  dailySendTime: string;
+}
+
+export interface ScheduleSettingsResponse {
+  path: string;
+  settings: ScheduleSettings;
+}
+
 export interface CommandStartRequest {
   date?: string;
 }

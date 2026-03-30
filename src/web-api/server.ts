@@ -16,6 +16,11 @@ import {
   saveDigestRulesConfig,
   validateDigestRulesDraft,
 } from "./services/digest-rules-service";
+import {
+  parseScheduleSettings,
+  readScheduleSettings,
+  saveScheduleSettings,
+} from "./services/schedule-service";
 import type { HealthResponse } from "./types/api";
 
 const DEFAULT_HOST = "127.0.0.1";
@@ -68,6 +73,10 @@ async function handleRequest(
       return sendJson(response, 200, readDigestRulesConfig());
     }
 
+    if (request.method === "GET" && pathname === "/api/settings/schedule") {
+      return sendJson(response, 200, await readScheduleSettings(ROOT_DIR));
+    }
+
     if (
       request.method === "POST" &&
       pathname === "/api/config/digest-rules/validate"
@@ -85,6 +94,22 @@ async function handleRequest(
       }
 
       return sendJson(response, 200, await saveDigestRulesConfig(body));
+    }
+
+    if (request.method === "PUT" && pathname === "/api/settings/schedule") {
+      const body = await readJsonBody(request);
+
+      try {
+        parseScheduleSettings(body);
+        return sendJson(
+          response,
+          200,
+          await saveScheduleSettings(ROOT_DIR, body),
+        );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return sendJson(response, 400, { message });
+      }
     }
 
     if (request.method === "GET" && pathname === "/api/commands") {

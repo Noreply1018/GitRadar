@@ -8,6 +8,18 @@ The format is based on Keep a Changelog, adapted for a personal project workflow
 
 ### Added
 
+- 新增 `config/schedule.json` 和网页端每日发送时间设置，保存后重启 Docker 即可生效
+
+### Changed
+
+- 网页前端收缩为极简日报面板，只保留发送时间设置与归档日报阅读
+- 网页视觉系统改为浅色论文式版面，不再使用深色控制台布局
+- Secret Scan 改为直接使用 gitleaks 官方二进制，移除 Node 20 action 告警
+
+## [1.3.0] - 2026-03-30
+
+### Added
+
 - 新增本地中文网页控制台第一期，覆盖仪表盘、规则配置、执行中心和归档浏览
 - 新增 `web/` 前端工程，使用 `Vite + React + TypeScript`
 - 新增 `src/web-api/` 本地 API 层，用于规则配置读写、命令执行白名单和归档读取
