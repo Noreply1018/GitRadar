@@ -6,7 +6,7 @@
 
 - [`README.md`](./README.md)：产品介绍、启动方式、核心入口
 - [`docs/development.md`](./docs/development.md)：开发与验证约定
-- [`docs/showcase.md`](./docs/showcase.md)：对外展示页与截图说明
+- [`docs/architecture-roadmap.md`](./docs/architecture-roadmap.md)：架构边界与演进方向
 
 ## 2. 自查运行环境
 
@@ -32,7 +32,7 @@
 - 执行命令
 - 终端可见输出
 - 是否在 Docker / 本地 Node / Windows 双击启动下复现
-- 如果有截图或归档路径，也一起附上
+- 如果有归档路径，也一起附上
 
 ## 4. 安全问题不要公开提
 
