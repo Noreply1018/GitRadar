@@ -38,10 +38,6 @@ data/history/*.html
 data/history/*.md
 data/runtime/*
 !data/runtime/.gitkeep
-data/cache/*
-!data/cache/.gitkeep
-data/exports/*
-!data/exports/.gitkeep
 
 # Local databases
 *.db

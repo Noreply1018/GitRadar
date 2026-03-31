@@ -19,7 +19,6 @@ GitRadar 3.0.0 的开发重点是把 GitHub-native 正式链路做实：
 - `data/history/`：正式日报归档
 - `data/runtime/`：正式运行状态
 - `docs/`：架构与开发文档
-- `scripts/`：开发辅助脚本
 
 ## 开发原则
 

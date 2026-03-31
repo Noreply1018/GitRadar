@@ -16,7 +16,7 @@
     "start:console": "tsx src/web-api/server.ts",
     "build:web": "vite build --config web/vite.config.ts",
     "format:check": "prettier --check .",
-    "lint:md": "markdownlint README.md SECURITY.md SUPPORT.md CONTRIBUTING.md .github/**/*.md docs/**/*.md config/**/*.md data/**/*.md scripts/**/*.md src/**/*.md",
+    "lint:md": "markdownlint README.md SECURITY.md SUPPORT.md CONTRIBUTING.md .github/**/*.md docs/**/*.md config/**/*.md data/**/*.md src/**/*.md",
     "lint:yaml": "prettier --check \"**/*.{yml,yaml}\"",
     "test": "vitest run",
     "typecheck": "tsc --noEmit && npm run typecheck:web",
