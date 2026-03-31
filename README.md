@@ -128,6 +128,7 @@ npm run send:wecom:sample
 ## 文档入口
 
 - 架构设计：[`docs/architecture-roadmap.md`](./docs/architecture-roadmap.md)
+- GitHub native 升级路线图：[`docs/github-native-roadmap.md`](./docs/github-native-roadmap.md)
 - 开发与验证：[`docs/development.md`](./docs/development.md)
 - 配置说明：[`config/README.md`](./config/README.md)
 - 数据目录说明：[`data/README.md`](./data/README.md)
