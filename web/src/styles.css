@@ -164,9 +164,9 @@ label span {
 
 .masthead-meta {
   display: grid;
-  grid-template-columns: repeat(3, minmax(128px, 1fr));
+  grid-template-columns: repeat(4, minmax(128px, 1fr));
   gap: 12px;
-  min-width: min(100%, 420px);
+  min-width: min(100%, 560px);
 }
 
 .meta-pill,

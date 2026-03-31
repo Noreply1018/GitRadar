@@ -789,7 +789,11 @@ export default function App() {
             label="版本"
             value={health ? `v${health.version}` : "loading"}
           />
-          <MetaPill label="模式" value={health?.mode ?? "loading"} />
+          <MetaPill label="今日日期" value={formatCurrentDate()} />
+          <MetaPill
+            label="归档数"
+            value={busyAction === "hydrate" ? "loading" : String(archives.length)}
+          />
         </div>
       </header>
 
@@ -1774,6 +1778,14 @@ function formatDateTime(value: string): string {
   return new Date(value).toLocaleString("zh-CN", {
     hour12: false,
   });
+}
+
+function formatCurrentDate(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function getErrorMessage(error: unknown): string {
