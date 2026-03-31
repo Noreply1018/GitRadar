@@ -24,6 +24,14 @@ export interface UserPreferences {
   customTopics: string[];
 }
 
+export interface RemoteSyncMetadata {
+  committed: boolean;
+  commitSha?: string | null;
+  targetRef?: string | null;
+  pushed?: boolean;
+  committedAt?: string | null;
+}
+
 export interface GitHubSettings {
   source: "github";
   readonly: boolean;
@@ -184,17 +192,19 @@ export async function fetchScheduleSettings(): Promise<{
   return fetchJson(`/api/settings/schedule`);
 }
 
-export async function saveScheduleSettings(draft: ScheduleSettings): Promise<{
-  source: "github";
-  readonly: boolean;
-  path: string;
-  settings: ScheduleSettings;
-  availableTimezones: TimezoneOption[];
-  note?: string;
-  cronExpression?: string;
-  lastRunAt?: string | null;
-  lastRunStatus?: "success" | "failure" | "unknown";
-}> {
+export async function saveScheduleSettings(draft: ScheduleSettings): Promise<
+  {
+    source: "github";
+    readonly: boolean;
+    path: string;
+    settings: ScheduleSettings;
+    availableTimezones: TimezoneOption[];
+    note?: string;
+    cronExpression?: string;
+    lastRunAt?: string | null;
+    lastRunStatus?: "success" | "failure" | "unknown";
+  } & RemoteSyncMetadata
+> {
   return fetchJson("/api/settings/schedule", {
     method: "PUT",
     body: JSON.stringify(draft),
@@ -213,11 +223,13 @@ export async function fetchGitHubSettings(): Promise<GitHubSettings> {
   return fetchJson(`/api/settings/github`);
 }
 
-export async function savePreferences(draft: UserPreferences): Promise<{
-  path: string;
-  preferences: UserPreferences;
-  availableThemes: string[];
-}> {
+export async function savePreferences(draft: UserPreferences): Promise<
+  {
+    path: string;
+    preferences: UserPreferences;
+    availableThemes: string[];
+  } & RemoteSyncMetadata
+> {
   return fetchJson("/api/settings/preferences", {
     method: "PUT",
     body: JSON.stringify(draft),
@@ -243,18 +255,22 @@ export async function recordFeedback(input: {
   date: string;
   action: FeedbackAction;
   theme?: string;
-}): Promise<{ event: FeedbackEvent; state: FeedbackState }> {
+}): Promise<
+  { event: FeedbackEvent; state: FeedbackState } & RemoteSyncMetadata
+> {
   return fetchJson("/api/feedback", {
     method: "POST",
     body: JSON.stringify(input),
   });
 }
 
-export async function acceptPreferenceSuggestion(theme: string): Promise<{
-  preferences: UserPreferences;
-  availableThemes: string[];
-  insights: FeedbackInsights;
-}> {
+export async function acceptPreferenceSuggestion(theme: string): Promise<
+  {
+    preferences: UserPreferences;
+    availableThemes: string[];
+    insights: FeedbackInsights;
+  } & RemoteSyncMetadata
+> {
   return fetchJson(
     `/api/feedback/suggestions/${encodeURIComponent(theme)}/accept`,
     {

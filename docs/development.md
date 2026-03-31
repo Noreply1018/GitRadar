@@ -62,6 +62,11 @@ GitRadar 继续保持这些边界：
 4. `npm run typecheck`
 5. `npm run test`
 
+如果改动涉及正式运行状态，还应额外验证：
+
+- `npm run runtime:github`
+- 检查 `data/runtime/github-runtime.json` 字段是否与最新归档和最近一次运行语义一致
+
 如果涉及控制台，还应额外验证：
 
 - `npm run build:web`

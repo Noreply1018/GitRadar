@@ -11,6 +11,7 @@ import type {
   FeedbackState,
   GitHubSettings,
   LlmSettings,
+  RemoteSyncMetadata,
   ScheduleSettings,
   TimezoneOption,
   UserPreferences,
@@ -345,7 +346,7 @@ export default function App() {
       setScheduleDraft(response.settings);
       setTimezoneOptions(response.availableTimezones);
       setStatusMessage(
-        "调度设置已提交到 GitHub 仓库。后续 GitHub Actions 轮询命中目标时间槽时会按新时间执行。",
+        `调度设置已写入正式仓库配置。${describeRepoSync(response, "后续 GitHub Actions 轮询命中目标时间槽时会按新时间执行。")}`,
       );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
@@ -363,7 +364,7 @@ export default function App() {
       setPreferencesDraft(response.preferences);
       setAvailableThemes(response.availableThemes);
       setStatusMessage(
-        "关心主题已提交到 GitHub 仓库，后续日报会按远端偏好增加权重。",
+        `关心主题已写入正式仓库配置。${describeRepoSync(response, "后续日报会按远端偏好增加权重。")}`,
       );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
@@ -476,7 +477,9 @@ export default function App() {
       });
       setFeedbackState(response.state);
       await refreshFeedbackCollections();
-      setStatusMessage("反馈已提交到 GitHub 仓库，收藏与待看列表已同步更新。");
+      setStatusMessage(
+        `反馈已写入正式仓库数据。${describeRepoSync(response, "收藏与待看列表已同步更新。")}`,
+      );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -504,7 +507,7 @@ export default function App() {
         },
       }));
       setStatusMessage(
-        `已把 ${theme} 提交到远端关心主题，后续日报会更主动保留这类项目。`,
+        `已把 ${theme} 写入远端关心主题。${describeRepoSync(response, "后续日报会更主动保留这类项目。")}`,
       );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
@@ -1515,6 +1518,20 @@ function formatCurrentDate(): string {
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function describeRepoSync(sync: RemoteSyncMetadata, fallback: string): string {
+  if (!sync.committed) {
+    return `未检测到新的仓库变更，因此没有新增 commit。${fallback}`;
+  }
+
+  const sha = sync.commitSha ? sync.commitSha.slice(0, 7) : "unknown";
+  const target = sync.targetRef ?? "main";
+  const pushed = sync.pushed
+    ? "已推送到远端"
+    : "当前仓库没有 origin，未执行推送";
+
+  return `已生成 commit ${sha} 并写入 ${target}；${pushed}。${fallback}`;
 }
 
 function describeFeedbackAction(action: FeedbackAction): string {

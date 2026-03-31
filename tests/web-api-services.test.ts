@@ -1,6 +1,8 @@
 import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
+import { promisify } from "node:util";
 
 import { describe, expect, it } from "vitest";
 
@@ -8,12 +10,21 @@ import { DIGEST_RULES_CONFIG } from "../src/config/digest-rules";
 import { type DailyDigestArchive } from "../src/core/archive";
 import { buildFeedbackInsights } from "../src/feedback/insights";
 import { buildArchiveSummary } from "../src/web-api/services/archive-service";
+import {
+  readRemoteDigestRulesConfig,
+  saveDigestRulesConfig,
+} from "../src/web-api/services/digest-rules-service";
 import { validateDigestRulesDraft } from "../src/web-api/services/digest-rules-service";
 import {
   convertDailySendTimeToCron,
   readScheduleSettings,
   saveScheduleSettings,
 } from "../src/web-api/services/schedule-service";
+import {
+  getGitHubExecutionStatePath,
+  normalizeExecutionState,
+  writeGitHubExecutionState,
+} from "../src/core/github-execution-state";
 import {
   readRemoteUserPreferences,
   saveUserPreferences,
@@ -26,6 +37,8 @@ import {
   recordFeedback,
 } from "../src/feedback/store";
 import { readGitHubModeSchedule } from "../src/web-api/services/github-runtime-service";
+
+const execFileAsync = promisify(execFile);
 
 describe("validateDigestRulesDraft", () => {
   it("accepts the current repository config", () => {
@@ -46,6 +59,32 @@ describe("validateDigestRulesDraft", () => {
 
     expect(result.valid).toBe(false);
     expect(result.issues[0]?.path).toBe("digestRules.thresholds.maxPushedDays");
+  });
+
+  it("saves digest rules beneath rootDir even when cwd differs", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-rules-"));
+    const originalCwd = process.cwd();
+
+    process.chdir(os.tmpdir());
+
+    try {
+      const saved = await saveDigestRulesConfig(rootDir, {
+        ...DIGEST_RULES_CONFIG,
+        version: "2026-03-evidence-v2",
+      });
+
+      expect(saved.config.version).toBe("2026-03-evidence-v2");
+      const file = await readFile(
+        path.join(rootDir, "config", "digest-rules.json"),
+        "utf8",
+      );
+      expect(JSON.parse(file).version).toBe("2026-03-evidence-v2");
+
+      const remote = await readRemoteDigestRulesConfig(rootDir);
+      expect(remote.config.version).toBe("2026-03-evidence-v2");
+    } finally {
+      process.chdir(originalCwd);
+    }
   });
 });
 
@@ -158,6 +197,30 @@ describe("schedule settings", () => {
     });
   });
 
+  it("returns commit metadata when saving inside a git repository", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-schedule-"));
+
+    await execFileAsync("git", ["init", "-b", "main"], { cwd: rootDir });
+    await execFileAsync("git", ["config", "user.name", "GitRadar Test"], {
+      cwd: rootDir,
+    });
+    await execFileAsync(
+      "git",
+      ["config", "user.email", "gitradar-tests@example.com"],
+      { cwd: rootDir },
+    );
+
+    const saved = await saveScheduleSettings(rootDir, {
+      timezone: "America/New_York",
+      dailySendTime: "09:45",
+    });
+
+    expect(saved.committed).toBe(true);
+    expect(saved.pushed).toBe(false);
+    expect(saved.targetRef).toBe("main");
+    expect(saved.commitSha).toMatch(/^[0-9a-f]{40}$/);
+  });
+
   it("rejects unsupported time formats", async () => {
     const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-schedule-"));
 
@@ -225,6 +288,60 @@ describe("schedule settings", () => {
         dailySendTime: "09:45",
       },
       cronExpression: "*/5 * * * * (polling) / 45 9 * * * (target)",
+    });
+  });
+});
+
+describe("GitHub runtime state", () => {
+  it("writes normalized runtime state and auto-detects the latest archive", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-runtime-"));
+    await mkdir(path.join(rootDir, "data", "history"), { recursive: true });
+    await writeFile(
+      path.join(rootDir, "data", "history", "2026-03-30.json"),
+      "{}\n",
+      "utf8",
+    );
+    await writeFile(
+      path.join(rootDir, "data", "history", "2026-03-31.json"),
+      "{}\n",
+      "utf8",
+    );
+
+    const state = await writeGitHubExecutionState(rootDir, {
+      workflowName: "Daily Digest",
+      trigger: "workflow_dispatch",
+      lastRunAt: "2026-03-31T12:00:00.000Z",
+      lastRunStatus: "success",
+      runUrl: "https://github.com/Noreply1018/GitRadar/actions/runs/123",
+      ref: "main",
+    });
+
+    expect(state.lastArchiveDate).toBe("2026-03-31");
+
+    const file = await readFile(getGitHubExecutionStatePath(rootDir), "utf8");
+    expect(normalizeExecutionState(JSON.parse(file))).toEqual(state);
+  });
+
+  it("normalizes invalid runtime payload fields to safe defaults", () => {
+    expect(
+      normalizeExecutionState({
+        workflowName: "",
+        trigger: 123,
+        lastRunAt: "invalid",
+        lastRunStatus: "boom",
+        lastArchiveDate: "not-a-date",
+        runUrl: 123,
+        ref: "",
+      }),
+    ).toEqual({
+      source: "github",
+      workflowName: "Daily Digest",
+      trigger: null,
+      lastRunAt: null,
+      lastRunStatus: "unknown",
+      lastArchiveDate: null,
+      runUrl: null,
+      ref: "main",
     });
   });
 });

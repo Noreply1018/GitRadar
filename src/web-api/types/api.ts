@@ -126,6 +126,11 @@ export interface FeedbackInsights {
 }
 
 export interface FeedbackSuggestionAcceptResponse {
+  committed: boolean;
+  commitSha?: string | null;
+  targetRef?: string | null;
+  pushed?: boolean;
+  committedAt?: string | null;
   preferences: UserPreferencesConfig;
   availableThemes: string[];
   insights: FeedbackInsights;

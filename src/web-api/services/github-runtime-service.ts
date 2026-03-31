@@ -1,9 +1,13 @@
 import { execFile } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { promisify } from "node:util";
 import path from "node:path";
 
 import { parseDailyDigestArchive } from "../../core/archive";
+import {
+  getGitHubExecutionStateRepoPath,
+  normalizeExecutionState,
+} from "../../core/github-execution-state";
 import { buildFeedbackInsights } from "../../feedback/insights";
 import { readRemoteFeedbackState } from "../../feedback/store";
 import { buildArchiveSummary } from "./archive-service";
@@ -30,9 +34,9 @@ const execFileAsync = promisify(execFile);
 const DEFAULT_OWNER = "Noreply1018";
 const DEFAULT_REPO = "GitRadar";
 const DEFAULT_BRANCH = "main";
-const GITHUB_RUNTIME_STATE_PATH = "data/runtime/github-runtime.json";
 const GITHUB_HISTORY_DIR = "data/history";
 const REMOTE_SYNC_TTL_MS = 30_000;
+const LOCAL_FILESYSTEM_REF = "__local_filesystem__";
 
 let remoteSyncPromise: Promise<void> | null = null;
 let lastRemoteSyncAt = 0;
@@ -67,7 +71,9 @@ export async function readGitHubModeHealth(
     note:
       state.lastRunStatus === "success"
         ? "当前展示的是 GitHub 远端正式运行结果。"
-        : "当前展示的是 GitHub 远端正式状态；最近一次运行失败，或还没有可用归档。",
+        : state.lastRunStatus === "failure"
+          ? "当前展示的是 GitHub 远端正式状态；最近一次正式运行失败，请优先查看该次工作流日志。"
+          : "当前还没有 GitHub 远端正式 runtime 记录；首次成功运行后这里会显示正式状态。",
     lastRunAt: state.lastRunAt,
     lastRunStatus: state.lastRunStatus,
     lastArchiveDate: state.lastArchiveDate,
@@ -145,7 +151,7 @@ export async function readGitHubExecutionState(
   const repo = await resolveRepoRef(rootDir);
 
   try {
-    const raw = await fetchRepoFile(rootDir, GITHUB_RUNTIME_STATE_PATH);
+    const raw = await fetchRepoFile(rootDir, getGitHubExecutionStateRepoPath());
     return normalizeExecutionState(JSON.parse(raw));
   } catch {
     return {
@@ -347,6 +353,10 @@ async function fetchGitHubDirectory(
 ): Promise<string[]> {
   const ref = await syncRemoteRef(rootDir);
 
+  if (ref === LOCAL_FILESYSTEM_REF) {
+    return listLocalRepoFiles(rootDir, repoPath);
+  }
+
   try {
     const { stdout } = await execFileAsync(
       "git",
@@ -368,6 +378,11 @@ async function fetchRepoFile(
   repoPath: string,
 ): Promise<string> {
   const ref = await syncRemoteRef(rootDir);
+
+  if (ref === LOCAL_FILESYSTEM_REF) {
+    return readFile(path.join(rootDir, repoPath), "utf8");
+  }
+
   const spec = `${ref}:${repoPath}`;
 
   try {
@@ -386,6 +401,13 @@ async function fetchRepoFile(
 }
 
 async function syncRemoteRef(rootDir: string): Promise<string> {
+  const hasGitDir = await isGitRepository(rootDir);
+  const hasOrigin = hasGitDir ? await hasGitRemote(rootDir, "origin") : false;
+
+  if (!hasGitDir || !hasOrigin) {
+    return LOCAL_FILESYSTEM_REF;
+  }
+
   if (Date.now() - lastRemoteSyncAt < REMOTE_SYNC_TTL_MS) {
     return "FETCH_HEAD";
   }
@@ -408,32 +430,65 @@ async function syncRemoteRef(rootDir: string): Promise<string> {
   return "FETCH_HEAD";
 }
 
-function normalizeExecutionState(value: unknown): GitHubExecutionState {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new Error("GitHub execution state is invalid.");
+async function listLocalRepoFiles(
+  rootDir: string,
+  repoPath: string,
+): Promise<string[]> {
+  const absolutePath = path.join(rootDir, repoPath);
+
+  try {
+    return await walkLocalDirectory(absolutePath, rootDir);
+  } catch {
+    return [];
+  }
+}
+
+async function walkLocalDirectory(
+  absolutePath: string,
+  rootDir: string,
+): Promise<string[]> {
+  const entries = await readdir(absolutePath, { withFileTypes: true });
+  const files: string[] = [];
+
+  for (const entry of entries) {
+    const entryPath = path.join(absolutePath, entry.name);
+
+    if (entry.isDirectory()) {
+      files.push(...(await walkLocalDirectory(entryPath, rootDir)));
+      continue;
+    }
+
+    if (entry.isFile()) {
+      files.push(path.relative(rootDir, entryPath));
+    }
   }
 
-  const record = value as Record<string, unknown>;
+  return files;
+}
 
-  return {
-    source: "github",
-    workflowName:
-      typeof record.workflowName === "string"
-        ? record.workflowName
-        : "Daily Digest",
-    trigger: typeof record.trigger === "string" ? record.trigger : null,
-    lastRunAt: typeof record.lastRunAt === "string" ? record.lastRunAt : null,
-    lastRunStatus:
-      record.lastRunStatus === "success" || record.lastRunStatus === "failure"
-        ? record.lastRunStatus
-        : "unknown",
-    lastArchiveDate:
-      typeof record.lastArchiveDate === "string"
-        ? record.lastArchiveDate
-        : null,
-    runUrl: typeof record.runUrl === "string" ? record.runUrl : null,
-    ref: typeof record.ref === "string" ? record.ref : DEFAULT_BRANCH,
-  };
+async function isGitRepository(rootDir: string): Promise<boolean> {
+  try {
+    await execFileAsync("git", ["rev-parse", "--is-inside-work-tree"], {
+      cwd: rootDir,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function hasGitRemote(
+  rootDir: string,
+  remoteName: string,
+): Promise<boolean> {
+  try {
+    await execFileAsync("git", ["remote", "get-url", remoteName], {
+      cwd: rootDir,
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function readGitHubWorkflowSummary(
@@ -469,9 +524,8 @@ async function fetchWorkflowFile(
   rootDir: string,
   workflowPath: string,
 ): Promise<string> {
-  return path.resolve(workflowPath).startsWith(path.resolve(rootDir))
-    ? readFile(workflowPath, "utf8")
-    : "";
+  const repoPath = path.relative(rootDir, workflowPath);
+  return fetchRepoFile(rootDir, repoPath);
 }
 
 function buildGitHubEditorialIntro(

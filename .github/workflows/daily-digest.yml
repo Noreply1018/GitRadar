@@ -139,35 +139,7 @@ jobs:
 
       - name: Persist GitHub runtime state
         if: always() && steps.schedule_slot.outputs.should_run == 'true'
-        run: |
-          mkdir -p data/runtime
-          node --input-type=module <<'EOF'
-          import { readdir, writeFile } from "node:fs/promises";
-
-          const files = await readdir("data/history").catch(() => []);
-          const latestArchiveDate = files
-            .filter((file) => /^\d{4}-\d{2}-\d{2}\.json$/.test(file))
-            .map((file) => file.replace(/\.json$/, ""))
-            .sort()
-            .at(-1) ?? null;
-
-          const payload = {
-            source: "github",
-            workflowName: process.env.GITRADAR_WORKFLOW_NAME ?? "Daily Digest",
-            trigger: process.env.GITRADAR_TRIGGER ?? null,
-            lastRunAt: new Date().toISOString(),
-            lastRunStatus: process.env.GITRADAR_JOB_STATUS === "success" ? "success" : "failure",
-            lastArchiveDate: latestArchiveDate,
-            runUrl: process.env.WORKFLOW_RUN_URL ?? null,
-            ref: process.env.GITRADAR_REF_NAME ?? "main",
-          };
-
-          await writeFile(
-            "data/runtime/github-runtime.json",
-            `${JSON.stringify(payload, null, 2)}\n`,
-            "utf8",
-          );
-          EOF
+        run: npm run runtime:github
         env:
           GITRADAR_JOB_STATUS: ${{ job.status }}
 

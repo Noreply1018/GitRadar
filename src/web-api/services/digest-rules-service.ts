@@ -1,4 +1,4 @@
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
@@ -78,8 +78,9 @@ export async function saveDigestRulesConfig(
   draft: unknown,
 ): Promise<DigestRulesResponse> {
   const config = parseDigestRulesConfig(draft, DIGEST_RULES_SOURCE);
-  const path = getDefaultDigestRulesConfigPath();
-  await writeFile(path, stringifyDigestRulesConfig(config), "utf8");
+  const filePath = getDigestRulesConfigPath(rootDir);
+  await mkdir(path.dirname(filePath), { recursive: true });
+  await writeFile(filePath, stringifyDigestRulesConfig(config), "utf8");
   const repoPath = "config/digest-rules.json";
   const sync = await commitAndPushRepoFiles(
     rootDir,
@@ -106,4 +107,8 @@ export function normalizeDigestRulesIssue(error: unknown): DigestRulesIssue {
     path: pathMatch?.[1] ?? DIGEST_RULES_SOURCE,
     message,
   };
+}
+
+function getDigestRulesConfigPath(rootDir: string): string {
+  return path.join(rootDir, "config", "digest-rules.json");
 }

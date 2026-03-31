@@ -250,10 +250,18 @@ async function handleRequest(
             ]),
           ),
         };
-        await saveUserPreferences(ROOT_DIR, nextPreferences);
+        const savedPreferences = await saveUserPreferences(
+          ROOT_DIR,
+          nextPreferences,
+        );
         const feedbackState = await readRemoteFeedbackState(ROOT_DIR);
 
         return sendJson(response, 200, {
+          committed: savedPreferences.committed,
+          commitSha: savedPreferences.commitSha,
+          targetRef: savedPreferences.targetRef,
+          pushed: savedPreferences.pushed,
+          committedAt: savedPreferences.committedAt,
           preferences: nextPreferences,
           availableThemes: preferencesResponse.availableThemes,
           insights: buildFeedbackInsights(feedbackState, nextPreferences),

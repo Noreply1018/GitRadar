@@ -7,6 +7,7 @@
   "scripts": {
     "generate:digest": "tsx src/commands/generate-daily-digest.ts",
     "generate:digest:send": "tsx src/commands/generate-daily-digest.ts --send",
+    "runtime:github": "tsx src/commands/write-github-runtime.ts",
     "analyze:digest": "tsx src/commands/analyze-digest.ts",
     "feedback:list": "tsx src/commands/list-feedback.ts",
     "validate:digest-rules": "tsx src/commands/validate-digest-rules.ts",
