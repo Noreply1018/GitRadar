@@ -25,7 +25,7 @@ GitRadar 面向个人与小团队。它从 GitHub 候选源抓取项目，经过
 - 中文日报：为每条入选项目生成“做什么、为什么值得看、为什么是现在”的中文摘要
 - 本地控制台：查看环境配置、偏好设置、收藏/稍后看、归档阅读和运行状态
 - 反馈闭环：记录 `收藏 / 稍后看 / 跳过`，形成轻量兴趣轨迹
-- 归档沉淀：本地保存日报、反馈和分析结果，支持迁移、重发和复盘
+- 归档沉淀：本地保存日报、反馈和分析结果，支持当前结构下的分析和复盘
 - 多运行方式：CLI、Docker、本地控制台、Windows 启动脚本
 
 ## 仓库入口
@@ -106,7 +106,6 @@ npm run generate:digest
 npm run generate:digest -- --send
 npm run analyze:digest -- --date 2026-03-30
 npm run feedback:list
-npm run migrate:archives
 npm run send:wecom:sample
 ```
 
@@ -117,7 +116,6 @@ npm run send:wecom:sample
 - `generate:digest -- --send`：生成日报后发送企业微信
 - `analyze:digest`：分析某天归档结果
 - `feedback:list`：查看收藏、稍后看和跳过反馈
-- `migrate:archives`：把旧归档迁移到当前 schema
 - `send:wecom:sample`：验证企业微信群机器人链路
 
 ## 配置与数据

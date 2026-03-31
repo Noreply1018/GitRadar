@@ -6,7 +6,6 @@ import {
 } from "../src/commands/analyze-digest";
 import {
   CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION,
-  migrateDailyDigestArchive,
   type DailyDigestArchive,
 } from "../src/core/archive";
 
@@ -75,38 +74,5 @@ describe("renderArchiveAnalysis", () => {
     expect(output).toContain("证据：GitHub Trending 命中；最近 7 天更新活跃");
     expect(output).toContain("成稿模式：llm");
     expect(output).toContain("## 运行警告");
-  });
-
-  it("handles legacy archives without evidence fields", () => {
-    const migratedArchive = migrateDailyDigestArchive({
-      generatedAt: "2026-03-21T02:00:00Z",
-      candidateCount: 10,
-      shortlistedCount: 5,
-      digest: {
-        date: "2026-03-21",
-        title: "GitRadar · 2026-03-21",
-        items: [
-          {
-            repo: "owner/legacy-target",
-            url: "https://github.com/owner/legacy-target",
-            summary: "旧版归档项目。",
-            whyItMatters: "用于验证向后兼容。",
-            novelty: "旧数据没有 theme 和 evidence 字段。",
-            trend: "重发时仍然可用。",
-          },
-        ],
-      },
-    });
-    const output = renderArchiveAnalysis(
-      "2026-03-21",
-      migratedArchive as DailyDigestArchive,
-    );
-
-    expect(output).toContain("General OSS");
-    expect(output).toContain("为什么是现在：未记录");
-    expect(output).toContain("证据：未记录");
-    expect(output).toContain(
-      `Schema 版本：${CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION}`,
-    );
   });
 });

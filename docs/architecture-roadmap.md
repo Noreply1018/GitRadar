@@ -78,7 +78,6 @@ GitRadar 不是通用推荐平台，也不是只看热度的榜单脚本。
 要求：
 
 - 归档必须带 schema version
-- 历史数据可迁移，不长期依赖 `legacy` 降级路径
 - 保存候选、shortlist、候选池、最终入选和排除原因
 - 为后续 compare、tracks、weekly review 提供数据基础
 

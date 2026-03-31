@@ -48,7 +48,7 @@ describe("renderDigestRulesSummary", () => {
     const rendered = renderDigestRulesSummary(summary);
 
     expect(rendered).toContain("GitRadar digest rules config is valid.");
-    expect(rendered).toContain(`Rules version: ${DIGEST_RULES_CONFIG.version}`);
+    expect(rendered).toContain(`Rules tag: ${DIGEST_RULES_CONFIG.version}`);
     expect(rendered).toContain(`Themes: ${DIGEST_RULES_CONFIG.themes.length}`);
   });
 });

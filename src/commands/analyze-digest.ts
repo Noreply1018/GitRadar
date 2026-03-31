@@ -81,7 +81,7 @@ export function renderArchiveAnalysis(
     `候选数量：${archive.candidateCount}`,
     `Shortlist 数量：${archive.shortlistedCount}`,
     `LLM 候选池：${archive.selection.llmCandidateRepos.length}`,
-    `规则版本：${archive.generationMeta.rulesVersion}`,
+    `规则配置版本：${archive.generationMeta.rulesVersion}`,
     `成稿模式：${archive.generationMeta.editorialMode ?? "llm"}`,
     "",
     "## 最终日报",

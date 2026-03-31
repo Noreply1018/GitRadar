@@ -10,7 +10,6 @@
     "analyze:digest": "tsx src/commands/analyze-digest.ts",
     "feedback:list": "tsx src/commands/list-feedback.ts",
     "validate:digest-rules": "tsx src/commands/validate-digest-rules.ts",
-    "migrate:archives": "tsx src/commands/migrate-archives.ts",
     "send:wecom:sample": "tsx src/commands/send-wecom-sample.ts",
     "dev:web": "vite --config web/vite.config.ts",
     "dev:web-api": "tsx src/web-api/server.ts",

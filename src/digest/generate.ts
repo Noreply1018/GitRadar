@@ -3,8 +3,6 @@ import path from "node:path";
 import type { DailyDigestArchive } from "../core/archive";
 import {
   CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION,
-  getDailyDigestArchivePath,
-  readDailyDigestArchive,
   writeDailyDigestArchive,
 } from "../core/archive";
 import {
@@ -317,33 +315,6 @@ function markExplorationItem(
           }
         : item,
     ),
-  };
-}
-
-export interface ResendArchivedDigestOptions {
-  rootDir?: string;
-  date: string;
-  wecom: WecomRobotConfig;
-}
-
-export async function resendArchivedDigest(
-  options: ResendArchivedDigestOptions,
-): Promise<{ archivePath: string; archive: DailyDigestArchive }> {
-  const rootDir = options.rootDir ?? process.cwd();
-  const archive = await readDailyDigestArchive(rootDir, options.date);
-
-  if (archive.digest.items.length === 0) {
-    throw new Error(
-      `Daily digest archive has no items for ${options.date}: ${getDailyDigestArchivePath(rootDir, options.date)}.`,
-    );
-  }
-
-  const notifier = new WecomRobotNotifier(options.wecom.webhookUrl);
-  await notifier.sendDailyDigest(archive.digest);
-
-  return {
-    archivePath: path.resolve(getDailyDigestArchivePath(rootDir, options.date)),
-    archive,
   };
 }
 

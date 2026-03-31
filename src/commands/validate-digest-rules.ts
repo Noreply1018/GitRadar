@@ -13,7 +13,7 @@ interface ValidateDigestRulesArgs {
 
 interface DigestRulesSummary {
   configPath: string;
-  version: string;
+  configTag: string;
   themeCount: number;
   descriptionBlacklistCount: number;
   readmeBlacklistCount: number;
@@ -86,7 +86,7 @@ export function buildDigestRulesSummary(
 ): DigestRulesSummary {
   return {
     configPath,
-    version: config.version,
+    configTag: config.version,
     themeCount: config.themes.length,
     descriptionBlacklistCount: config.blacklists.descriptionKeywords.length,
     readmeBlacklistCount: config.blacklists.readmeKeywords.length,
@@ -104,7 +104,7 @@ export function renderDigestRulesSummary(summary: DigestRulesSummary): string {
   return [
     "GitRadar digest rules config is valid.",
     `Config path: ${summary.configPath}`,
-    `Rules version: ${summary.version}`,
+    `Rules tag: ${summary.configTag}`,
     `Themes: ${summary.themeCount}`,
     `Description blacklist keywords: ${summary.descriptionBlacklistCount}`,
     `README blacklist keywords: ${summary.readmeBlacklistCount}`,

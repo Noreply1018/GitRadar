@@ -19,10 +19,7 @@ import {
   type DailyDigestArchive,
 } from "../src/core/archive";
 
-import {
-  generateDailyDigest,
-  resendArchivedDigest,
-} from "../src/digest/generate";
+import { generateDailyDigest } from "../src/digest/generate";
 
 let trendingFailuresRemaining = 0;
 let llmFailuresRemaining = 0;
@@ -224,131 +221,6 @@ describe("generateDailyDigest", () => {
     });
 
     expect(wecomRequestCount).toBe(1);
-  });
-
-  it("resends an existing archive by date", async () => {
-    const wecomAddress = wecomServer.address();
-
-    if (!wecomAddress || typeof wecomAddress === "string") {
-      throw new Error("Failed to bind mock servers.");
-    }
-
-    const archive: DailyDigestArchive = {
-      schemaVersion: CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION,
-      generatedAt: "2026-03-26T00:00:00Z",
-      candidateCount: 10,
-      shortlistedCount: 5,
-      digest: {
-        date: "2026-03-20",
-        title: "GitRadar · 2026-03-20",
-        items: [
-          {
-            repo: "owner/replay-target",
-            url: "https://github.com/owner/replay-target",
-            summary: "用于验证重发功能的项目。",
-            whyItMatters: "能确认历史归档是否可直接重发。",
-            theme: "General OSS",
-            whyNow: "历史归档重发时需要保留旧结构兼容能力。",
-            evidence: ["历史归档兼容读取"],
-            novelty: "不需要重新抓取即可补发。",
-            trend: "适合处理推送故障后的补发。",
-          },
-        ],
-      },
-      candidates: [],
-      shortlisted: [],
-      selection: {
-        llmCandidateRepos: ["owner/replay-target"],
-        selected: [
-          {
-            repo: "owner/replay-target",
-            theme: "General OSS",
-            reason: "历史归档重发时需要保留旧结构兼容能力。",
-            evidence: ["历史归档兼容读取"],
-          },
-        ],
-        rejected: [],
-      },
-      generationMeta: {
-        sourceCounts: {
-          trending: 0,
-          search_recently_updated: 0,
-          search_recently_created: 0,
-        },
-        llmCandidateCount: 1,
-        rulesVersion: "2026-03-evidence-v1",
-      },
-    };
-
-    await writeArchive(tempDir, archive);
-
-    const result = await resendArchivedDigest({
-      rootDir: tempDir,
-      date: "2026-03-20",
-      wecom: {
-        webhookUrl: `http://127.0.0.1:${wecomAddress.port}/webhook`,
-      },
-    });
-
-    expect(result.archive.digest.date).toBe("2026-03-20");
-    expect(result.archivePath).toContain("2026-03-20.json");
-    expect(wecomRequestCount).toBe(1);
-  });
-
-  it("normalizes legacy archives when resending", async () => {
-    const wecomAddress = wecomServer.address();
-
-    if (!wecomAddress || typeof wecomAddress === "string") {
-      throw new Error("Failed to bind mock servers.");
-    }
-
-    await writeArchive(tempDir, {
-      generatedAt: "2026-03-26T00:00:00Z",
-      candidateCount: 10,
-      shortlistedCount: 5,
-      digest: {
-        date: "2026-03-21",
-        title: "GitRadar · 2026-03-21",
-        items: [
-          {
-            repo: "owner/legacy-target",
-            url: "https://github.com/owner/legacy-target",
-            summary: "旧版归档项目。",
-            whyItMatters: "用于验证向后兼容。",
-            novelty: "旧数据没有 theme 和 evidence 字段。",
-            trend: "重发时仍然可用。",
-          },
-        ],
-      },
-    } as DailyDigestArchive);
-
-    await expect(
-      resendArchivedDigest({
-        rootDir: tempDir,
-        date: "2026-03-21",
-        wecom: {
-          webhookUrl: `http://127.0.0.1:${wecomAddress.port}/webhook`,
-        },
-      }),
-    ).rejects.toThrow('Run "npm run migrate:archives"');
-  });
-
-  it("fails when the requested resend archive does not exist", async () => {
-    const wecomAddress = wecomServer.address();
-
-    if (!wecomAddress || typeof wecomAddress === "string") {
-      throw new Error("Failed to bind mock servers.");
-    }
-
-    await expect(
-      resendArchivedDigest({
-        rootDir: tempDir,
-        date: "2026-03-19",
-        wecom: {
-          webhookUrl: `http://127.0.0.1:${wecomAddress.port}/webhook`,
-        },
-      }),
-    ).rejects.toThrow("Daily digest archive not found for 2026-03-19");
   });
 });
 
