@@ -1,9 +1,9 @@
 {
   "name": "gitradar",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "license": "MIT",
   "private": false,
-  "description": "Personal GitHub open-source discovery radar.",
+  "description": "GitHub-native daily digest and archive system for open-source discovery.",
   "scripts": {
     "generate:digest": "tsx src/commands/generate-daily-digest.ts",
     "generate:digest:send": "tsx src/commands/generate-daily-digest.ts --send",

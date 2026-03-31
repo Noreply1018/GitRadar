@@ -10,10 +10,7 @@ import type {
   FeedbackListItem,
   FeedbackState,
   GitHubSettings,
-  GitHubTestResult,
   LlmSettings,
-  LlmTestResult,
-  RuntimeSource,
   ScheduleSettings,
   TimezoneOption,
   UserPreferences,
@@ -33,14 +30,8 @@ import {
   fetchScheduleSettings,
   fetchWecomSettings,
   recordFeedback,
-  saveGitHubSettings,
-  saveLlmSettings,
   savePreferences,
   saveScheduleSettings,
-  saveWecomSettings,
-  sendWecomTest,
-  testGitHubSettings,
-  testLlmSettings,
 } from "./api";
 
 type ViewId = "environment" | "preferences" | "saved" | "archives";
@@ -50,11 +41,6 @@ type ValidationState = "idle" | "passed" | "failed";
 interface ValidationStatus {
   state: ValidationState;
   detail: string;
-}
-
-interface EnvironmentValidationResult {
-  label: string;
-  validation: ValidationStatus;
 }
 
 const VIEWS: Array<{ id: ViewId; label: string }> = [
@@ -98,16 +84,16 @@ const EMPTY_ARCHIVE_READER_CONTEXT: ArchiveReaderContext = {
 };
 
 const EMPTY_WECOM_SETTINGS: WecomSettings = {
-  source: "local",
-  readonly: false,
+  source: "github",
+  readonly: true,
   configured: false,
   maskedWebhookUrl: null,
   envFilePath: "",
 };
 
 const EMPTY_LLM_SETTINGS: LlmSettings = {
-  source: "local",
-  readonly: false,
+  source: "github",
+  readonly: true,
   configured: false,
   maskedApiKey: null,
   baseUrl: null,
@@ -116,8 +102,8 @@ const EMPTY_LLM_SETTINGS: LlmSettings = {
 };
 
 const EMPTY_GITHUB_SETTINGS: GitHubSettings = {
-  source: "local",
-  readonly: false,
+  source: "github",
+  readonly: true,
   configured: false,
   maskedToken: null,
   apiBaseUrl: "https://api.github.com",
@@ -132,13 +118,12 @@ const IDLE_VALIDATION: ValidationStatus = {
 
 export default function App() {
   const [activeView, setActiveView] = useState<ViewId>("environment");
-  const [runtimeSource, setRuntimeSource] = useState<RuntimeSource>("github");
   const [health, setHealth] = useState<{
     status: string;
     app: string;
     version: string;
     mode: string;
-    source: RuntimeSource;
+    source: "github" | "local";
     note?: string;
     lastRunAt?: string | null;
     lastRunStatus?: "success" | "failure" | "unknown";
@@ -173,21 +158,16 @@ export default function App() {
   const [githubSettings, setGitHubSettings] = useState<GitHubSettings>(
     EMPTY_GITHUB_SETTINGS,
   );
-  const [githubTokenInput, setGitHubTokenInput] = useState("");
   const [githubValidation, setGitHubValidation] =
     useState<ValidationStatus>(IDLE_VALIDATION);
   const [llmSettings, setLlmSettings] =
     useState<LlmSettings>(EMPTY_LLM_SETTINGS);
-  const [llmApiKeyInput, setLlmApiKeyInput] = useState("");
-  const [llmBaseUrlInput, setLlmBaseUrlInput] = useState("");
-  const [llmModelInput, setLlmModelInput] = useState("");
   const [llmValidation, setLlmValidation] =
     useState<ValidationStatus>(IDLE_VALIDATION);
   const [wecomSettings, setWecomSettings] =
     useState<WecomSettings>(EMPTY_WECOM_SETTINGS);
   const [environmentFingerprints, setEnvironmentFingerprints] =
     useState<EnvironmentFingerprints>(EMPTY_ENVIRONMENT_FINGERPRINTS);
-  const [wecomWebhookInput, setWecomWebhookInput] = useState("");
   const [wecomValidation, setWecomValidation] =
     useState<ValidationStatus>(IDLE_VALIDATION);
   const [busyAction, setBusyAction] = useState<
@@ -211,8 +191,8 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    void hydrate(runtimeSource);
-  }, [runtimeSource]);
+    void hydrate();
+  }, []);
 
   useEffect(() => {
     if (activeView !== "archives" || !archiveDetail) {
@@ -247,9 +227,6 @@ export default function App() {
     ? feedbackState.repoStates[currentDigestItem.repo]
     : null;
   const feedbackItems = savedViewFilter === "saved" ? savedItems : laterItems;
-  const isGitHubMode = runtimeSource === "github";
-  const isEnvironmentReadonly =
-    githubSettings.readonly || llmSettings.readonly || wecomSettings.readonly;
 
   const environmentCards = [
     buildEnvironmentCard(
@@ -279,7 +256,7 @@ export default function App() {
     buildScheduleCard(scheduleDraft, timezoneOptions),
   ];
 
-  async function hydrate(source: RuntimeSource = runtimeSource): Promise<void> {
+  async function hydrate(): Promise<void> {
     setBusyAction("hydrate");
     setErrorMessage("");
 
@@ -297,17 +274,17 @@ export default function App() {
         wecomResponse,
         fingerprintResponse,
       ] = await Promise.all([
-        fetchHealth(source),
-        fetchScheduleSettings(source),
+        fetchHealth("github"),
+        fetchScheduleSettings("github"),
         fetchPreferences(),
         fetchFeedback(),
-        fetchArchives(source),
+        fetchArchives("github"),
         fetchFeedbackItems("saved"),
         fetchFeedbackItems("later"),
-        fetchGitHubSettings(source),
-        fetchLlmSettings(source),
-        fetchWecomSettings(source),
-        fetchEnvironmentFingerprints(source),
+        fetchGitHubSettings("github"),
+        fetchLlmSettings("github"),
+        fetchWecomSettings("github"),
+        fetchEnvironmentFingerprints("github"),
       ]);
 
       setHealth(healthResponse);
@@ -321,16 +298,11 @@ export default function App() {
       setSavedItems(savedResponse.items);
       setLaterItems(laterResponse.items);
       setGitHubSettings(githubResponse);
-      setGitHubTokenInput("");
       setGitHubValidation(IDLE_VALIDATION);
       setLlmSettings(llmResponse);
-      setLlmApiKeyInput("");
-      setLlmBaseUrlInput(llmResponse.baseUrl ?? "");
-      setLlmModelInput(llmResponse.model ?? "");
       setLlmValidation(IDLE_VALIDATION);
       setWecomSettings(wecomResponse);
       setEnvironmentFingerprints(fingerprintResponse);
-      setWecomWebhookInput("");
       setWecomValidation(IDLE_VALIDATION);
 
       const initialDate = archiveResponse.archives[0]?.date ?? "";
@@ -338,7 +310,7 @@ export default function App() {
       setCurrentItemIndex(0);
 
       if (initialDate) {
-        const detailResponse = await fetchArchiveDetail(initialDate, source);
+        const detailResponse = await fetchArchiveDetail(initialDate, "github");
         setArchiveDetail(detailResponse.archive);
         setArchiveReaderContext(detailResponse.readerContext);
       } else {
@@ -347,9 +319,7 @@ export default function App() {
       }
 
       setStatusMessage(
-        source === "github"
-          ? "GitRadar 已同步到 GitHub Actions 远端状态、远端归档与本地偏好。"
-          : "GitRadar 已同步到本地配置、反馈与本地归档状态。",
+        "GitRadar 已同步 GitHub Actions 远端状态、正式归档和仓库配置。",
       );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
@@ -372,7 +342,7 @@ export default function App() {
   }
 
   async function handleSaveSchedule(): Promise<void> {
-    if (!scheduleDraft || isGitHubMode) {
+    if (!scheduleDraft) {
       return;
     }
 
@@ -383,7 +353,9 @@ export default function App() {
       const response = await saveScheduleSettings(scheduleDraft);
       setScheduleDraft(response.settings);
       setTimezoneOptions(response.availableTimezones);
-      setStatusMessage("调度设置已写入配置文件，重启 GitRadar 后生效。");
+      setStatusMessage(
+        "调度设置已写入仓库配置文件。后续 GitHub Actions 轮询命中目标时间槽时会按新时间执行。",
+      );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -408,276 +380,43 @@ export default function App() {
   }
 
   async function handleSaveGitHubSettings(): Promise<void> {
-    if (isGitHubMode) {
-      return;
-    }
-
-    setBusyAction("save-github");
-    setErrorMessage("");
-
-    try {
-      const response = await saveGitHubSettings({
-        token: githubTokenInput.trim() || undefined,
-      });
-      setGitHubSettings(response);
-      setGitHubTokenInput("");
-      setGitHubValidation(IDLE_VALIDATION);
-      setStatusMessage("GitHub Token 已写入 .env，尚未验证可用性。");
-    } catch (error) {
-      setErrorMessage(getErrorMessage(error));
-      setGitHubValidation({
-        state: "failed",
-        detail: getErrorMessage(error),
-      });
-    } finally {
-      setBusyAction("");
-    }
+    setStatusMessage(
+      "GitHub Token 由仓库的 GitHub Secrets 管理。3.0.0 控制台默认不再写入本地 .env。",
+    );
   }
 
   async function handleTestGitHubSettings(): Promise<void> {
-    if (isGitHubMode) {
-      return;
-    }
-
-    setBusyAction("test-github");
-    setErrorMessage("");
-
-    const validation = await runGitHubValidation();
-
-    if (validation.state === "passed") {
-      setStatusMessage(`GitHub 连通性测试通过。${validation.detail}`);
-    } else {
-      setErrorMessage(validation.detail);
-    }
-
-    setBusyAction("");
+    setStatusMessage(
+      "GitHub Token 连通性由最近一次 GitHub Actions 运行结果反映；如需修改，请到仓库 Secrets 页面处理。",
+    );
   }
 
   async function handleSaveLlmSettings(): Promise<void> {
-    if (isGitHubMode) {
-      return;
-    }
-
-    setBusyAction("save-llm");
-    setErrorMessage("");
-
-    try {
-      const response = await saveLlmSettings({
-        apiKey: llmApiKeyInput.trim() || undefined,
-        baseUrl: llmBaseUrlInput.trim(),
-        model: llmModelInput.trim(),
-      });
-      setLlmSettings(response);
-      setLlmApiKeyInput("");
-      setLlmBaseUrlInput(response.baseUrl ?? "");
-      setLlmModelInput(response.model ?? "");
-      setLlmValidation(IDLE_VALIDATION);
-      setStatusMessage("LLM 配置已写入 .env，尚未验证连通性。");
-    } catch (error) {
-      setLlmValidation({
-        state: "failed",
-        detail: getErrorMessage(error),
-      });
-      setErrorMessage(getErrorMessage(error));
-    } finally {
-      setBusyAction("");
-    }
+    setStatusMessage(
+      "LLM 敏感配置由 GitHub Secrets 管理。3.0.0 控制台默认不再写入本地 .env。",
+    );
   }
 
   async function handleTestLlmSettings(): Promise<void> {
-    if (isGitHubMode) {
-      return;
-    }
-
-    setBusyAction("test-llm");
-    setErrorMessage("");
-
-    const validation = await runLlmValidation();
-
-    if (validation.state === "passed") {
-      setStatusMessage(`LLM 连通性测试通过。${validation.detail}`);
-    } else {
-      setErrorMessage(validation.detail);
-    }
-
-    setBusyAction("");
+    setStatusMessage(
+      "LLM 连通性由最近一次 GitHub Actions 远端运行反映；如需修改密钥，请到 GitHub Secrets 页面处理。",
+    );
   }
 
   async function handleSaveWecomSettings(): Promise<void> {
-    if (isGitHubMode) {
-      return;
-    }
-
-    const webhookUrl = wecomWebhookInput.trim();
-
-    if (!webhookUrl) {
-      setErrorMessage("请输入新的企业微信 Webhook 链接。");
-      setWecomValidation({
-        state: "failed",
-        detail: "Webhook 不能为空",
-      });
-      return;
-    }
-
-    setBusyAction("save-wecom");
-    setErrorMessage("");
-
-    try {
-      const response = await saveWecomSettings({ webhookUrl });
-      setWecomSettings(response);
-      setWecomWebhookInput("");
-      setWecomValidation(IDLE_VALIDATION);
-      setStatusMessage("企业微信 Webhook 已写入 .env，尚未验证发送。");
-    } catch (error) {
-      setWecomValidation({
-        state: "failed",
-        detail: getErrorMessage(error),
-      });
-      setErrorMessage(getErrorMessage(error));
-    } finally {
-      setBusyAction("");
-    }
+    setStatusMessage(
+      "企业微信 Webhook 由 GitHub Secrets 管理。3.0.0 控制台默认不再写入本地 .env。",
+    );
   }
 
   async function handleSendWecomTest(): Promise<void> {
-    if (isGitHubMode) {
-      return;
-    }
-
-    setBusyAction("test-wecom");
-    setErrorMessage("");
-
-    const validation = await runWecomValidation();
-
-    if (validation.state === "passed") {
-      setStatusMessage(`企业微信测试消息发送成功。${validation.detail}`);
-    } else {
-      setErrorMessage(validation.detail);
-    }
-
-    setBusyAction("");
+    setStatusMessage(
+      "企业微信发送结果以最近一次 GitHub Actions 远端运行记录为准；如需修改密钥，请到 GitHub Secrets 页面处理。",
+    );
   }
 
   async function handleValidateEnvironment(): Promise<void> {
-    if (isGitHubMode) {
-      setStatusMessage(
-        "GitHub 模式下展示的是远端运行结果与 workflow 配置，不执行本地写入或连通性测试。",
-      );
-      return;
-    }
-
-    setBusyAction("validate-environment");
-    setErrorMessage("");
-
-    try {
-      const results: EnvironmentValidationResult[] = [
-        { label: "GitHub", validation: await runGitHubValidation() },
-        { label: "LLM", validation: await runLlmValidation() },
-        { label: "企业微信", validation: await runWecomValidation() },
-        {
-          label: "调度",
-          validation: validateScheduleConfiguration(
-            scheduleDraft,
-            timezoneOptions,
-          ),
-        },
-      ];
-      const failedResults = results.filter(
-        (result) => result.validation.state === "failed",
-      );
-      const passedResults = results.filter(
-        (result) => result.validation.state === "passed",
-      );
-
-      if (failedResults.length > 0) {
-        setErrorMessage(
-          failedResults
-            .map((result) => `${result.label}：${result.validation.detail}`)
-            .join("；"),
-        );
-        setStatusMessage(
-          `环境验证完成：${passedResults.length} 项通过，${failedResults.length} 项需处理。调度仅做本地配置检查。`,
-        );
-        return;
-      }
-
-      setStatusMessage(
-        "环境验证完成：GitHub、LLM、企业微信通过，调度配置有效。调度仅做本地配置检查。",
-      );
-    } finally {
-      setBusyAction("");
-    }
-  }
-
-  async function runGitHubValidation(): Promise<ValidationStatus> {
-    try {
-      const response: GitHubTestResult = await testGitHubSettings();
-      setEnvironmentFingerprints(await fetchEnvironmentFingerprints("local"));
-      const validation = {
-        state: "passed" as const,
-        detail: `账号 ${response.login} · ${response.apiBaseUrl}`,
-      };
-      setGitHubValidation(validation);
-      return validation;
-    } catch (error) {
-      const validation = {
-        state: "failed" as const,
-        detail: getErrorMessage(error),
-      };
-      setGitHubValidation(validation);
-      return validation;
-    }
-  }
-
-  async function runLlmValidation(): Promise<ValidationStatus> {
-    try {
-      const response: LlmTestResult = await testLlmSettings();
-      setEnvironmentFingerprints(await fetchEnvironmentFingerprints("local"));
-      const validation = {
-        state: "passed" as const,
-        detail: `${response.model} · ${response.baseUrl}`,
-      };
-      setLlmValidation(validation);
-      setLlmSettings((current) => ({
-        ...current,
-        configured: true,
-        baseUrl: response.baseUrl,
-        model: response.model,
-      }));
-      return validation;
-    } catch (error) {
-      const validation = {
-        state: "failed" as const,
-        detail: getErrorMessage(error),
-      };
-      setLlmValidation(validation);
-      return validation;
-    }
-  }
-
-  async function runWecomValidation(): Promise<ValidationStatus> {
-    try {
-      const response = await sendWecomTest();
-      setEnvironmentFingerprints(await fetchEnvironmentFingerprints("local"));
-      const validation = {
-        state: "passed" as const,
-        detail: `目标 ${response.maskedWebhookUrl}`,
-      };
-      setWecomValidation(validation);
-      setWecomSettings((current) => ({
-        ...current,
-        configured: true,
-        maskedWebhookUrl: response.maskedWebhookUrl,
-      }));
-      return validation;
-    } catch (error) {
-      const validation = {
-        state: "failed" as const,
-        detail: getErrorMessage(error),
-      };
-      setWecomValidation(validation);
-      return validation;
-    }
+    await hydrate();
   }
 
   async function handleSelectArchive(date: string): Promise<void> {
@@ -686,7 +425,7 @@ export default function App() {
     setErrorMessage("");
 
     try {
-      const detailResponse = await fetchArchiveDetail(date, runtimeSource);
+      const detailResponse = await fetchArchiveDetail(date, "github");
       setArchiveDetail(detailResponse.archive);
       setArchiveReaderContext(detailResponse.readerContext);
       setStatusMessage("已切换到新的归档日报。");
@@ -705,7 +444,7 @@ export default function App() {
     setErrorMessage("");
 
     try {
-      const detailResponse = await fetchArchiveDetail(date, runtimeSource);
+      const detailResponse = await fetchArchiveDetail(date, "github");
       const matchedIndex = detailResponse.archive.digest.items.findIndex(
         (item) => item.repo === repo,
       );
@@ -837,10 +576,7 @@ export default function App() {
 
         <div className="masthead-meta">
           <MetaPill label="服务状态" value={health?.status ?? "loading"} />
-          <MetaPill
-            label="运行源"
-            value={runtimeSource === "github" ? "GitHub" : "Local"}
-          />
+          <MetaPill label="运行源" value="GitHub" />
           <MetaPill
             label="版本"
             value={health ? `v${health.version}` : "loading"}
@@ -871,28 +607,9 @@ export default function App() {
           ))}
         </nav>
 
-        <div className="action-row dual-actions">
-          <button
-            className={isGitHubMode ? "primary-button" : "ghost-button"}
-            disabled={busyAction === "hydrate"}
-            onClick={() => setRuntimeSource("github")}
-            type="button"
-          >
-            GitHub 模式
-          </button>
-          <button
-            className={!isGitHubMode ? "primary-button" : "ghost-button"}
-            disabled={busyAction === "hydrate"}
-            onClick={() => setRuntimeSource("local")}
-            type="button"
-          >
-            本地模式
-          </button>
-        </div>
-
         <button
           className="ghost-button"
-          onClick={() => void hydrate(runtimeSource)}
+          onClick={() => void hydrate()}
           type="button"
         >
           刷新
@@ -926,15 +643,11 @@ export default function App() {
               </div>
               <button
                 className="primary-button"
-                disabled={busyAction !== "" || isGitHubMode}
+                disabled={busyAction !== ""}
                 onClick={() => void handleValidateEnvironment()}
                 type="button"
               >
-                {busyAction === "validate-environment"
-                  ? "验证中…"
-                  : isGitHubMode
-                    ? "GitHub 模式只读"
-                    : "一键验证环境"}
+                {busyAction === "hydrate" ? "同步中…" : "同步远端状态"}
               </button>
             </header>
 
@@ -991,61 +704,33 @@ export default function App() {
                 <strong>{githubSettings.trendingUrl}</strong>
               </div>
               <div className="wecom-row">
-                <span>配置文件</span>
+                <span>管理位置</span>
                 <strong>{githubSettings.envFilePath || "--"}</strong>
               </div>
             </div>
 
-            <label className="field">
-              <span>新的 GitHub Token</span>
-              <input
-                autoComplete="off"
-                disabled={githubSettings.readonly}
-                onChange={(event) => {
-                  setGitHubTokenInput(event.target.value);
-                  setGitHubValidation(IDLE_VALIDATION);
-                }}
-                placeholder={
-                  githubSettings.readonly
-                    ? "GitHub 模式下由 Actions Secrets 管理"
-                    : "留空表示保留当前 Token，不会回显旧值"
-                }
-                type="password"
-                value={githubTokenInput}
-              />
-            </label>
-
             <ValidationHint validation={githubValidation} />
-            {githubSettings.note ? (
-              <div className="environment-inline-note">
-                {githubSettings.note}
-              </div>
-            ) : null}
+            <div className="environment-inline-note">
+              {githubSettings.note ??
+                "正式 GitHub Token 不再由本地控制台写入。请直接在仓库 GitHub Secrets 中维护。"}
+            </div>
 
             <div className="action-row dual-actions">
               <button
                 className="primary-button"
-                disabled={busyAction !== "" || githubSettings.readonly}
+                disabled={busyAction !== ""}
                 onClick={() => void handleSaveGitHubSettings()}
                 type="button"
               >
-                {busyAction === "save-github"
-                  ? "保存中…"
-                  : githubSettings.readonly
-                    ? "GitHub 模式只读"
-                    : "保存 GitHub Token"}
+                查看 Secrets 说明
               </button>
               <button
                 className="ghost-button"
-                disabled={busyAction !== "" || githubSettings.readonly}
+                disabled={busyAction !== ""}
                 onClick={() => void handleTestGitHubSettings()}
                 type="button"
               >
-                {busyAction === "test-github"
-                  ? "测试中…"
-                  : githubSettings.readonly
-                    ? "远端结果展示"
-                    : "测试 GitHub 连通性"}
+                查看远端状态解释
               </button>
             </div>
           </section>
@@ -1090,90 +775,33 @@ export default function App() {
                 </strong>
               </div>
               <div className="wecom-row">
-                <span>配置文件</span>
+                <span>管理位置</span>
                 <strong>{llmSettings.envFilePath || "--"}</strong>
               </div>
-            </div>
-
-            <label className="field">
-              <span>新的 API Key</span>
-              <input
-                autoComplete="off"
-                disabled={llmSettings.readonly}
-                onChange={(event) => {
-                  setLlmApiKeyInput(event.target.value);
-                  setLlmValidation(IDLE_VALIDATION);
-                }}
-                placeholder={
-                  llmSettings.readonly
-                    ? "GitHub 模式下由 Actions Secrets 管理"
-                    : "留空表示保留当前 API Key，不会回显旧值"
-                }
-                type="password"
-                value={llmApiKeyInput}
-              />
-            </label>
-
-            <div className="schedule-grid">
-              <label className="field">
-                <span>Base URL</span>
-                <input
-                  disabled={llmSettings.readonly}
-                  onChange={(event) => {
-                    setLlmBaseUrlInput(event.target.value);
-                    setLlmValidation(IDLE_VALIDATION);
-                  }}
-                  placeholder="例如：https://your-openai-compatible-endpoint/v1"
-                  type="url"
-                  value={llmBaseUrlInput}
-                />
-              </label>
-
-              <label className="field">
-                <span>Model</span>
-                <input
-                  disabled={llmSettings.readonly}
-                  onChange={(event) => {
-                    setLlmModelInput(event.target.value);
-                    setLlmValidation(IDLE_VALIDATION);
-                  }}
-                  placeholder="例如：gpt-4.1-mini"
-                  type="text"
-                  value={llmModelInput}
-                />
-              </label>
             </div>
 
             <ValidationHint validation={llmValidation} />
             <div className="environment-inline-note">
               {llmSettings.note ??
-                "这里显示的是最近一次手动测试结果，不代表实时自动健康检查。修改配置后会先回到未验证状态。"}
+                "正式 LLM 密钥由 GitHub Secrets 管理。控制台默认展示远端结果，不再写入本地 .env。"}
             </div>
 
             <div className="action-row dual-actions">
               <button
                 className="primary-button"
-                disabled={busyAction !== "" || llmSettings.readonly}
+                disabled={busyAction !== ""}
                 onClick={() => void handleSaveLlmSettings()}
                 type="button"
               >
-                {busyAction === "save-llm"
-                  ? "保存中…"
-                  : llmSettings.readonly
-                    ? "GitHub 模式只读"
-                    : "保存 LLM 配置"}
+                查看 Secrets 说明
               </button>
               <button
                 className="ghost-button"
-                disabled={busyAction !== "" || llmSettings.readonly}
+                disabled={busyAction !== ""}
                 onClick={() => void handleTestLlmSettings()}
                 type="button"
               >
-                {busyAction === "test-llm"
-                  ? "测试中…"
-                  : llmSettings.readonly
-                    ? "远端结果展示"
-                    : "测试连通性"}
+                查看远端状态解释
               </button>
             </div>
           </section>
@@ -1206,60 +834,33 @@ export default function App() {
                 </strong>
               </div>
               <div className="wecom-row">
-                <span>配置文件</span>
+                <span>管理位置</span>
                 <strong>{wecomSettings.envFilePath || "--"}</strong>
               </div>
             </div>
 
-            <label className="field">
-              <span>新的 Webhook 链接</span>
-              <input
-                disabled={wecomSettings.readonly}
-                onChange={(event) => {
-                  setWecomWebhookInput(event.target.value);
-                  setWecomValidation(IDLE_VALIDATION);
-                }}
-                placeholder={
-                  wecomSettings.readonly
-                    ? "GitHub 模式下由 Actions Secrets 管理"
-                    : "输入新的企业微信 Webhook 链接，保存后会覆盖当前配置"
-                }
-                type="url"
-                value={wecomWebhookInput}
-              />
-            </label>
-
             <ValidationHint validation={wecomValidation} />
-            {wecomSettings.note ? (
-              <div className="environment-inline-note">
-                {wecomSettings.note}
-              </div>
-            ) : null}
+            <div className="environment-inline-note">
+              {wecomSettings.note ??
+                "正式企业微信 Webhook 由 GitHub Secrets 管理。控制台默认只展示远端结果，不再写入本地 .env。"}
+            </div>
 
             <div className="action-row dual-actions">
               <button
                 className="primary-button"
-                disabled={busyAction !== "" || wecomSettings.readonly}
+                disabled={busyAction !== ""}
                 onClick={() => void handleSaveWecomSettings()}
                 type="button"
               >
-                {busyAction === "save-wecom"
-                  ? "保存中…"
-                  : wecomSettings.readonly
-                    ? "GitHub 模式只读"
-                    : "保存 Webhook"}
+                查看 Secrets 说明
               </button>
               <button
                 className="ghost-button"
-                disabled={busyAction !== "" || wecomSettings.readonly}
+                disabled={busyAction !== ""}
                 onClick={() => void handleSendWecomTest()}
                 type="button"
               >
-                {busyAction === "test-wecom"
-                  ? "发送中…"
-                  : wecomSettings.readonly
-                    ? "远端结果展示"
-                    : "发送测试消息"}
+                查看远端状态解释
               </button>
             </div>
           </section>
@@ -1280,7 +881,6 @@ export default function App() {
               <label className="field">
                 <span>时间</span>
                 <input
-                  disabled={isEnvironmentReadonly}
                   onChange={(event) =>
                     setScheduleDraft((current) =>
                       current
@@ -1296,7 +896,6 @@ export default function App() {
               <label className="field">
                 <span>时区</span>
                 <select
-                  disabled={isEnvironmentReadonly}
                   onChange={(event) =>
                     setScheduleDraft((current) =>
                       current
@@ -1320,25 +919,18 @@ export default function App() {
             </div>
 
             <div className="environment-inline-note">
-              {isGitHubMode
-                ? "当前显示的是 GitHub Actions workflow 调度。归档由远端定时执行并提交回仓库，不依赖本地机器持续开机。"
-                : "调度属于本地运行配置。保存表示已写入，实际生效依赖后续重启或容器重建。"}
+              调度配置保存在仓库 `config/schedule.json`。GitHub Actions 每 5
+              分钟轮询一次，并在命中目标时区时间后生成、发送并归档日报。
             </div>
 
             <div className="action-row">
               <button
                 className="primary-button"
-                disabled={
-                  !scheduleDraft || busyAction !== "" || isEnvironmentReadonly
-                }
+                disabled={!scheduleDraft || busyAction !== ""}
                 onClick={() => void handleSaveSchedule()}
                 type="button"
               >
-                {busyAction === "save-schedule"
-                  ? "保存中…"
-                  : isEnvironmentReadonly
-                    ? "GitHub 模式只读"
-                    : "保存调度设置"}
+                {busyAction === "save-schedule" ? "保存中…" : "保存远端调度"}
               </button>
             </div>
           </section>

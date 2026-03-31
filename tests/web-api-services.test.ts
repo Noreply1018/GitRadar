@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import os from "node:os";
 import path from "node:path";
@@ -42,6 +42,7 @@ import {
   saveGitHubSettings,
   testGitHubSettings,
 } from "../src/web-api/services/github-settings-service";
+import { readGitHubModeSchedule } from "../src/web-api/services/github-runtime-service";
 import { readEnvironmentFingerprints } from "../src/web-api/services/environment-fingerprint-service";
 
 let activeServer: ReturnType<typeof createServer> | null = null;
@@ -232,6 +233,49 @@ describe("schedule settings", () => {
   it("converts a saved time into the cron expression used by Docker", () => {
     expect(convertDailySendTimeToCron("08:17")).toBe("17 8 * * *");
     expect(convertDailySendTimeToCron("21:05")).toBe("5 21 * * *");
+  });
+
+  it("uses repo schedule.json as the formal GitHub schedule source", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-gh-mode-"));
+    await mkdir(path.join(rootDir, "config"), { recursive: true });
+    await mkdir(path.join(rootDir, ".github", "workflows"), {
+      recursive: true,
+    });
+
+    await writeFile(
+      path.join(rootDir, "config", "schedule.json"),
+      JSON.stringify(
+        {
+          timezone: "America/New_York",
+          dailySendTime: "09:45",
+        },
+        null,
+        2,
+      ),
+      "utf8",
+    );
+    await writeFile(
+      path.join(rootDir, ".github", "workflows", "daily-digest.yml"),
+      [
+        "name: Daily Digest",
+        "on:",
+        "  schedule:",
+        '    - cron: "*/5 * * * *"',
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    await expect(readGitHubModeSchedule(rootDir)).resolves.toMatchObject({
+      source: "github",
+      readonly: false,
+      path: "config/schedule.json",
+      settings: {
+        timezone: "America/New_York",
+        dailySendTime: "09:45",
+      },
+      cronExpression: "*/5 * * * * (polling) / 45 9 * * * (target)",
+    });
   });
 });
 

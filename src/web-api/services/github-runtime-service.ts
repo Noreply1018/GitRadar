@@ -8,6 +8,10 @@ import { buildFeedbackInsights } from "../../feedback/insights";
 import { readFeedbackState } from "../../feedback/store";
 import { loadUserPreferencesConfig } from "../../config/user-preferences";
 import { buildArchiveSummary } from "./archive-service";
+import {
+  convertDailySendTimeToCron,
+  readScheduleSettings,
+} from "./schedule-service";
 import type {
   ArchiveDetailResponse,
   ArchiveListResponse,
@@ -41,8 +45,7 @@ interface RepoRef {
 
 interface GitHubWorkflowSummary {
   cronExpression: string;
-  timezone: "UTC";
-  dailySendTime: string;
+  triggerIntervalMinutes: number;
 }
 
 export async function readGitHubModeHealth(
@@ -163,18 +166,19 @@ export async function readGitHubModeSchedule(
 ): Promise<ScheduleSettingsResponse> {
   const workflow = await readGitHubWorkflowSummary(rootDir);
   const state = await readGitHubExecutionState(rootDir);
+  const config = await readScheduleSettings(rootDir);
 
   return {
     source: "github",
-    readonly: true,
-    path: ".github/workflows/daily-digest.yml",
+    readonly: false,
+    path: "config/schedule.json",
     settings: {
-      timezone: workflow.timezone,
-      dailySendTime: workflow.dailySendTime,
+      timezone: config.settings.timezone,
+      dailySendTime: config.settings.dailySendTime,
     },
-    availableTimezones: [{ value: "UTC", label: "UTC" }],
-    note: "GitHub 模式显示的是 GitHub Actions workflow 的实际调度配置，当前为只读。",
-    cronExpression: workflow.cronExpression,
+    availableTimezones: config.availableTimezones,
+    note: `正式调度读取仓库中的 config/schedule.json。GitHub Actions 每 ${workflow.triggerIntervalMinutes} 分钟轮询一次，并在命中配置时间槽时执行日报。`,
+    cronExpression: `${workflow.cronExpression} (polling) / ${convertDailySendTimeToCron(config.settings.dailySendTime)} (target)`,
     lastRunAt: state.lastRunAt,
     lastRunStatus: state.lastRunStatus,
   };
@@ -193,7 +197,7 @@ export async function readGitHubModeGitHubSettings(
     apiBaseUrl: "https://api.github.com",
     trendingUrl: "https://github.com/trending?since=daily",
     envFilePath: ".github/workflows/daily-digest.yml",
-    note: "GitHub 模式下的 Token 不在本地 .env 中维护。这里展示的是 GitHub Actions 使用的配置映射。",
+    note: "正式 GitHub Token 不在本地 .env 中维护。这里展示的是 GitHub Actions 使用的配置映射。",
     mappedKeys: ["GITRADAR_GITHUB_TOKEN"],
     lastRunAt: state.lastRunAt,
     lastRunStatus: state.lastRunStatus,
@@ -213,7 +217,7 @@ export async function readGitHubModeLlmSettings(
     baseUrl: null,
     model: null,
     envFilePath: ".github/workflows/daily-digest.yml",
-    note: "GitHub 模式下的模型配置来自 GitHub Actions Secrets，前端默认只读展示。",
+    note: "正式 LLM 配置来自 GitHub Actions Secrets，前端默认只读展示。",
     mappedKeys: ["GR_API_KEY", "GR_BASE_URL", "GR_MODEL"],
     lastRunAt: state.lastRunAt,
     lastRunStatus: state.lastRunStatus,
@@ -231,7 +235,7 @@ export async function readGitHubModeWecomSettings(
     configured: state.lastRunStatus === "success",
     maskedWebhookUrl: "由 GitHub Actions Secret 管理",
     envFilePath: ".github/workflows/daily-digest.yml",
-    note: "GitHub 模式下的企业微信 Webhook 来自 GitHub Actions Secret，前端默认只读展示。",
+    note: "正式企业微信 Webhook 来自 GitHub Actions Secret，前端默认只读展示。",
     mappedKeys: ["GITRADAR_WECOM_WEBHOOK_URL"],
     lastRunAt: state.lastRunAt,
     lastRunStatus: state.lastRunStatus,
@@ -274,6 +278,7 @@ export async function readGitHubModeSettingsOverview(
 ): Promise<GitHubModeSettingsResponse> {
   const state = await readGitHubExecutionState(rootDir);
   const workflow = await readGitHubWorkflowSummary(rootDir);
+  const config = await readScheduleSettings(rootDir);
 
   return {
     source: "github",
@@ -283,8 +288,8 @@ export async function readGitHubModeSettingsOverview(
     lastRunStatus: state.lastRunStatus,
     lastArchiveDate: state.lastArchiveDate,
     runUrl: state.runUrl,
-    cronExpression: workflow.cronExpression,
-    timezone: workflow.timezone,
+    cronExpression: `${workflow.cronExpression} (polling) / ${convertDailySendTimeToCron(config.settings.dailySendTime)} (target)`,
+    timezone: config.settings.timezone,
     mappedSecrets: [
       "GITRADAR_GITHUB_TOKEN",
       "GR_API_KEY",
@@ -437,14 +442,22 @@ async function readGitHubWorkflowSummary(
   );
   const content = await fetchWorkflowFile(rootDir, workflowPath);
   const cronExpression =
-    content.match(/cron:\s*"([^"]+)"/)?.[1] ?? "17 0 * * *";
-  const [minute, hour] = cronExpression.split(" ");
+    content.match(/cron:\s*"([^"]+)"/)?.[1] ?? "*/5 * * * *";
 
   return {
     cronExpression,
-    timezone: "UTC",
-    dailySendTime: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+    triggerIntervalMinutes: readCronPollingInterval(cronExpression),
   };
+}
+
+function readCronPollingInterval(cronExpression: string): number {
+  const everyNMinutes = cronExpression.match(/^\*\/(\d+)\s+\*\s+\*\s+\*\s+\*$/);
+
+  if (!everyNMinutes) {
+    return 5;
+  }
+
+  return Number.parseInt(everyNMinutes[1] ?? "5", 10);
 }
 
 async function fetchWorkflowFile(
@@ -474,6 +487,6 @@ function buildGitHubEditorialIntro(
       ? `GitHub 远端执行最近一次归档偏向 ${leadingTheme[0]}，本期该主题占了 ${leadingTheme[1]} 条。`
       : "GitHub 远端执行最近一次归档更强调少而准，优先保留近期信号明确的仓库。",
     "当前阅读的是 GitHub Actions 持久化回仓库的正式归档，不依赖本地机器当时是否在线。",
-    "兴趣轨迹和偏好提示仍来自当前本地控制台数据，因此阅读判断和本地偏好会同时出现。",
+    "兴趣轨迹和偏好提示目前仍由控制台侧维护，因此远端正式归档与当前偏好会同时出现。",
   ];
 }

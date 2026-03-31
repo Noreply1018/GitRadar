@@ -11,3 +11,7 @@ export function normalizeRuntimeSource(
 export function isLocalRuntimeSource(source: RuntimeSource): boolean {
   return source === "local";
 }
+
+export function isGitHubRuntimeSource(source: RuntimeSource): boolean {
+  return source === "github";
+}

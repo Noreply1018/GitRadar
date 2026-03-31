@@ -1,55 +1,53 @@
 # 配置目录
 
-这个目录用于存放 GitRadar 的配置模板和配置约定说明。
+GitRadar 3.0.0 把配置正式分成两层：
 
-当前已经使用的配置以环境变量为主，本地通过 `.env` 注入，GitHub Actions 通过同名 secrets 注入。
+- 仓库配置文件：非敏感、可版本化、可审阅
+- GitHub Secrets：敏感信息、只在远端运行时注入
 
-当前主要配置范围：
+不再把本地 `.env` 视为正式配置源。
 
-- 企业微信群机器人 webhook
-- GitHub API 访问令牌
-- 模型 API 基础地址、密钥与模型名
-- 抓取调试时的 GitHub API 和 Trending 覆盖地址
-- Digest 候选筛选与打分规则的仓库级静态配置文件
+## 仓库配置文件
 
-敏感配置不直接入库，应通过 `.env` 或本地私有配置注入。
+当前正式入库并参与 GitHub 正式链路的配置包括：
 
-非敏感的静态业务配置已经改为仓库文件管理，当前 digest 规则配置位于 `config/digest-rules.json`，加载与校验逻辑位于 `src/config/digest-rules.ts`。
+- `config/schedule.json`
+- `config/digest-rules.json`
+- `config/user-preferences.json`
 
-当前 digest 规则配置集中维护：
+这些配置的职责：
 
-- 主题定义
-- 黑名单词
-- 候选筛选阈值
-- 打分权重
+- `schedule.json`：正式发送时间与时区
+- `digest-rules.json`：候选筛选、主题、阈值和权重
+- `user-preferences.json`：主题偏好与自定义主题词
 
-当前已做的配置有效性校验：
+其中 `schedule.json` 已经是 GitHub Actions 的正式调度输入，工作流每 5 分钟轮询一次，命中时间槽后执行日报。
 
-- 主题名不能为空
-- 同一主题内关键词不能重复
-- 同一关键词最多只能复用到 2 个主题
-- 阈值必须是非负数
-- 分段 bucket 的 `maxDays` 必须严格递增
-- 权重字段缺失或类型不对时启动即报错
+## GitHub Secrets
 
-当前已使用的环境变量：
+当前正式 Secrets：
 
-- `GITRADAR_WECOM_WEBHOOK_URL`
-- `GITHUB_TOKEN`
-- `GITRADAR_GITHUB_TOKEN`（GitHub Actions 专用）
+- `GITRADAR_GITHUB_TOKEN`
 - `GR_API_KEY`
 - `GR_BASE_URL`
 - `GR_MODEL`
+- `GITRADAR_WECOM_WEBHOOK_URL`
 
-仅用于本地调试的可选覆盖：
+这些配置不提交入库，也不再由默认控制台写入本地 `.env`。
 
-- `GR_GH_API_URL`
-- `GR_GH_TRENDING_URL`
+## 本地 `.env` 的角色
 
-GitHub Actions 的 `Daily Digest` 工作流使用 `GITRADAR_GITHUB_TOKEN`，其余配置名与本地保持一致。
+本地 `.env` 仍可保留，但只用于：
 
-当前已验证的关键点：
+- 本地开发
+- 本地调试命令
+- 复现远端问题
 
-- `GR_MODEL` 必须填写当前网关真实支持的模型名
-- 本地 `.env` 与 GitHub Actions secrets 应保持一致
-- 企业微信 webhook 只能放在本地私有配置或 GitHub Secrets 中，不能提交入库
+它不再代表正式生产配置，也不再是前端控制台的默认写入目标。
+
+## 配置原则
+
+- 频繁调整且不敏感的内容优先进入仓库配置文件
+- 密钥、Webhook、Token 一律进入 GitHub Secrets
+- 不再要求“本地 `.env` 与 GitHub Secrets 完全一致”
+- 不再以 Docker 或本地常驻进程作为配置设计前提

@@ -242,11 +242,12 @@ async function handleRequest(
 
       try {
         parseScheduleSettings(body);
-        return sendJson(
-          response,
-          200,
-          await saveScheduleSettings(ROOT_DIR, body),
-        );
+        const saved = await saveScheduleSettings(ROOT_DIR, body);
+        return sendJson(response, 200, {
+          ...saved,
+          source: "github",
+          note: "已写入仓库配置文件。后续 GitHub Actions 轮询命中配置时间槽时会按新时间执行。",
+        });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         return sendJson(response, 400, { message });
