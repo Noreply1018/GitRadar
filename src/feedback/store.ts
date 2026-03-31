@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -61,28 +60,13 @@ export function getFeedbackStateRepoPath(): string {
   return path.join(FEEDBACK_REPO_DIR, FEEDBACK_STATE_FILE);
 }
 
-export async function readFeedbackState(
+export async function readStoredFeedbackState(
   rootDir: string,
 ): Promise<FeedbackState> {
   const statePath = getFeedbackStatePath(rootDir);
 
   try {
     const content = await readFile(statePath, "utf8");
-    return parseFeedbackState(JSON.parse(content));
-  } catch (error) {
-    if (isMissingFileError(error)) {
-      return { ...EMPTY_FEEDBACK_STATE };
-    }
-
-    throw error;
-  }
-}
-
-export function readFeedbackStateSync(rootDir: string): FeedbackState {
-  const statePath = getFeedbackStatePath(rootDir);
-
-  try {
-    const content = fs.readFileSync(statePath, "utf8");
     return parseFeedbackState(JSON.parse(content));
   } catch (error) {
     if (isMissingFileError(error)) {
@@ -161,11 +145,11 @@ export async function listFeedbackEvents(
   return filterFeedbackEvents(await readFeedbackEvents(rootDir), query);
 }
 
-export async function listFeedbackItems(
+export async function listStoredFeedbackItems(
   rootDir: string,
   query: FeedbackQuery = {},
 ): Promise<FeedbackListItem[]> {
-  const state = await readFeedbackState(rootDir);
+  const state = await readStoredFeedbackState(rootDir);
 
   return Object.values(state.repoStates)
     .filter((item) => !query.action || item.action === query.action)

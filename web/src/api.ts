@@ -31,7 +31,7 @@ export interface GitHubSettings {
   maskedToken: string | null;
   apiBaseUrl: string;
   trendingUrl: string;
-  envFilePath: string;
+  managedIn: string;
   note?: string;
   mappedKeys?: string[];
   lastRunAt?: string | null;
@@ -108,7 +108,7 @@ export interface WecomSettings {
   readonly: boolean;
   configured: boolean;
   maskedWebhookUrl: string | null;
-  envFilePath: string;
+  managedIn: string;
   note?: string;
   mappedKeys?: string[];
   lastRunAt?: string | null;
@@ -122,7 +122,7 @@ export interface LlmSettings {
   maskedApiKey: string | null;
   baseUrl: string | null;
   model: string | null;
-  envFilePath: string;
+  managedIn: string;
   note?: string;
   mappedKeys?: string[];
   lastRunAt?: string | null;
@@ -160,7 +160,6 @@ export async function fetchHealth(): Promise<{
   status: string;
   app: string;
   version: string;
-  mode: string;
   source: "github";
   note?: string;
   lastRunAt?: string | null;

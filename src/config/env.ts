@@ -25,7 +25,7 @@ export function getGitHubConfigFromEnv(
 
   if (!token) {
     throw new Error(
-      "Missing GITHUB_TOKEN. Set GITHUB_TOKEN or GITRADAR_GITHUB_TOKEN in your environment or .env file.",
+      "Missing GITHUB_TOKEN. Configure GITHUB_TOKEN or GITRADAR_GITHUB_TOKEN in GitHub Actions Secrets or export it in your shell before running GitRadar.",
     );
   }
 
@@ -50,19 +50,19 @@ export function getLlmConfigFromEnv(
 
   if (!apiKey) {
     throw new Error(
-      "Missing GR_API_KEY. Set it in your environment or .env file.",
+      "Missing GR_API_KEY. Configure it in GitHub Actions Secrets or export it in your shell before running GitRadar.",
     );
   }
 
   if (!baseUrl) {
     throw new Error(
-      "Missing GR_BASE_URL. Set it in your environment or .env file.",
+      "Missing GR_BASE_URL. Configure it in GitHub Actions Secrets or export it in your shell before running GitRadar.",
     );
   }
 
   if (!model) {
     throw new Error(
-      "Missing GR_MODEL. Set it in your environment or .env file.",
+      "Missing GR_MODEL. Configure it in GitHub Actions Secrets or export it in your shell before running GitRadar.",
     );
   }
 
@@ -80,7 +80,7 @@ export function getWecomRobotConfigFromEnv(
 
   if (!webhookUrl) {
     throw new Error(
-      "Missing GITRADAR_WECOM_WEBHOOK_URL. Set it in your environment or .env file.",
+      "Missing GITRADAR_WECOM_WEBHOOK_URL. Configure it in GitHub Actions Secrets or export it in your shell before running GitRadar.",
     );
   }
 

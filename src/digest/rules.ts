@@ -7,10 +7,8 @@ import {
 } from "../config/digest-rules";
 import {
   DEFAULT_USER_PREFERENCES,
-  loadUserPreferencesConfig,
   type UserPreferencesConfig,
 } from "../config/user-preferences";
-import { readFeedbackStateSync } from "../feedback/store";
 import { EMPTY_FEEDBACK_STATE, type FeedbackState } from "../feedback/model";
 import type {
   CandidateScoreBreakdown,
@@ -40,10 +38,8 @@ export function selectCandidatesForDigest(
   limit = 20,
   options: SelectionOptions = {},
 ): GitHubCandidateRepo[] {
-  const userPreferences =
-    options.userPreferences ?? loadUserPreferencesConfig();
-  const feedbackState =
-    options.feedbackState ?? loadFeedbackStateForSelection();
+  const userPreferences = options.userPreferences ?? DEFAULT_USER_PREFERENCES;
+  const feedbackState = options.feedbackState ?? EMPTY_FEEDBACK_STATE;
   const annotated = candidates
     .filter((candidate) => candidate.description)
     .filter(
@@ -470,15 +466,6 @@ function calculateFeedbackBonus(
 
   return bonus;
 }
-
-function loadFeedbackStateForSelection(): FeedbackState {
-  try {
-    return readFeedbackStateSync(process.cwd());
-  } catch {
-    return EMPTY_FEEDBACK_STATE;
-  }
-}
-
 function applyDiversity(
   candidates: GitHubCandidateRepo[],
   limit: number,

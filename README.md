@@ -2,69 +2,49 @@
 
 ![CI](https://img.shields.io/github/actions/workflow/status/Noreply1018/GitRadar/ci.yml?branch=main&label=CI)
 ![License](https://img.shields.io/badge/license-MIT-2ea44f)
-![Mode](https://img.shields.io/badge/runtime-GitHub--native-2F6B8A)
+![Runtime](https://img.shields.io/badge/runtime-GitHub--native-2F6B8A)
 
-> 一个由 GitHub Actions 驱动、把日报归档正式沉淀回 GitHub 仓库的中文开源日报系统。
+> 一个把候选发现、中文日报、发送、归档和反馈全部收敛到 GitHub 仓库的开源日报系统。
 
 ![GitRadar Overview](./docs/assets/gitradar-overview.svg)
 
-GitRadar 3.0.0 的正式形态不再是“本地常驻工具”。
+GitRadar 3.0.0 只有一条正式链路：
 
-它现在默认采用一条单一正式链路：
+- GitHub Actions 负责定时或手动运行
+- 仓库配置文件负责非敏感正式配置
+- GitHub Secrets 负责密钥与凭据
+- `data/history`、`data/runtime`、`data/feedback` 负责正式数据沉淀
+- 控制台负责读取远端正式状态并编辑仓库内可版本化配置
 
-- GitHub Actions 定时或手动触发
-- 读取仓库配置文件与 GitHub Secrets
-- 抓取候选、生成日报、发送消息
-- 把归档和运行状态提交回仓库
-- 前端控制台读取仓库中的正式数据进行展示
+## 产品定义
 
-这意味着：
+GitRadar 不只是“抓热门仓库”，而是围绕每日发现建立一条完整产品链路：
 
-- 本地机器不需要一直开机
-- 前端归档列表以 GitHub 仓库里的正式归档为准
-- 正式配置不再围绕本地 `.env`
-- 本地运行只保留开发、调试、预览职责
+- 候选发现：从 Trending、最近更新、最近创建等来源收集信号
+- 规则收敛：按主题、成熟度、多样性和反馈历史筛掉噪声
+- 中文成稿：回答“是什么、为什么值得看、为什么是今天”
+- 远端发送：由 GitHub Actions 调用发送器完成投递
+- 仓库归档：把日报、运行状态和反馈长期沉淀回仓库
+- 控制台阅读：以前端查看归档、调度、偏好和最近运行状态
 
-## GitRadar 3.0.0 的产品定义
-
-GitRadar 不做“今天最热榜单”的简单搬运，而是要稳定回答这些问题：
-
-- 今天哪些仓库值得看
-- 为什么是它们
-- 为什么是今天
-- 最近持续关心的主题是什么
-- 正式执行链路是否健康
-
-  3.0.0 的核心原则：
+GitRadar 3.0.0 的核心原则：
 
 - 单一正式执行器：GitHub Actions
 - 单一正式归档源：GitHub 仓库
 - 单一正式配置源：仓库配置文件 + GitHub Secrets
 - 单一正式阅读入口：GitHub-first 控制台
-- Local 仅用于开发调试，不再承担正式产品职责
+- 所有正式状态都以仓库中的远端结果为准
 
-## 核心能力
+## 使用方式
 
-- 候选发现：同时覆盖 GitHub Trending、最近更新、最近创建三类候选源
-- 结构化筛选：按主题、多样性、成熟度和硬信号收敛候选池
-- 中文日报：输出“做什么、为什么值得看、为什么是现在”的解释型日报
-- 仓库归档：把每日归档与运行状态正式提交回 GitHub 仓库
-- 远端调度：GitHub Actions 每 5 分钟轮询一次，并按仓库调度配置命中执行
-- 控制台阅读：查看远端归档、最近运行状态、偏好、收藏与待看
-- 反馈闭环：记录 `收藏 / 稍后看 / 跳过`，形成轻量兴趣轨迹
+### 1. 创建自己的仓库
 
-## 普通用户怎么用
-
-GitRadar 3.0.0 面向普通用户的主路径是 `Use this template` 或 fork，而不是先 clone 再本地常驻。
-
-### 1. 创建自己的 GitRadar 仓库
-
-- 点击 GitHub 的 `Use this template`
-- 或 fork 当前仓库到自己的账号
+- 使用 `Use this template`
+- 或 fork 当前仓库
 
 ### 2. 配置 GitHub Secrets
 
-至少准备这些敏感配置：
+至少需要这些 Secrets：
 
 - `GITRADAR_GITHUB_TOKEN`
 - `GR_API_KEY`
@@ -72,55 +52,38 @@ GitRadar 3.0.0 面向普通用户的主路径是 `Use this template` 或 fork，
 - `GR_MODEL`
 - `GITRADAR_WECOM_WEBHOOK_URL`
 
-### 3. 调整仓库里的非敏感配置
+### 3. 调整仓库配置
 
-主要修改这些仓库文件：
+正式配置文件包括：
 
 - `config/schedule.json`
 - `config/digest-rules.json`
 - `config/user-preferences.json`
 
-### 4. 启用 GitHub Actions
+### 4. 启用远端工作流
 
-- 打开仓库的 `Actions`
+- 打开仓库 `Actions`
 - 启用 `Daily Digest`
-- 可先手动 `Run workflow` 验证
+- 首次建议先手动 `Run workflow`
 
-执行成功后，GitRadar 会把正式结果写回仓库：
+成功运行后，GitRadar 会把正式结果写回仓库：
 
 - `data/history/*.json`
 - `data/runtime/github-runtime.json`
-- `data/feedback/*`
+- `data/feedback/feedback-events.jsonl`
+- `data/feedback/feedback-state.json`
 
-## 控制台怎么定位
+## 控制台定位
 
-本地前端不是正式执行器，而是正式远端数据的阅读与轻量管理入口。
+控制台是 GitRadar 的管理与阅读界面，不是第二套正式运行器。它负责：
 
-当前控制台默认做这些事情：
+- 展示最近一次远端运行状态
+- 展示和阅读正式归档
+- 编辑仓库中的调度与偏好配置
+- 记录收藏、稍后看、跳过等反馈
+- 展示 Secrets 的映射位置与最近验证结果
 
-- 读取 GitHub 仓库中的正式归档
-- 展示最近一次 GitHub Actions 运行状态
-- 编辑仓库中的非敏感配置，例如发送时间和偏好
-- 记录并回写收藏 / 稍后看 / 跳过反馈
-- 展示哪些敏感配置由 GitHub Secrets 管理
-
-它不再默认做这些事情：
-
-- 写本地 `.env` 当正式配置
-- 在本地承担正式定时发送
-- 让用户在 GitHub / Local 两个正式模式之间切换
-
-## 本地开发与调试
-
-本地模式仍然保留，但角色已经降级为开发态：
-
-- 启动前端和 API
-- 预览界面
-- 调试抓取、打分、成稿逻辑
-- 复现问题
-- 开发 GitHub 正式链路本身
-
-### 启动本地控制台
+启动控制台：
 
 ```bash
 npm install
@@ -128,9 +91,7 @@ npm run build:web
 npm run start:console
 ```
 
-默认地址：
-
-- `http://127.0.0.1:3210`
+默认地址：`http://127.0.0.1:3210`
 
 开发模式：
 
@@ -139,7 +100,7 @@ npm run dev:web-api
 npm run dev:web
 ```
 
-### 常用 CLI
+## 开发命令
 
 ```bash
 npm run validate:digest-rules
@@ -150,12 +111,9 @@ npm run feedback:list
 npm run send:wecom:sample
 ```
 
-其中：
+这些命令用于仓库开发、调试和验证；正式运行仍以 `Daily Digest` 工作流为准。
 
-- `generate:digest` 更适合开发调试
-- GitHub 正式生产链路仍以 `Daily Digest` 工作流为准
-
-## 仓库入口
+## 文档入口
 
 - 架构设计：[`docs/architecture-roadmap.md`](./docs/architecture-roadmap.md)
 - 开发与验证：[`docs/development.md`](./docs/development.md)

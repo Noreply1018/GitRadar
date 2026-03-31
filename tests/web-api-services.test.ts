@@ -8,10 +8,6 @@ import { DIGEST_RULES_CONFIG } from "../src/config/digest-rules";
 import { type DailyDigestArchive } from "../src/core/archive";
 import { buildFeedbackInsights } from "../src/feedback/insights";
 import { buildArchiveSummary } from "../src/web-api/services/archive-service";
-import {
-  CommandRunner,
-  listCommandSpecs,
-} from "../src/web-api/services/command-runner";
 import { validateDigestRulesDraft } from "../src/web-api/services/digest-rules-service";
 import {
   convertDailySendTimeToCron,
@@ -19,13 +15,14 @@ import {
   saveScheduleSettings,
 } from "../src/web-api/services/schedule-service";
 import {
-  readUserPreferences,
+  readRemoteUserPreferences,
   saveUserPreferences,
+  readStoredUserPreferences,
 } from "../src/web-api/services/user-preferences-service";
 import {
-  listFeedbackItems,
-  readFeedbackState,
+  listStoredFeedbackItems,
   readRemoteFeedbackState,
+  readStoredFeedbackState,
   recordFeedback,
 } from "../src/feedback/store";
 import { readGitHubModeSchedule } from "../src/web-api/services/github-runtime-service";
@@ -119,23 +116,6 @@ describe("buildArchiveSummary", () => {
   });
 });
 
-describe("CommandRunner", () => {
-  it("documents the supported command whitelist", () => {
-    const specs = listCommandSpecs();
-
-    expect(specs.map((item) => item.id)).toContain("generate-digest");
-    expect(
-      specs.find((item) => item.id === "analyze-digest")?.requiresDate,
-    ).toBe(true);
-  });
-
-  it("rejects analyze requests without a date", () => {
-    const runner = new CommandRunner(process.cwd());
-
-    expect(() => runner.startJob("analyze-digest")).toThrow(/requires a date/);
-  });
-});
-
 describe("schedule settings", () => {
   it("falls back to the default daily send time when no file exists", async () => {
     const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-schedule-"));
@@ -200,7 +180,7 @@ describe("schedule settings", () => {
     ).rejects.toThrow(/常用城市时区/);
   });
 
-  it("converts a saved time into the cron expression used by Docker", () => {
+  it("converts a saved time into the target cron expression", () => {
     expect(convertDailySendTimeToCron("08:17")).toBe("17 8 * * *");
     expect(convertDailySendTimeToCron("21:05")).toBe("5 21 * * *");
   });
@@ -255,7 +235,7 @@ describe("user preferences", () => {
       path.join(os.tmpdir(), "gitradar-preferences-"),
     );
 
-    expect(readUserPreferences(rootDir)).toMatchObject({
+    expect(readStoredUserPreferences(rootDir)).toMatchObject({
       path: path.join("config", "user-preferences.json"),
       preferences: {
         preferredThemes: [],
@@ -290,6 +270,14 @@ describe("user preferences", () => {
       preferredThemes: ["AI Agents", "Frontend & Design"],
       customTopics: ["Fabric", "FPGA"],
     });
+
+    await expect(readRemoteUserPreferences(rootDir)).resolves.toMatchObject({
+      path: path.join("config", "user-preferences.json"),
+      preferences: {
+        preferredThemes: ["AI Agents", "Frontend & Design"],
+        customTopics: ["Fabric", "FPGA"],
+      },
+    });
   });
 
   it("rejects unknown preferred themes", async () => {
@@ -310,7 +298,7 @@ describe("feedback store", () => {
   it("falls back to an empty feedback state when no file exists", async () => {
     const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-feedback-"));
 
-    await expect(readFeedbackState(rootDir)).resolves.toEqual({
+    await expect(readStoredFeedbackState(rootDir)).resolves.toEqual({
       repoStates: {},
       themeStats: {},
       recent: [],
@@ -388,8 +376,12 @@ describe("feedback store", () => {
       theme: "AI Agents",
     });
 
-    const savedItems = await listFeedbackItems(rootDir, { action: "saved" });
-    const laterItems = await listFeedbackItems(rootDir, { action: "later" });
+    const savedItems = await listStoredFeedbackItems(rootDir, {
+      action: "saved",
+    });
+    const laterItems = await listStoredFeedbackItems(rootDir, {
+      action: "later",
+    });
 
     expect(savedItems).toEqual([]);
     expect(laterItems).toHaveLength(1);
@@ -422,7 +414,7 @@ describe("feedback store", () => {
       theme: "Frontend & Design",
     });
 
-    const state = await readFeedbackState(rootDir);
+    const state = await readStoredFeedbackState(rootDir);
     const insights = buildFeedbackInsights(state, {
       preferredThemes: [],
       customTopics: [],

@@ -88,7 +88,7 @@ const EMPTY_WECOM_SETTINGS: WecomSettings = {
   readonly: true,
   configured: false,
   maskedWebhookUrl: null,
-  envFilePath: "",
+  managedIn: "",
 };
 
 const EMPTY_LLM_SETTINGS: LlmSettings = {
@@ -98,7 +98,7 @@ const EMPTY_LLM_SETTINGS: LlmSettings = {
   maskedApiKey: null,
   baseUrl: null,
   model: null,
-  envFilePath: "",
+  managedIn: "",
 };
 
 const EMPTY_GITHUB_SETTINGS: GitHubSettings = {
@@ -108,7 +108,7 @@ const EMPTY_GITHUB_SETTINGS: GitHubSettings = {
   maskedToken: null,
   apiBaseUrl: "https://api.github.com",
   trendingUrl: "https://github.com/trending?since=daily",
-  envFilePath: "",
+  managedIn: "",
 };
 
 const IDLE_VALIDATION: ValidationStatus = {
@@ -122,7 +122,6 @@ export default function App() {
     status: string;
     app: string;
     version: string;
-    mode: string;
     source: "github";
     note?: string;
     lastRunAt?: string | null;
@@ -177,12 +176,6 @@ export default function App() {
     | "save-schedule"
     | "save-preferences"
     | "record-feedback"
-    | "save-github"
-    | "test-github"
-    | "save-llm"
-    | "test-llm"
-    | "save-wecom"
-    | "test-wecom"
     | "accept-suggestion"
   >("hydrate");
   const [statusMessage, setStatusMessage] = useState(
@@ -318,9 +311,7 @@ export default function App() {
         setArchiveReaderContext(EMPTY_ARCHIVE_READER_CONTEXT);
       }
 
-      setStatusMessage(
-        "GitRadar 已同步 GitHub Actions 远端状态、正式归档和仓库配置。",
-      );
+      setStatusMessage("GitRadar 已同步 GitHub 远端正式状态、归档和仓库配置。");
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -383,37 +374,37 @@ export default function App() {
 
   async function handleSaveGitHubSettings(): Promise<void> {
     setStatusMessage(
-      "GitHub Token 由仓库的 GitHub Secrets 管理。3.0.0 控制台默认不再写入本地 .env。",
+      "GitHub Token 由仓库的 GitHub Secrets 管理；控制台只展示远端正式映射。",
     );
   }
 
   async function handleTestGitHubSettings(): Promise<void> {
     setStatusMessage(
-      "GitHub Token 连通性由最近一次 GitHub Actions 运行结果反映；如需修改，请到仓库 Secrets 页面处理。",
+      "GitHub Token 连通性以最近一次 GitHub 远端运行结果为准；修改请前往仓库 Secrets。",
     );
   }
 
   async function handleSaveLlmSettings(): Promise<void> {
     setStatusMessage(
-      "LLM 敏感配置由 GitHub Secrets 管理。3.0.0 控制台默认不再写入本地 .env。",
+      "LLM 敏感配置由 GitHub Secrets 管理；控制台只展示远端正式映射。",
     );
   }
 
   async function handleTestLlmSettings(): Promise<void> {
     setStatusMessage(
-      "LLM 连通性由最近一次 GitHub Actions 远端运行反映；如需修改密钥，请到 GitHub Secrets 页面处理。",
+      "LLM 连通性以最近一次 GitHub 远端运行结果为准；修改请前往 GitHub Secrets。",
     );
   }
 
   async function handleSaveWecomSettings(): Promise<void> {
     setStatusMessage(
-      "企业微信 Webhook 由 GitHub Secrets 管理。3.0.0 控制台默认不再写入本地 .env。",
+      "企业微信 Webhook 由 GitHub Secrets 管理；控制台只展示远端正式映射。",
     );
   }
 
   async function handleSendWecomTest(): Promise<void> {
     setStatusMessage(
-      "企业微信发送结果以最近一次 GitHub Actions 远端运行记录为准；如需修改密钥，请到 GitHub Secrets 页面处理。",
+      "企业微信发送结果以最近一次 GitHub 远端运行记录为准；修改请前往 GitHub Secrets。",
     );
   }
 
@@ -707,14 +698,14 @@ export default function App() {
               </div>
               <div className="wecom-row">
                 <span>管理位置</span>
-                <strong>{githubSettings.envFilePath || "--"}</strong>
+                <strong>{githubSettings.managedIn || "--"}</strong>
               </div>
             </div>
 
             <ValidationHint validation={githubValidation} />
             <div className="environment-inline-note">
               {githubSettings.note ??
-                "正式 GitHub Token 不再由本地控制台写入。请直接在仓库 GitHub Secrets 中维护。"}
+                "GitHub 访问凭据由仓库 GitHub Secrets 管理。"}
             </div>
 
             <div className="action-row dual-actions">
@@ -778,14 +769,14 @@ export default function App() {
               </div>
               <div className="wecom-row">
                 <span>管理位置</span>
-                <strong>{llmSettings.envFilePath || "--"}</strong>
+                <strong>{llmSettings.managedIn || "--"}</strong>
               </div>
             </div>
 
             <ValidationHint validation={llmValidation} />
             <div className="environment-inline-note">
               {llmSettings.note ??
-                "正式 LLM 密钥由 GitHub Secrets 管理。控制台默认展示远端结果，不再写入本地 .env。"}
+                "LLM 凭据由 GitHub Secrets 管理，控制台只展示远端正式状态。"}
             </div>
 
             <div className="action-row dual-actions">
@@ -837,14 +828,14 @@ export default function App() {
               </div>
               <div className="wecom-row">
                 <span>管理位置</span>
-                <strong>{wecomSettings.envFilePath || "--"}</strong>
+                <strong>{wecomSettings.managedIn || "--"}</strong>
               </div>
             </div>
 
             <ValidationHint validation={wecomValidation} />
             <div className="environment-inline-note">
               {wecomSettings.note ??
-                "正式企业微信 Webhook 由 GitHub Secrets 管理。控制台默认只展示远端结果，不再写入本地 .env。"}
+                "企业微信 Webhook 由 GitHub Secrets 管理，控制台只展示远端正式状态。"}
             </div>
 
             <div className="action-row dual-actions">

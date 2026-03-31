@@ -24,7 +24,6 @@ import {
   validateDigestRulesDraft,
 } from "./services/digest-rules-service";
 import { buildFeedbackInsights } from "../feedback/insights";
-import { CommandRunner } from "./services/command-runner";
 import {
   parseScheduleSettings,
   saveScheduleSettings,
@@ -47,10 +46,9 @@ const DIST_DIR = path.join(ROOT_DIR, "web", "dist");
 const PACKAGE_JSON_PATH = path.join(ROOT_DIR, "package.json");
 
 async function main(): Promise<void> {
-  const commandRunner = new CommandRunner(ROOT_DIR);
   const packageVersion = await readPackageVersion();
   const server = createServer((request, response) =>
-    handleRequest(request, response, commandRunner, packageVersion),
+    handleRequest(request, response, packageVersion),
   );
   const { host, port } = parseServerOptions(process.argv.slice(2));
 
@@ -62,7 +60,6 @@ async function main(): Promise<void> {
 async function handleRequest(
   request: IncomingMessage,
   response: ServerResponse,
-  commandRunner: CommandRunner,
   packageVersion: string,
 ): Promise<void> {
   addCorsHeaders(response);
@@ -265,66 +262,6 @@ async function handleRequest(
         const message = error instanceof Error ? error.message : String(error);
         return sendJson(response, 400, { message });
       }
-    }
-
-    if (request.method === "GET" && pathname === "/api/commands") {
-      return sendJson(response, 200, commandRunner.listJobs());
-    }
-
-    if (
-      request.method === "POST" &&
-      pathname === "/api/commands/validate-digest-rules"
-    ) {
-      return sendJson(response, 202, {
-        job: commandRunner.startJob("validate-digest-rules"),
-      });
-    }
-
-    if (
-      request.method === "POST" &&
-      pathname === "/api/commands/generate-digest"
-    ) {
-      const body = await readJsonBody(request);
-      const shouldSend = body?.send === true;
-      return sendJson(response, 202, {
-        job: commandRunner.startJob(
-          shouldSend ? "generate-digest-send" : "generate-digest",
-        ),
-      });
-    }
-
-    if (
-      request.method === "POST" &&
-      pathname === "/api/commands/analyze-digest"
-    ) {
-      const body = await readJsonBody(request);
-      return sendJson(response, 202, {
-        job: commandRunner.startJob("analyze-digest", {
-          date: typeof body?.date === "string" ? body.date : undefined,
-        }),
-      });
-    }
-
-    if (
-      request.method === "POST" &&
-      pathname === "/api/commands/send-wecom-sample"
-    ) {
-      return sendJson(response, 202, {
-        job: commandRunner.startJob("send-wecom-sample"),
-      });
-    }
-
-    if (request.method === "GET" && pathname.startsWith("/api/commands/")) {
-      const jobId = pathname.replace("/api/commands/", "");
-      const job = commandRunner.getJob(jobId);
-
-      if (!job) {
-        return sendJson(response, 404, {
-          message: `Command job not found: ${jobId}`,
-        });
-      }
-
-      return sendJson(response, 200, { job });
     }
 
     if (request.method === "GET" && pathname === "/api/archives") {

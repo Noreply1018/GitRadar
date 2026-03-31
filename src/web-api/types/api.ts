@@ -12,7 +12,6 @@ export interface HealthResponse {
   status: "ok" | "degraded" | "unknown";
   app: "GitRadar";
   version: string;
-  mode: "github-actions";
   source: "github";
   note?: string;
   lastRunAt?: string | null;
@@ -81,16 +80,6 @@ export interface UserPreferencesResponse extends RemoteSyncMetadata {
   availableThemes: string[];
 }
 
-export interface SaveGitHubSettingsInput {
-  token?: string;
-}
-
-export interface SaveLlmSettingsInput {
-  apiKey?: string;
-  baseUrl?: string;
-  model?: string;
-}
-
 export interface FeedbackRequest {
   repo: string;
   date: string;
@@ -142,43 +131,12 @@ export interface FeedbackSuggestionAcceptResponse {
   insights: FeedbackInsights;
 }
 
-export interface CommandStartRequest {
-  date?: string;
-}
-
-export type CommandStatus = "queued" | "running" | "succeeded" | "failed";
-
-export interface CommandJob {
-  id: string;
-  commandId:
-    | "validate-digest-rules"
-    | "generate-digest"
-    | "generate-digest-send"
-    | "analyze-digest"
-    | "send-wecom-sample";
-  command: string;
-  status: CommandStatus;
-  startedAt: string;
-  finishedAt?: string;
-  exitCode?: number;
-  stdout: string;
-  stderr: string;
-}
-
-export interface CommandListResponse {
-  jobs: CommandJob[];
-}
-
-export interface CommandStartResponse {
-  job: CommandJob;
-}
-
 export interface WecomSettingsResponse {
   source: "github";
   readonly: boolean;
   configured: boolean;
   maskedWebhookUrl: string | null;
-  envFilePath: string;
+  managedIn: string;
   note?: string;
   mappedKeys?: string[];
   lastRunAt?: string | null;
@@ -192,7 +150,7 @@ export interface GitHubSettingsResponse {
   maskedToken: string | null;
   apiBaseUrl: string;
   trendingUrl: string;
-  envFilePath: string;
+  managedIn: string;
   note?: string;
   mappedKeys?: string[];
   lastRunAt?: string | null;
@@ -206,7 +164,7 @@ export interface LlmSettingsResponse {
   maskedApiKey: string | null;
   baseUrl: string | null;
   model: string | null;
-  envFilePath: string;
+  managedIn: string;
   note?: string;
   mappedKeys?: string[];
   lastRunAt?: string | null;

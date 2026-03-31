@@ -53,6 +53,12 @@ export function getUserPreferencesConfigPath(rootDir: string): string {
   return path.join(rootDir, "config", "user-preferences.json");
 }
 
+export function readStoredUserPreferencesConfig(
+  rootDir: string,
+): UserPreferencesConfig {
+  return loadUserPreferencesConfig(getUserPreferencesConfigPath(rootDir));
+}
+
 export function parseUserPreferencesConfig(
   value: unknown,
   source = "user preferences config",

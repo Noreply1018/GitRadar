@@ -3,8 +3,8 @@ import path from "node:path";
 
 import {
   getUserPreferencesConfigPath,
-  loadUserPreferencesConfig,
   parseUserPreferencesConfig,
+  readStoredUserPreferencesConfig,
   stringifyUserPreferencesConfig,
 } from "../../config/user-preferences";
 import { DIGEST_RULES_CONFIG } from "../../config/digest-rules";
@@ -13,23 +13,6 @@ import {
   commitAndPushRepoFiles,
   readRemoteRepoJson,
 } from "./repo-sync-service";
-
-export function readUserPreferences(rootDir: string): UserPreferencesResponse {
-  const path = getUserPreferencesRepoPath();
-  const localPath = getUserPreferencesConfigPath(rootDir);
-  const preferences = loadUserPreferencesConfig(localPath);
-
-  return {
-    path,
-    preferences,
-    availableThemes: DIGEST_RULES_CONFIG.themes.map((item) => item.theme),
-    committed: false,
-    commitSha: null,
-    targetRef: null,
-    pushed: false,
-    committedAt: null,
-  };
-}
 
 export async function readRemoteUserPreferences(
   rootDir: string,
@@ -92,4 +75,19 @@ function pathDir(filePath: string): string {
 
 function getUserPreferencesRepoPath(): string {
   return path.join("config", "user-preferences.json");
+}
+
+export function readStoredUserPreferences(
+  rootDir: string,
+): UserPreferencesResponse {
+  return {
+    path: getUserPreferencesRepoPath(),
+    preferences: readStoredUserPreferencesConfig(rootDir),
+    availableThemes: DIGEST_RULES_CONFIG.themes.map((item) => item.theme),
+    committed: false,
+    commitSha: null,
+    targetRef: null,
+    pushed: false,
+    committedAt: null,
+  };
 }

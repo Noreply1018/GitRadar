@@ -14,7 +14,6 @@
     "dev:web": "vite --config web/vite.config.ts",
     "dev:web-api": "tsx src/web-api/server.ts",
     "start:console": "tsx src/web-api/server.ts",
-    "start:console:docker": "tsx src/web-api/server.ts --host 0.0.0.0 --port 3210",
     "build:web": "vite build --config web/vite.config.ts",
     "format:check": "prettier --check .",
     "lint:md": "markdownlint README.md SECURITY.md SUPPORT.md CONTRIBUTING.md .github/**/*.md docs/**/*.md config/**/*.md data/**/*.md scripts/**/*.md src/**/*.md",

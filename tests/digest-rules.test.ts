@@ -61,7 +61,8 @@ describe("selectCandidatesForDigest", () => {
         topics: ["ai", "agent"],
       },
       {
-        description: "CLI automation layer for local developer workflows.",
+        description:
+          "CLI automation layer for repository maintenance workflows.",
         topics: ["cli", "developer"],
       },
       {

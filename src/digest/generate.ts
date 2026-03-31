@@ -13,11 +13,11 @@ import { getCurrentDigestDate, getIsoTimestamp } from "../core/date";
 import { createWorkflowLogger } from "../core/log";
 import {
   getUserPreferencesConfigPath,
-  loadUserPreferencesConfig,
+  readStoredUserPreferencesConfig,
 } from "../config/user-preferences";
 import type { GitHubConfig, LlmConfig, WecomRobotConfig } from "../config/env";
 import { buildFeedbackInsights } from "../feedback/insights";
-import { readFeedbackStateSync } from "../feedback/store";
+import { readStoredFeedbackState } from "../feedback/store";
 import {
   enrichCandidatesWithReadmes,
   fetchGitHubCandidates,
@@ -107,7 +107,12 @@ export async function generateDailyDigest(
       candidates,
       options.github,
     );
-    shortlisted = selectCandidatesForDigest(enrichedCandidates, 20);
+    const preferences = readStoredUserPreferencesConfig(rootDir);
+    const feedbackState = await readStoredFeedbackState(rootDir);
+    shortlisted = selectCandidatesForDigest(enrichedCandidates, 20, {
+      userPreferences: preferences,
+      feedbackState,
+    });
     llmPool = buildDigestCandidatePool(shortlisted, DEFAULT_LLM_POOL_SIZE);
 
     logger.info("candidate_pool_built", {
@@ -145,7 +150,7 @@ export async function generateDailyDigest(
         },
       },
     );
-    const digest = markExplorationItem(
+    const digest = await markExplorationItem(
       editorialResult.digest,
       llmPool.selected,
       rootDir,
@@ -261,15 +266,13 @@ export async function generateDailyDigest(
   }
 }
 
-function markExplorationItem(
+async function markExplorationItem(
   digest: DailyDigestArchive["digest"],
   candidates: DailyDigestArchive["shortlisted"],
   rootDir: string,
-): DailyDigestArchive["digest"] {
-  const preferences = loadUserPreferencesConfig(
-    getUserPreferencesConfigPath(rootDir),
-  );
-  const feedbackState = readFeedbackStateSync(rootDir);
+): Promise<DailyDigestArchive["digest"]> {
+  const preferences = readStoredUserPreferencesConfig(rootDir);
+  const feedbackState = await readStoredFeedbackState(rootDir);
   const insights = buildFeedbackInsights(feedbackState, preferences);
   const preferredThemes = new Set(preferences.preferredThemes);
   const interestedThemes = new Set(
