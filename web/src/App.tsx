@@ -792,7 +792,9 @@ export default function App() {
           <MetaPill label="今日日期" value={formatCurrentDate()} />
           <MetaPill
             label="归档数"
-            value={busyAction === "hydrate" ? "loading" : String(archives.length)}
+            value={
+              busyAction === "hydrate" ? "loading" : String(archives.length)
+            }
           />
         </div>
       </header>
