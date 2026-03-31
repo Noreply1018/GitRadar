@@ -12,7 +12,7 @@ GitRadar 3.0.0 的开发重点是把 GitHub-native 正式链路做实：
 ## 目录约定
 
 - `src/`：核心逻辑与命令入口
-- `src/web-api/`：控制台 API 与远端状态聚合
+- `src/web-api/`：本地开发调试用的控制台 API 与状态聚合层
 - `tests/`：单元与集成测试
 - `web/`：GitHub-first 控制台前端
 - `config/`：正式仓库配置文件
@@ -47,6 +47,8 @@ GitRadar 继续保持这些边界：
 
 - `CI`：格式、Markdown、YAML、类型检查、测试
 - `Daily Digest`：远端定时执行、发送、归档、运行状态回写
+- `Console Writeback`：接收控制台写入请求并在远端创建 PR
+- `Deploy Pages`：构建并发布 GitHub Pages 控制台
 
 开发调试环境变量模板：
 
@@ -67,10 +69,13 @@ GitRadar 继续保持这些边界：
 - `npm run runtime:github`
 - 检查 `data/runtime/github-runtime.json` 字段是否与最新归档和最近一次运行语义一致
 
-如果涉及控制台，还应额外验证：
+如果涉及控制台静态站点，还应额外验证：
 
 - `npm run build:web`
-- `npm run start:console`
+
+如果涉及本地调试 API，还应额外验证：
+
+- `npm run dev:console-api`
 - `curl http://127.0.0.1:3210/api/health`
 
 如果涉及 GitHub 正式链路，还应检查：

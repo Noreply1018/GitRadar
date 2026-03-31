@@ -65,7 +65,7 @@ Secrets 只在 GitHub Actions 运行时注入，不进入仓库历史。
 - `digest-rules.json`：候选筛选规则、主题、阈值和权重
 - `user-preferences.json`：主题偏好与自定义关注词
 
-控制台保存这些配置时，会直接写回仓库文件，并在存在 `origin` 远端时自动提交并推送到当前分支。
+控制台不会直接操作本地工作树。正式写入通过浏览器中的细粒度 PAT 触发 `Console Writeback` workflow，由 GitHub Actions 在远端创建 PR 和提交。
 
 ## 启用正式链路
 
@@ -92,12 +92,21 @@ Secrets 只在 GitHub Actions 运行时注入，不进入仓库历史。
 - 记录收藏、稍后看、跳过等反馈
 - 展示 Secrets 的映射位置与最近远端验证结果
 
-启动控制台：
+正式入口：
+
+- GitHub Pages：`https://noreply1018.github.io/GitRadar/`
+- GitHub Actions：`Daily Digest` 负责正式执行，`Console Writeback` 负责正式写入请求
+
+GitHub Pages 读取仓库中的正式归档与运行状态。需要写入配置或记录反馈时，控制台会要求提供细粒度 PAT，并通过 workflow dispatch 把请求交给 GitHub Actions。
+
+本地 `src/web-api/server.ts` 不再属于正式使用路径，只保留为开发调试工具。
+
+本地开发调试：
 
 ```bash
 npm install
 npm run build:web
-npm run start:console
+npm run dev:console-api
 ```
 
 默认地址：`http://127.0.0.1:3210`
@@ -105,7 +114,7 @@ npm run start:console
 开发模式：
 
 ```bash
-npm run dev:web-api
+npm run dev:console-api
 npm run dev:web
 ```
 
