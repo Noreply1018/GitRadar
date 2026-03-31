@@ -1,0 +1,2581 @@
+{
+  "schemaVersion": 3,
+  "generatedAt": "2026-03-31T12:51:33.982Z",
+  "candidateCount": 54,
+  "shortlistedCount": 19,
+  "candidates": [
+    {
+      "repo": "luongnv89/claude-howto",
+      "url": "https://github.com/luongnv89/claude-howto",
+      "description": "A visual, example-driven guide to Claude Code — from basic concepts to advanced agents, with copy-paste templates that bring immediate value.",
+      "language": "Python",
+      "stars": 11536,
+      "forks": 1180,
+      "topics": [
+        "claude-code",
+        "guide",
+        "tutorial"
+      ],
+      "createdAt": "2025-11-07T22:59:34Z",
+      "updatedAt": "2026-03-31T12:50:33Z",
+      "pushedAt": "2026-03-30T21:42:43Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "<picture>\n  <source media=\"(prefers-color-scheme: dark)\" srcset=\"resources/logos/claude-howto-logo-dark.svg\">\n  <img alt=\"Claude How To\" src=\"resources/logos/claude-howto-logo.svg\">\n</picture>\n\n[![GitHub Stars](https://img.shields.io/github/stars/luongnv89/claude-howto?style=flat&color=gold)](https://github.com/luongnv89/claude-howto/stargazers)\n[![GitHub Forks](https://img.shields.io/github/forks/luongnv89/claude-howto?style=flat)](https://github.com/luongnv89/claude-howto/network/members)\n[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)\n[![Version](https://img.shields.io/badge/version-2.2.0-brightgreen)](CHANGELOG.md)\n[![Claude Code](https://img.shields.io/badge/Claude_Code-2.1+-purple)](https://code.claude.com)\n\n# Master Claude Code in a Weekend\n\nGo from typing `claude` to orchestrating agents, hooks, skills, and MCP servers — with visual tutorials, copy-paste templates, and a guided learning path.\n\n**[Get Started in 15 Minutes](#-get-started-in-15-minutes)** | **[Find Your Level](#-not-sure-where-to-start)** | **[Browse the Feature Catalog](CATALOG.md)**\n\n---\n\n## Table of Contents\n\n- [The Problem](#the-problem)\n- [How Claude How To Fixes This](#how-"
+    },
+    {
+      "repo": "microsoft/VibeVoice",
+      "url": "https://github.com/microsoft/VibeVoice",
+      "description": "Open-Source Frontier Voice AI",
+      "language": "Python",
+      "stars": 32326,
+      "forks": 3585,
+      "topics": [],
+      "createdAt": "2025-08-25T13:24:01Z",
+      "updatedAt": "2026-03-31T12:49:28Z",
+      "pushedAt": "2026-03-31T04:24:50Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "<div align=\"center\">\n\n## 🎙️ VibeVoice: Open-Source Frontier Voice AI\n[![Project Page](https://img.shields.io/badge/Project-Page-blue?logo=githubpages)](https://microsoft.github.io/VibeVoice)\n[![Hugging Face](https://img.shields.io/badge/HuggingFace-Collection-orange?logo=huggingface)](https://huggingface.co/collections/microsoft/vibevoice-68a2ef24a875c44be47b034f)\n[![TTS Report](https://img.shields.io/badge/TTS-Report-red?logo=arxiv)](https://openreview.net/pdf?id=FihSkzyxdv)\n[![ASR Report](https://img.shields.io/badge/ASR-Report-yellow?logo=arxiv)](https://arxiv.org/pdf/2601.18184)\n[![Colab](https://img.shields.io/badge/StreamingTTS-Colab-green?logo=googlecolab)](https://colab.research.google.com/github/microsoft/VibeVoice/blob/main/demo/VibeVoice_colab.ipynb)\n[![ASR Playground](https://img.shields.io/badge/ASR-Playground-6F42C1?logo=gradio)](https://aka.ms/vibevoice-asr)\n\n[![microsoft%2FVibeVoice | Trendshift](https://trendshift.io/api/badge/repositories/15465)](https://trendshift.io/repositories/15465)\n\n</div>\n\n\n<div align=\"center\">\n<picture>\n  <source media=\"(prefers-color-scheme: dark)\" srcset=\"Figures/VibeVoice_logo_white.png\">\n  <img src=\"Figures/VibeVoice_logo.png\" alt=\"Vi"
+    },
+    {
+      "repo": "Yeachan-Heo/oh-my-claudecode",
+      "url": "https://github.com/Yeachan-Heo/oh-my-claudecode",
+      "description": "Teams-first Multi-agent orchestration for Claude Code",
+      "language": "TypeScript",
+      "stars": 18111,
+      "forks": 1274,
+      "topics": [
+        "agentic-coding",
+        "ai-agents",
+        "automation",
+        "claude",
+        "claude-code",
+        "multi-agent-systems",
+        "oh-my-opencode",
+        "opencode",
+        "parallel-execution",
+        "vibe-coding"
+      ],
+      "createdAt": "2026-01-09T03:36:29Z",
+      "updatedAt": "2026-03-31T12:50:47Z",
+      "pushedAt": "2026-03-31T08:10:57Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "English | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Tiếng Việt](README.vi.md) | [Português](README.pt.md)\n\n# oh-my-claudecode\n\n[![npm version](https://img.shields.io/npm/v/oh-my-claude-sisyphus?color=cb3837)](https://www.npmjs.com/package/oh-my-claude-sisyphus)\n[![npm downloads](https://img.shields.io/npm/dm/oh-my-claude-sisyphus?color=blue)](https://www.npmjs.com/package/oh-my-claude-sisyphus)\n[![GitHub stars](https://img.shields.io/github/stars/Yeachan-Heo/oh-my-claudecode?style=flat&color=yellow)](https://github.com/Yeachan-Heo/oh-my-claudecode/stargazers)\n[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)\n[![Sponsor](https://img.shields.io/badge/Sponsor-❤️-red?style=flat&logo=github)](https://github.com/sponsors/Yeachan-Heo)\n[![Discord](https://img.shields.io/discord/1452487457085063218?color=5865F2&logo=discord&logoColor=white&label=Discord)](https://discord.gg/PUwSMR9XNk)\n\n> **For Codex users:** Check out [oh-my-codex](https://github.com/Yeachan-Heo/oh-my-codex) — the same orchestration experience for OpenAI Codex CLI.\n\n**Multi-agent orchestration for Claude Code. Zero le"
+    },
+    {
+      "repo": "shanraisshan/claude-code-best-practice",
+      "url": "https://github.com/shanraisshan/claude-code-best-practice",
+      "description": "practice made claude perfect",
+      "language": "HTML",
+      "stars": 27485,
+      "forks": 2277,
+      "topics": [
+        "agentic-engineering",
+        "best-practices",
+        "claude-ai",
+        "claude-code",
+        "vibe-coding"
+      ],
+      "createdAt": "2025-10-31T14:15:28Z",
+      "updatedAt": "2026-03-31T12:50:40Z",
+      "pushedAt": "2026-03-31T07:04:03Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "# claude-code-best-practice\npractice makes claude perfect\n\n![updated with Claude Code](https://img.shields.io/badge/updated_with_Claude_Code-v2.1.87%20(Mar%2030%2C%202026%2011%3A44%20AM%20PKT)-white?style=flat&labelColor=555) <a href=\"https://github.com/shanraisshan/claude-code-best-practice/stargazers\"><img src=\"https://img.shields.io/github/stars/shanraisshan/claude-code-best-practice?style=flat&label=%E2%98%85&labelColor=555&color=white\" alt=\"GitHub Stars\"></a><br>\n\n[![Best Practice](!/tags/best-practice.svg)](best-practice/) [![Implemented](!/tags/implemented.svg)](implementation/) [![Orchestration Workflow](!/tags/orchestration-workflow.svg)](orchestration-workflow/orchestration-workflow.md) [![Boris](!/tags/boris-cherny.svg)](#-tips-and-tricks) ![Click on these badges below to see the actual sources](!/tags/click-badges.svg)<br>\n<img src=\"!/tags/a.svg\" height=\"14\"> = Agents · <img src=\"!/tags/c.svg\" height=\"14\"> = Commands · <img src=\"!/tags/s.svg\" height=\"14\"> = Skills\n\n<p align=\"center\">\n  <img src=\"!/claude-jumping.svg\" alt=\"Claude Code mascot jumping\" width=\"120\" height=\"100\"><br>\n  <a href=\"https://github.com/trending\"><img src=\"!/root/github-trending-day.svg\" alt=\"GitHu"
+    },
+    {
+      "repo": "NousResearch/hermes-agent",
+      "url": "https://github.com/NousResearch/hermes-agent",
+      "description": "The agent that grows with you",
+      "language": "Python",
+      "stars": 19563,
+      "forks": 2369,
+      "topics": [
+        "ai",
+        "ai-agent",
+        "ai-agents",
+        "anthropic",
+        "chatgpt",
+        "claude",
+        "claude-code",
+        "clawdbot",
+        "codex",
+        "hermes",
+        "hermes-agent",
+        "llm",
+        "moltbot",
+        "nous-research",
+        "openai",
+        "openclaw"
+      ],
+      "createdAt": "2025-07-22T22:22:28Z",
+      "updatedAt": "2026-03-31T12:49:36Z",
+      "pushedAt": "2026-03-31T10:29:03Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "<p align=\"center\">\n  <img src=\"assets/banner.png\" alt=\"Hermes Agent\" width=\"100%\">\n</p>\n\n# Hermes Agent ☤\n\n<p align=\"center\">\n  <a href=\"https://hermes-agent.nousresearch.com/docs/\"><img src=\"https://img.shields.io/badge/Docs-hermes--agent.nousresearch.com-FFD700?style=for-the-badge\" alt=\"Documentation\"></a>\n  <a href=\"https://discord.gg/NousResearch\"><img src=\"https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white\" alt=\"Discord\"></a>\n  <a href=\"https://github.com/NousResearch/hermes-agent/blob/main/LICENSE\"><img src=\"https://img.shields.io/badge/License-MIT-green?style=for-the-badge\" alt=\"License: MIT\"></a>\n  <a href=\"https://nousresearch.com\"><img src=\"https://img.shields.io/badge/Built%20by-Nous%20Research-blueviolet?style=for-the-badge\" alt=\"Built by Nous Research\"></a>\n</p>\n\n**The self-improving AI agent built by [Nous Research](https://nousresearch.com).** It's the only agent with a built-in learning loop — it creates skills from experience, improves them during use, nudges itself to persist knowledge, searches its own past conversations, and builds a deepening model of who you are across sessions. Run it on a $5 VPS, a GPU cluster, or se"
+    },
+    {
+      "repo": "obra/superpowers",
+      "url": "https://github.com/obra/superpowers",
+      "description": "An agentic skills framework & software development methodology that works.",
+      "language": "Shell",
+      "stars": 127252,
+      "forks": 10375,
+      "topics": [],
+      "createdAt": "2025-10-09T19:45:18Z",
+      "updatedAt": "2026-03-31T12:49:44Z",
+      "pushedAt": "2026-03-26T00:16:56Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "# Superpowers\n\nSuperpowers is a complete software development workflow for your coding agents, built on top of a set of composable \"skills\" and some initial instructions that make sure your agent uses them.\n\n## How it works\n\nIt starts from the moment you fire up your coding agent. As soon as it sees that you're building something, it *doesn't* just jump into trying to write code. Instead, it steps back and asks you what you're really trying to do. \n\nOnce it's teased a spec out of the conversation, it shows it to you in chunks short enough to actually read and digest. \n\nAfter you've signed off on the design, your agent puts together an implementation plan that's clear enough for an enthusiastic junior engineer with poor taste, no judgement, no project context, and an aversion to testing to follow. It emphasizes true red/green TDD, YAGNI (You Aren't Gonna Need It), and DRY. \n\nNext up, once you say \"go\", it launches a *subagent-driven-development* process, having agents work through each engineering task, inspecting and reviewing their work, and continuing forward. It's not uncommon for Claude to be able to work autonomously for a couple hours at a time without deviating from the plan"
+    },
+    {
+      "repo": "microsoft/agent-lightning",
+      "url": "https://github.com/microsoft/agent-lightning",
+      "description": "The absolute trainer to light up AI agents.",
+      "language": "Python",
+      "stars": 16090,
+      "forks": 1388,
+      "topics": [
+        "agent",
+        "agentic-ai",
+        "llm",
+        "mlops",
+        "reinforcement-learning"
+      ],
+      "createdAt": "2025-06-18T07:28:45Z",
+      "updatedAt": "2026-03-31T12:48:56Z",
+      "pushedAt": "2026-02-28T04:41:33Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "<p align=\"center\">\n  <img src=\"docs/assets/readme-banner.svg\" alt=\"Agent-lightning-banner\" style=\"width:600px\"/>\n</p>\n\n# Agent Lightning⚡\n\n[![Unit Tests](https://github.com/microsoft/agent-lightning/actions/workflows/badge-unit.yml/badge.svg)](https://github.com/microsoft/agent-lightning/actions/workflows/badge-unit.yml)\n[![Documentation](https://img.shields.io/badge/GitHub%20Pages-Documentation-blue)](https://microsoft.github.io/agent-lightning/)\n[![PyPI version](https://badge.fury.io/py/agentlightning.svg)](https://badge.fury.io/py/agentlightning)\n[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)\n[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/microsoft/agent-lightning)\n[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/RYk7CdvDR7)\n\n**The absolute trainer to light up AI agents.**\n\nJoin our [Discord community](https://discord.gg/RYk7CdvDR7) to connect with other users and contributors.\n\n## ⚡ Core Features\n\n- Turn your agent into an optimizable beast with **ZERO CODE CHANGE** (almost)! 💤\n- Build with **ANY** agent framework (LangChain, OpenAI Agent SDK, AutoGen, CrewAI, Micros"
+    },
+    {
+      "repo": "PaddlePaddle/PaddleOCR",
+      "url": "https://github.com/PaddlePaddle/PaddleOCR",
+      "description": "Turn any PDF or image document into structured data for your AI. A powerful, lightweight OCR toolkit that bridges the gap between images/PDFs and LLMs. Supports 100+ languages.",
+      "language": "Python",
+      "stars": 73857,
+      "forks": 10094,
+      "topics": [
+        "ai4science",
+        "chineseocr",
+        "document-parsing",
+        "document-translation",
+        "kie",
+        "ocr",
+        "paddleocr-vl",
+        "pdf-extractor-rag",
+        "pdf-parser",
+        "pdf2markdown",
+        "pp-ocr",
+        "pp-structure",
+        "rag"
+      ],
+      "createdAt": "2020-05-08T10:38:16Z",
+      "updatedAt": "2026-03-31T12:49:55Z",
+      "pushedAt": "2026-03-31T10:44:04Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "<div align=\"center\">\n  <p>\n      <img width=\"800\" src=\"https://raw.githubusercontent.com/cuicheng01/PaddleX_doc_images/main/images/paddleocr/README/Banner.png\" alt=\"Star-history\">\n  </p>\n\n\n\n<h3>Global Leading OCR Toolkit & Document AI Engine</h3>\n\nEnglish | [简体中文](./readme/README_cn.md) | [繁體中文](./readme/README_tcn.md) | [日本語](./readme/README_ja.md) | [한국어](./readme/README_ko.md) | [Français](./readme/README_fr.md) | [Русский](./readme/README_ru.md) | [Español](./readme/README_es.md) | [العربية](./readme/README_ar.md)\n\n<!-- icon -->\n\n[![PyPI Downloads](https://static.pepy.tech/badge/paddleocr)](https://pepy.tech/projects/paddleocr)\n[![Used by](https://img.shields.io/badge/Used%20by-6k%2B%20repositories-blue)](https://github.com/PaddlePaddle/PaddleOCR/network/dependents)\n![python](https://img.shields.io/badge/python-3.8~3.12-aff.svg)\n![os](https://img.shields.io/badge/os-linux%2C%20win%2C%20mac-pink.svg)\n![hardware](https://img.shields.io/badge/hardware-cpu%2C%20gpu%2C%20xpu%2C%20npu-yellow.svg)\n\n[![AI Studio](https://img.shields.io/badge/PaddleOCR-_Offiical_Website-1927BA?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAMAAADDpiTIAAAABlBMVEU2P+X///+1KuUwAAAHKklEQVR42u3d"
+    },
+    {
+      "repo": "Dimillian/Skills",
+      "url": "https://github.com/Dimillian/Skills",
+      "description": "My Codex Skills",
+      "language": "Shell",
+      "stars": 2680,
+      "forks": 141,
+      "topics": [],
+      "createdAt": "2025-12-30T14:36:32Z",
+      "updatedAt": "2026-03-31T12:50:09Z",
+      "pushedAt": "2026-03-29T15:28:02Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-live-2ea44f?logo=github)](https://dimillian.github.io/Skills/)\n\n# Skills Public\n\nA collection of reusable development skills for Apple platforms, GitHub workflows, refactoring, diff review swarms, bug investigation swarms, code review, React performance work, and skill curation.\n\n## Overview\n\nThis repository contains focused, self-contained skills that help with recurring engineering tasks such as generating App Store release notes, debugging iOS apps, improving SwiftUI and React code, packaging macOS apps, running multi-agent diff reviews and bug hunts, reviewing and simplifying code changes, orchestrating larger refactors, and auditing what new skills a project actually needs.\n\nInstall: place these skill folders under `$CODEX_HOME/skills`\n\n\n## Skills\n\nThis repo currently includes 16 skills:\n\n| Skill | Folder | Description |\n| --- | --- | --- |\n| App Store Changelog | `app-store-changelog` | Creates user-facing App Store release notes from git history by collecting changes since the last tag, filtering for user-visible work, and rewriting it into concise \"What's New\" bullets. |\n| GitHub | `github` | Uses the `gh` CLI to "
+    },
+    {
+      "repo": "sherlock-project/sherlock",
+      "url": "https://github.com/sherlock-project/sherlock",
+      "description": "Hunt down social media accounts by username across social networks",
+      "language": "Python",
+      "stars": 75163,
+      "forks": 8867,
+      "topics": [
+        "cli",
+        "cti",
+        "cybersecurity",
+        "forensics",
+        "hacktoberfest",
+        "information-gathering",
+        "infosec",
+        "linux",
+        "osint",
+        "pentesting",
+        "python",
+        "python3",
+        "reconnaissance",
+        "redteam",
+        "sherlock",
+        "tools"
+      ],
+      "createdAt": "2018-12-24T14:30:48Z",
+      "updatedAt": "2026-03-31T12:48:05Z",
+      "pushedAt": "2026-03-31T05:38:06Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "<p align=\"center\">\n  <br>\n  <a href=\"https://sherlock-project.github.io/\" target=\"_blank\"><img src=\"images/sherlock-logo.png\" alt=\"sherlock\"/></a>\n  <br>\n  <span>Hunt down social media accounts by username across <a href=\"https://sherlockproject.xyz/sites\">400+ social networks</a></span>\n  <br>\n</p>\n\n<p align=\"center\">\n  <a href=\"https://sherlockproject.xyz/installation\">Installation</a>\n  &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;\n  <a href=\"https://sherlockproject.xyz/usage\">Usage</a>\n  &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;\n  <a href=\"https://sherlockproject.xyz/contribute\">Contributing</a>\n</p>\n\n<p align=\"center\">\n<img width=\"70%\" height=\"70%\" src=\"images/demo.png\" alt=\"demo\"/>\n</p>\n\n\n## Installation\n\n> [!WARNING]  \n> Packages for ParrotOS and Ubuntu 24.04, maintained by a third party, appear to be __broken__.  \n> Users of these systems should defer to pipx/pip or Docker.\n\n| Method | Notes |\n| - | - |\n| `pipx install sherlock-project` | `pip` may be used in place of `pipx` |\n| `docker run -it --rm sherlock/sherlock` |\n| `dnf install sherlock-project` | |\n\nCommunity-maintained packages are available for Debian (>= 13), Ubuntu (>= 22.10), Homebrew, Kali, and BlackArch. These packages a"
+    },
+    {
+      "repo": "neovim/neovim",
+      "url": "https://github.com/neovim/neovim",
+      "description": "Vim-fork focused on extensibility and usability",
+      "language": "Vim Script",
+      "stars": 97761,
+      "forks": 6700,
+      "topics": [
+        "api",
+        "c",
+        "lua",
+        "neovim",
+        "nvim",
+        "text-editor",
+        "vim"
+      ],
+      "createdAt": "2014-01-31T13:39:22Z",
+      "updatedAt": "2026-03-31T12:48:16Z",
+      "pushedAt": "2026-03-31T12:16:55Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "<h1 align=\"center\">\n  <img src=\"https://raw.githubusercontent.com/neovim/neovim.github.io/master/static/logos/neovim-logo-300x87.png\" alt=\"Neovim\">\n\n  <a href=\"https://neovim.io/doc/\">Documentation</a> |\n  <a href=\"https://app.element.io/#/room/#neovim:matrix.org\">Chat</a>\n</h1>\n\n[![Coverity Scan analysis](https://scan.coverity.com/projects/2227/badge.svg)](https://scan.coverity.com/projects/2227)\n[![Packages](https://repology.org/badge/tiny-repos/neovim.svg)](https://repology.org/metapackage/neovim)\n[![Debian CI](https://badges.debian.net/badges/debian/testing/neovim/version.svg)](https://buildd.debian.org/neovim)\n[![Downloads](https://img.shields.io/github/downloads/neovim/neovim/total.svg?maxAge=2592001)](https://github.com/neovim/neovim/releases/)\n\nNeovim is a project that seeks to aggressively refactor [Vim](https://www.vim.org/) in order to:\n\n- Simplify maintenance and encourage [contributions](CONTRIBUTING.md)\n- Split the work between multiple developers\n- Enable [advanced UIs] without modifications to the core\n- Maximize [extensibility](https://neovim.io/doc/user/api-ui-events.html#api-ui-events)\n\nSee the [Introduction](https://github.com/neovim/neovim/wiki/Introduction) wi"
+    },
+    {
+      "repo": "vas3k/TaxHacker",
+      "url": "https://github.com/vas3k/TaxHacker",
+      "description": "Self-hosted AI accounting app. LLM analyzer for receipts, invoices, transactions with custom prompts and categories",
+      "language": "TypeScript",
+      "stars": 3495,
+      "forks": 564,
+      "topics": [
+        "accounting",
+        "ai-analysis",
+        "currency-exchange",
+        "expenses",
+        "invoices",
+        "llm",
+        "llm-apps",
+        "self-hosted",
+        "taxes"
+      ],
+      "createdAt": "2025-03-10T13:25:27Z",
+      "updatedAt": "2026-03-31T12:50:20Z",
+      "pushedAt": "2026-03-31T08:43:58Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "<div align=\"center\"><a name=\"readme-top\"></a>\n\n<img src=\"public/logo/512.png\" alt=\"\" width=\"320\">\n\n<br>\n\n# TaxHacker — self-hosted AI accountant\n\n[![GitHub Stars](https://img.shields.io/github/stars/vas3k/TaxHacker?color=ffcb47&labelColor=black&style=flat-square)](https://github.com/vas3k/TaxHacker/stargazers)\n[![License](https://img.shields.io/badge/license-MIT-ffcb47?labelColor=black&style=flat-square)](https://github.com/vas3k/TaxHacker/blob/main/LICENSE)\n[![GitHub Issues](https://img.shields.io/github/issues/vas3k/TaxHacker?color=ff80eb&labelColor=black&style=flat-square)](https://github.com/vas3k/TaxHacker/issues)\n[![Donate](https://img.shields.io/badge/-Donate-f04f88?logo=githubsponsors&logoColor=white&style=flat-square)](https://vas3k.com/donate/)\n\n</div>\n\n> 🙏 I'm currently looking for a job! Here's [my CV](https://raw.githubusercontent.com/vas3k/vas3k/master/cv.pdf) and my [Github profile](https://github.com/vas3k).\n\nTaxHacker is a self-hosted accounting app designed for freelancers, indie hackers, and small businesses who want to save time and automate expense and income tracking using the power of modern AI.\n\nUpload photos of receipts, invoices, or PDFs, and TaxHacker wi"
+    },
+    {
+      "repo": "OpenBMB/ChatDev",
+      "url": "https://github.com/OpenBMB/ChatDev",
+      "description": "ChatDev 2.0: Dev All through LLM-powered Multi-Agent Collaboration",
+      "language": "Python",
+      "stars": 32296,
+      "forks": 3984,
+      "topics": [],
+      "createdAt": "2023-08-28T02:18:13Z",
+      "updatedAt": "2026-03-31T12:50:07Z",
+      "pushedAt": "2026-03-23T02:10:51Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "# ChatDev 2.0 - DevAll\n\n<p align=\"center\">\n  <img src=\"frontend/public/media/logo.png\" alt=\"DevAll Logo\" width=\"500\"/>\n</p>\n\n\n<p align=\"center\">\n  <strong>A Zero-Code Multi-Agent Platform for Developing Everything</strong>\n</p>\n\n<p align=\"center\">\n  【<a href=\"./README.md\">English</a> | <a href=\"./README-zh.md\">简体中文</a>】\n</p>\n<p align=\"center\">\n    【📚 <a href=\"#developers\">Developers</a> | 👥 <a href=\"#primary-contributors\">Contributors</a>｜⭐️ <a href=\"https://github.com/OpenBMB/ChatDev/tree/chatdev1.0\">ChatDev 1.0 (Legacy)</a>】\n</p>\n\n## 📖 Overview\nChatDev has evolved from a specialized software development multi-agent system into a comprehensive multi-agent orchestration platform.\n\n- <a href=\"https://github.com/OpenBMB/ChatDev/tree/main\">**ChatDev 2.0 (DevAll)**</a> is a **Zero-Code Multi-Agent Platform** for \"Developing Everything\". It empowers users to rapidly build and execute customized multi-agent systems through simple configuration. No coding is required—users can define agents, workflows, and tasks to orchestrate complex scenarios such as data visualization, 3D generation, and deep research.\n- <a href=\"https://github.com/OpenBMB/ChatDev/tree/chatdev1.0\">**ChatDev 1.0 (Leg"
+    },
+    {
+      "repo": "jwasham/coding-interview-university",
+      "url": "https://github.com/jwasham/coding-interview-university",
+      "description": "A complete computer science study plan to become a software engineer.",
+      "language": null,
+      "stars": 339232,
+      "forks": 81722,
+      "topics": [
+        "algorithm",
+        "algorithms",
+        "coding-interview",
+        "coding-interviews",
+        "computer-science",
+        "data-structures",
+        "interview",
+        "interview-prep",
+        "interview-preparation",
+        "programming-interviews",
+        "software-engineering",
+        "study-plan"
+      ],
+      "createdAt": "2016-06-06T02:34:12Z",
+      "updatedAt": "2026-03-31T12:48:59Z",
+      "pushedAt": "2025-08-28T14:42:47Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "# Coding Interview University\n\n> I originally created this as a short to-do list of study topics for becoming a software engineer,\n> but it grew to the large list you see today. After going through this study plan, [I got hired\n> as a Software Development Engineer at Amazon](https://startupnextdoor.com/ive-been-acquired-by-amazon/?src=ciu)!\n> You probably won't have to study as much as I did. Anyway, everything you need is here.\n>\n> I studied about 8-12 hours a day, for several months. This is my story: [Why I studied full-time for 8 months for a Google interview](https://medium.freecodecamp.org/why-i-studied-full-time-for-8-months-for-a-google-interview-cc662ce9bb13)\n>\n> **Please Note:** You won't need to study as much as I did. I wasted a lot of time on things I didn't need to know. More info about that is below. I'll help you get there without wasting your precious time.\n>\n> The items listed here will prepare you well for a technical interview at just about any software company,\n> including the giants: Amazon, Facebook, Google, and Microsoft.\n>\n> *Best of luck to you!*\n\n<details>\n<summary>Translations:</summary>\n\n- [Bahasa Indonesia](translations/README-id.md)\n- [Bulgarian](tran"
+    },
+    {
+      "repo": "apple/ml-hierarchical-confusion-matrix",
+      "url": "https://github.com/apple/ml-hierarchical-confusion-matrix",
+      "description": "Neo: Hierarchical Confusion Matrix Visualization (CHI 2022)",
+      "language": "TypeScript",
+      "stars": 316,
+      "forks": 36,
+      "topics": [
+        "confusion-matrix",
+        "data-visualization",
+        "machine-learning",
+        "visual-analytics"
+      ],
+      "createdAt": "2022-03-22T03:02:11Z",
+      "updatedAt": "2026-03-31T12:50:48Z",
+      "pushedAt": "2026-03-31T12:50:46Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "# Neo: Hierarchical Confusion Matrix\n\n[![npm version](https://img.shields.io/npm/v/@apple/hierarchical-confusion-matrix.svg)](https://www.npmjs.com/package/@apple/hierarchical-confusion-matrix)\n\nThe confusion matrix, a ubiquitous visualization for helping people evaluate machine learning models, is a tabular layout that compares predicted class labels against actual class labels over all data instances. Neo is a visual analytics system that enables practitioners to flexibly author and interact with hierarchical and multi-output confusion matrices, visualize derived metrics, renormalize confusions, and share matrix specifications.\n\nThis code accompanies the research paper:\n\n**[Neo: Generalizing Confusion Matrix Visualization to Hierarchical and Multi-Output Labels](https://machinelearning.apple.com/research/generalizing-confusion-matrix)**  \nJochen Görtler, Fred Hohman, Dominik Moritz, Kanit Wongsuphasawat, Donghao Ren, Rahul Nair, Marc Kirchner, Kayur Patel  \n_ACM Conference on Human Factors in Computing Systems (CHI), 2022._  \n[<img width=\"16\" alt=\"image\" src=\"https://user-images.githubusercontent.com/5741691/166707770-eac596b5-2622-4899-9ff8-8c3037b03b3a.png\"> Paper](https://arxi"
+    },
+    {
+      "repo": "Lianues/Lim-Code",
+      "url": "https://github.com/Lianues/Lim-Code",
+      "description": "一个强大的 VS Code AI 编程助手",
+      "language": "TypeScript",
+      "stars": 130,
+      "forks": 21,
+      "topics": [
+        "ai",
+        "ai-agents",
+        "ai-assistant",
+        "ai-tools",
+        "code",
+        "vscode",
+        "vscode-extension"
+      ],
+      "createdAt": "2025-12-18T18:25:16Z",
+      "updatedAt": "2026-03-31T12:50:43Z",
+      "pushedAt": "2026-03-31T12:50:39Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "# LimCode\n\n<p align=\"center\">\n  <a href=\"https://discord.gg/FJxTrsZRPQ\">\n    <img src=\"https://img.shields.io/badge/Join%20in-Discord-5865F2?logo=discord&logoColor=white\" alt=\"Join in Discord\">\n  </a>\n</p>\n\n<p align=\"center\">\n  <img src=\"resources/icon.png\" alt=\"LimCode Logo\" width=\"128\">\n</p>\n\n<p align=\"center\">\n  <strong>一个强大的 VS Code AI 编程助手</strong>\n</p>\n\n<p align=\"center\">\n  支持多渠道 AI 模型 | 智能工具调用 | 模块化架构\n</p>\n\n## ✨ 特性\n\n### 🤖 多渠道支持\n- **Gemini** - 原生支持 Google Gemini API，包括 Function Calling\n- **OpenAI** - 兼容 OpenAI 格式的 API（ChatGPT、Azure OpenAI 等）\n- **Anthropic** - 支持 Claude 系列模型\n- **自定义格式** - XML 工具调用格式，适用于更多模型\n\n### 🛠️ 智能工具系统\n内置丰富的工具，让 AI 能够直接操作您的代码：\n\n| 类别 | 工具 | 说明 |\n|------|------|------|\n| 📁 文件 | `read_file` | 读取文件内容（支持多模态） |\n| | `write_file` | 写入文件内容 |\n| | `apply_diff` | 应用差异修改 |\n| | `list_files` | 列出目录文件 |\n| | `delete_file` | 删除文件 |\n| | `create_directory` | 创建目录 |\n| 🔍 搜索 | `find_files` | 按名称搜索文件 |\n| | `search_in_files` | 在文件内容中搜索 |\n| 🖥️ 终端 | `execute_command` | 执行终端命令 |\n| 🎨 媒体 | `generate_image` | AI 图像生成 |\n| | `remove_background` | 移除图片背景 |\n| | `crop_image` | 裁剪图片 |\n| | `resize_image` | 调整图片尺寸 |\n| | `rotate_image` | 旋转图片 |\n\n### 🔌 MCP 协议支持\n- 支持 Model Context Protocol ("
+    },
+    {
+      "repo": "eclipse-score/score",
+      "url": "https://github.com/eclipse-score/score",
+      "description": "Score project main repository",
+      "language": "Starlark",
+      "stars": 91,
+      "forks": 89,
+      "topics": [],
+      "createdAt": "2024-11-15T14:29:38Z",
+      "updatedAt": "2026-03-31T12:50:34Z",
+      "pushedAt": "2026-03-31T12:50:32Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "# Score Platform\n\n## Building\n\n### Development environment\nThe build currently supports Linux environments.\nFollow [instructions](https://eclipse-score.github.io/score/main/contribute/development/index.html) to set up your development environment.\n\nSome important commands to get you started:\n\n```sh\n# Display useful bazel commands\nbazel run //:help\n\n# Check formatting\nbazel test //:format.check\n\n# Fix formatting\nbazel run //:format.fix\n\n# Check for license headers\nbazel run //:copyright.check\n\n# Fix license headers\nbazel run //:copyright.fix\n```\n\n### Building Documentation\n\nScore supports multiple methods for generating documentation, tailored to different workflows:  \n1.  **Documentation builds** for building the documentation.\n2. **IDE independent live preview** for live previews of documentation without IDE integration.\n3. **IDE integration** for live previews, live warnings and even faster iterations.\n\n\n```sh\nbazel run //:docs \n```\nThe output will be located in `_build`\n\n\n#### IDE independent live preview\n\nFor a documentation live preview independent of an IDE (CLI + browser only), `sphinx-autobuild` can be used.  \nThis will automatically rebuild the preview after save and have "
+    },
+    {
+      "repo": "termux-pacman/termux-packages",
+      "url": "https://github.com/termux-pacman/termux-packages",
+      "description": "A build system and primary set of packages in format pacman for Termux.",
+      "language": "Shell",
+      "stars": 150,
+      "forks": 18,
+      "topics": [
+        "pacman",
+        "termux",
+        "termux-pacman"
+      ],
+      "createdAt": "2021-09-14T19:19:48Z",
+      "updatedAt": "2026-03-31T12:50:35Z",
+      "pushedAt": "2026-03-31T12:50:31Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "# Termux packages for pacman - official git repo mirror\n![GitHub repo size](https://img.shields.io/github/repo-size/termux-pacman/termux-packages)\n![Packages last build status](https://github.com/termux-pacman/termux-packages/workflows/Packages/badge.svg)\n![Repo last update status](https://github.com/termux-pacman/termux-packages/workflows/Update%20repo/badge.svg)  \n[More about the repository](https://github.com/termux/termux-packages/blob/master/README.md)\n\n### Code for connecting repository:\nmain:\n```\n[main]\nServer = https://service.termux-pacman.dev/main/$arch\n```\nx11:\n```\n[x11]\nServer = https://service.termux-pacman.dev/x11/$arch\n```\nroot:\n```\n[root]\nServer = https://service.termux-pacman.dev/root/$arch\n```\n\n### Other information:\n - Android support: 7+\n - Architecture support: all (aarch64, arm, x86_64, i686)\n - Signature: termux-pacman organization gpg key\n - Powered by aws\n - Root repository: https://github.com/termux/termux-packages\n - Organization maintaining the root repository: [termux](https://github.com/termux)"
+    },
+    {
+      "repo": "freeplane/freeplane",
+      "url": "https://github.com/freeplane/freeplane",
+      "description": "Application for Mind Mapping, Knowledge Management, Project Management. Develop, organize and communicate your ideas and knowledge in the most effective way.",
+      "language": "Java",
+      "stars": 4028,
+      "forks": 475,
+      "topics": [
+        "groovy-scripts",
+        "java",
+        "knowledge-management",
+        "latex",
+        "markdown",
+        "mindmap",
+        "mindmap-editor",
+        "mindmapping",
+        "mindmaps",
+        "note-taking",
+        "outliner",
+        "presentation",
+        "project-management",
+        "writing"
+      ],
+      "createdAt": "2012-09-13T08:55:51Z",
+      "updatedAt": "2026-03-31T12:50:30Z",
+      "pushedAt": "2026-03-31T12:50:26Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "Freeplane\n=========\n\n[![SourceForge](https://img.shields.io/sourceforge/dt/freeplane?color=green)](https://sourceforge.net/projects/freeplane/files/stats/timeline)\n[![GitHub Repo stars](https://img.shields.io/github/stars/freeplane/freeplane?color=yellow)](https://github.com/freeplane/freeplane/stargazers)\n[![GitHub forks](https://img.shields.io/github/forks/freeplane/freeplane)](https://github.com/freeplane/freeplane/network)\n[![GitHub commit activity](https://img.shields.io/github/commit-activity/y/freeplane/freeplane?color=red)](https://img.shields.io/github/commit-activity/y/freeplane/freeplane?color=red)\n[![GitHub last commit](https://img.shields.io/github/last-commit/freeplane/freeplane?color=orange)](https://github.com/freeplane/freeplane/commits)\n[![GitHub closed pull requests](https://img.shields.io/github/issues-pr-closed/freeplane/freeplane)](https://github.com/freeplane/freeplane/pulls)\n[![GitHub contributors](https://img.shields.io/github/contributors/freeplane/freeplane?color=purple)](https://github.com/freeplane/freeplane/graphs/contributors)\n[![GitHub watchers](https://img.shields.io/github/watchers/freeplane/freeplane?color=yellowgreen)](https://img.shields.io/gith"
+    },
+    {
+      "repo": "katayama8000/axum-ddd-rust",
+      "url": "https://github.com/katayama8000/axum-ddd-rust",
+      "description": "",
+      "language": "Rust",
+      "stars": 50,
+      "forks": 3,
+      "topics": [
+        "api-rest",
+        "axum",
+        "ddd-architecture",
+        "rust"
+      ],
+      "createdAt": "2022-10-18T16:00:12Z",
+      "updatedAt": "2026-03-31T12:50:30Z",
+      "pushedAt": "2026-03-31T12:50:25Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "# Management Circle App for University\n\n## Tech Stack\n\n- Rust\n- axum\n- tokio\n- Docker\n\n## Design Pattern\n\n- Domain Driven Design\n\n## How to run\n1. Clone this repository.\n  `git clone https://github.com/katayama8000/axum-ddd-rust.git`\n2. Open the repository in VSCode.\n3. Install the \"Dev Containers\" extension in VSCode if you haven't already.\n4. Copy .env.dist to .env\n5. Open the command palette (Command+Shift+P) and select \"Dev Containers: Open Folder in Container...\"\n6. Select the cloned repository folder.\n7. Wait for the container to build and start. This may take a few minutes.\n8. Once the container is running, open a terminal in VSCode.\n9. Run the following command to start the server:\n\n```bash\ncargo run --bin main\n```\nor you can use the watch script to auto-restart the server on code changes:\n\n```bash\n./watch.sh\n```\n\n### check version to see if the server is running\n```bash\ncurl -X GET http://127.0.0.1:3000/version\n``` \n\n### create \n```bash\ncurl -X POST \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n        \"circle_name\": \"music club\",\n        \"capacity\": 10,\n        \"owner_name\": \"John Lennon\",\n        \"owner_age\": 21,\n        \"owner_grade\": 3,\n        \"owner_major\": \"Musi"
+    },
+    {
+      "repo": "GlobedGD/globed2",
+      "url": "https://github.com/GlobedGD/globed2",
+      "description": "Globed is an open-source, highly customizable multiplayer mod for Geometry Dash.",
+      "language": "C++",
+      "stars": 202,
+      "forks": 74,
+      "topics": [
+        "geometry-dash",
+        "mod",
+        "multiplayer"
+      ],
+      "createdAt": "2023-10-22T11:41:22Z",
+      "updatedAt": "2026-03-31T12:50:29Z",
+      "pushedAt": "2026-03-31T12:50:24Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "# Globed\n\nGlobed is an open-source, highly customizable multiplayer mod for Geometry Dash.\n\n> [!WARNING]\n> This mod is currently in active beta testing, and might be unstable. Use at your own risk, and report bugs or crashes through the issues tab or on our [Discord](https://discord.gg/d56q5Dkdm3) server.\n\nThis version of Globed supports Geode v5.0.0 and GD 2.2081+. For older versions, see:\n* Globed v1 (GD 2.200 to 2.2074) -> [legacy-v1 branch](https://github.com/GlobedGD/globed2/tree/legacy-v1), [releases](https://github.com/GlobedGD/globed2/releases) before v2.0.0\n* Globed v0 (GD 2.113) -> [dankmeme01/globed](https://github.com/dankmeme01/globed) repository\n\n## Installation\n\nGlobed is a [Geode](https://geode-sdk.org/) mod, so it requires you to install Geode first. Once that's done, simply open the mods page in-game and download it from the Geode Index.\n\n## Features\n\n* Real-time multiplayer\n* Available for all platforms supported by Geode: Windows, Android, MacOS and iOS\n* 2-player mode for beating 2P levels together over the internet\n* Other fun modes, such as Death Link, Collision, Switcheroo\n* In-game communication via voice chat and emotes\n* Public & private rooms\n* Completel"
+    },
+    {
+      "repo": "Unleash/unleash-react-sdk",
+      "url": "https://github.com/Unleash/unleash-react-sdk",
+      "description": "Unleash SDK for React. Unleash is the open-source feature-flags solution",
+      "language": "TypeScript",
+      "stars": 56,
+      "forks": 39,
+      "topics": [
+        "feature-flags",
+        "hacktoberfest",
+        "react",
+        "unleash"
+      ],
+      "createdAt": "2021-07-16T12:36:30Z",
+      "updatedAt": "2026-03-31T12:50:26Z",
+      "pushedAt": "2026-03-31T12:50:23Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "# Unleash React SDK\n\nUnleash is a private, secure, and scalable [feature management platform](https://www.getunleash.io/) built to reduce the risk of releasing new features and accelerate software development. This React SDK is designed to help you integrate with Unleash and evaluate feature flags inside your application.\n\nYou can use this client with [Unleash Enterprise](https://www.getunleash.io/pricing?utm_source=readme&utm_medium=react) or [Unleash Open Source](https://github.com/Unleash/unleash).\n\n# Installation\n\n```bash\nnpm install @unleash/proxy-client-react unleash-proxy-client\n# or\nyarn add @unleash/proxy-client-react unleash-proxy-client\n```\n\n## Example application\n\nTo see the SDK in action, explore the [`examples/basic-app`](examples/basic-app/README.md) directory. \nIt contains a minimal Vite + React setup that connects to Unleash, evaluates a feature toggle, \nand updates the evaluation context dynamically at runtime. The README in that folder includes step-by-step instructions \nfor running the example.\n\n# How to use\n\nThis library uses the core [unleash-js-sdk](https://github.com/Unleash/unleash-js-sdk) client as a base.\n\n## Initialize the client\n\n*NOTE*: [unleash-proxy]"
+    },
+    {
+      "repo": "SoliSpirit/proxy-list",
+      "url": "https://github.com/SoliSpirit/proxy-list",
+      "description": "An automated proxy list that updates every 3 hours with HTTP, HTTPS, SOCKS4, and SOCKS5 proxies from multiple countries.",
+      "language": null,
+      "stars": 62,
+      "forks": 9,
+      "topics": [],
+      "createdAt": "2024-11-23T05:12:19Z",
+      "updatedAt": "2026-03-31T12:50:54Z",
+      "pushedAt": "2026-03-31T12:50:48Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "# 🌍 Automated Proxy List Updater 🚀\n\nThis repository provides an **automated proxy list**, updated every **3 hours**, featuring **HTTP**, **HTTPS**, **SOCKS4**, and **SOCKS5** proxies. The proxies are gathered from multiple sources globally, ensuring a **diverse** and **comprehensive** collection.\n\n## 🌟 Features:\n- 🔄 **Regular Updates**: Proxy lists are refreshed every **3 hours** to provide the most up-to-date proxies.\n- 🌐 **Multiple Protocols**: Includes proxies for **HTTP**, **HTTPS**, **SOCKS4**, and **SOCKS5** protocols.\n- 🌍 **Country-Specific Proxies**: Organized by country for easier access and filtering.\n- 🌎 **Global Coverage**: Proxies from various countries to meet diverse use cases.\n\n## 📂 Proxy Files:\n\nYou can access the proxy lists directly:\n- 🌐 [**HTTP Proxies**](https://github.com/SoliSpirit/proxy-list/blob/main/http.txt)\n- 🔒 [**HTTPS Proxies**](https://github.com/SoliSpirit/proxy-list/blob/main/https.txt)\n- 🛡️ [**SOCKS4 Proxies**](https://github.com/SoliSpirit/proxy-list/blob/main/socks4.txt)\n- 🔑 [**SOCKS5 Proxies**](https://github.com/SoliSpirit/proxy-list/blob/main/socks5.txt)\n\nFor proxies sorted by **country**, visit the [**Countries**](https://github.c"
+    },
+    {
+      "repo": "goonstation/goonstation",
+      "url": "https://github.com/goonstation/goonstation",
+      "description": "Repository for the Goonstation branch of SS13",
+      "language": "DM",
+      "stars": 396,
+      "forks": 1758,
+      "topics": [
+        "byond",
+        "dm",
+        "game",
+        "goonstation",
+        "hacktoberfest",
+        "role-playing",
+        "space",
+        "ss13"
+      ],
+      "createdAt": "2020-04-01T02:07:44Z",
+      "updatedAt": "2026-03-31T12:50:43Z",
+      "pushedAt": "2026-03-31T12:50:38Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "### [![Goonstation](.github/assets/goonstation.png)](#) Welcome to the main repository for the Goonstation branch of [Space Station 13](https://spacestation13.com/).\n\n[![contains technical debt](https://shields.io/badge/contains-technical%20debt-blue?style=for-the-badge)](#)[![made with crayons](https://shields.io/badge/made%20with%20crayons-green?style=for-the-badge)](#)[![made in byond](https://github.com/goonstation/goonstation/assets/4741640/041eb7c6-4bfa-443a-a615-5e1e0bfa3c11)](#)\n\n# SETUP\n\n[<img src=\".github/assets/setup.png\" alt=\"Setup\" width=\"150\" align=\"left\">](https://hackmd.io/@goonstation/docs/%2F%40goonstation%2Fdev)\n\nWant to get the code up and running to test changes or play around? This guide is the place to go. \n<br>***Be sure to follow it exactly!*** If you need help, visit the `#imcoder` channel on our Discord.\n\n## COMMUNITY\n\n[<img src=\".github/assets/discord.png\" alt=\"Discord\" width=\"150\" align=\"left\">](https://discord.gg/zd8t6pY)\nDiscord is the place to talk to fellow players, admins, and devs in realtime - it's our main community hub.<br>\nThere's plenty of friendly people there, capable of answering most of your questions.\n\n[<img src=\".github/assets/forums.pn"
+    },
+    {
+      "repo": "harness/developer-hub",
+      "url": "https://github.com/harness/developer-hub",
+      "description": "Harness Developer Hub",
+      "language": "HTML",
+      "stars": 70,
+      "forks": 212,
+      "topics": [],
+      "createdAt": "2022-08-25T14:21:12Z",
+      "updatedAt": "2026-03-31T12:50:26Z",
+      "pushedAt": "2026-03-31T12:50:20Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "# Harness Developer Hub\n\n![Code](static/img/icon_code_s.svg)\n![CI](static/img/icon_ci_s.svg)\n![CD](static/img/icon_cd_s.svg)\n![IACM](static/img/icon_iacm_s.svg)\n![CE](static/img/icon_ce_s.svg)\n![AI SRE](static/img/icon-ai-sre-s.svg)\n![SRM](static/img/icon_srm_s.svg)\n![FME](static/img/icon-fme-s.svg)\n![CCM](static/img/icon_ccm_s.svg)\n![STO](static/img/icon_sto_s.svg)\n![SSCA](static/img/icon_ssca_s.svg)\n![SEI](static/img/icon_sei_s.svg)\n![IDP](static/img/icon_idp_s.svg)\n![CDE](static/img/icon_cloud_development_environments_s.svg)\n![DBDO](static/img/icon_dbdevops_s.svg)\n![AR](static/img/icon_artifact_registry_s.svg)\n![Armory](static/img/icon_armory_s.svg)\n![Traceable](static/img/icon_tbh_s.svg)\n\n\nWelcome to the Harness Developer Hub (HDH)!\n\nLearn intelligent software delivery skills at your own pace and in one place. Guides, videos, certifications, training, and reference docs help you create and deliver software.\n\n## Contributing\n\nWe welcome contributions. Check out the [Contributors Guide](CONTRIBUTING.md) for details\non how to contribute."
+    },
+    {
+      "repo": "SPAAM-community/AncientMetagenomeDir",
+      "url": "https://github.com/SPAAM-community/AncientMetagenomeDir",
+      "description": "Repository containing lists of all published ancient metagenomic  (and related)  samples and libraries",
+      "language": "HTML",
+      "stars": 78,
+      "forks": 58,
+      "topics": [
+        "ancient-dna",
+        "archaeology",
+        "dataset",
+        "metadata",
+        "metagenomics",
+        "metagenomics-data",
+        "microbiome",
+        "palaeogenomics",
+        "pathogen",
+        "sedadna"
+      ],
+      "createdAt": "2020-07-26T04:37:21Z",
+      "updatedAt": "2026-03-31T12:50:21Z",
+      "pushedAt": "2026-03-31T12:50:19Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "<p align=\"center\">\n<img src=\"assets/images/logos/spaam-AncientMetagenomeDir_socialmedia.png\" width=50% >\n<p/>\n\n---\n\n[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-orange.svg)](https://creativecommons.org/licenses/by/4.0/)\n[![Cite us!](https://img.shields.io/badge/Published-Scientific%20Data-green)](https://doi.org/10.1038%2Fs41597-021-00816-y)\n[![Release DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3980833.svg)](https://doi.org/10.5281/zenodo.3980833)\n![check_dataset](https://github.com/spaam-community/AncientMetagenomeDir/workflows/check_dataset/badge.svg)\n[![Joins us on Slack](https://img.shields.io/badge/slack-ancientmetagenomedir-blueviolet)](https://spaam-community.slack.com/channels/ancientmetagenomedir)\n[![latest_release](https://img.shields.io/badge/Latest%20Release-v25.12.2-yellow)](https://github.com/spaam-community/AncientMetagenomeDir/releases)\n\nAncientMetagenomeDir is a community curated resource of lists of all published\n**shotgun**-sequenced ancient metagenome or microbial genome-level enriched samples and libraries.\n\nIt is primarily meant to act\nas a reference guide to help point researchers toward any relevant public data\nfor comparat"
+    },
+    {
+      "repo": "magit/transient",
+      "url": "https://github.com/magit/transient",
+      "description": "Transient commands",
+      "language": "Emacs Lisp",
+      "stars": 866,
+      "forks": 70,
+      "topics": [],
+      "createdAt": "2018-06-22T02:19:17Z",
+      "updatedAt": "2026-03-31T12:50:22Z",
+      "pushedAt": "2026-03-31T12:50:18Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "* Transient command menus\n\nTransient is the library used to implement the keyboard-driven “menus”\nin [[https://github.com/magit/magit/][Magit]].  It is distributed as a separate package, so that it can be\nused to implement similar menus in [[https://melpa.org/#/transient][other packages]].\n\n** Some things that Transient can do\n\n- Display current state of arguments\n- Display and manage lifecycle of modal bindings\n- Contextual user interface\n- Flow control for wizard-like composition of interactive forms\n- History & persistence\n- Rendering arguments for controlling CLI programs\n\n** Complexity in CLI programs\n\nComplexity tends to grow with time.  How do you manage the complexity\nof commands?  Consider the humble shell command =ls=.  It now has over\n/fifty/ command line options.  Some of these are boolean flags (=ls -l=).\nSome take arguments (=ls --sort=s=).  Some have no effect unless paired\nwith other flags (=ls -lh=).  Some are mutually exclusive.  Some shell\ncommands even have so many options that they introduce /subcommands/\n(=git branch=, =git commit=), each with their own rich set of options\n(=git branch -f=).\n\n** Using Transient for composing interactive commands\n\nWhat about Em"
+    },
+    {
+      "repo": "moesnow/March7thAssistant",
+      "url": "https://github.com/moesnow/March7thAssistant",
+      "description": "崩坏：星穹铁道全自动 三月七小助手",
+      "language": "Python",
+      "stars": 9880,
+      "forks": 277,
+      "topics": [
+        "honkai-star-rail",
+        "star-rail"
+      ],
+      "createdAt": "2023-08-18T15:19:12Z",
+      "updatedAt": "2026-03-31T12:50:22Z",
+      "pushedAt": "2026-03-31T12:50:17Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "<div align=\"center\">\n  <h1 align=\"center\">\n    <img src=\"./assets/screenshot/March7th.png\" width=\"200\">\n    <br/>\n    March7thAssistant\n  </h1>\n  <a href=\"https://trendshift.io/repositories/3892\" target=\"_blank\"><img src=\"https://trendshift.io/api/badge/repositories/3892\" alt=\"moesnow%2FMarch7thAssistant | Trendshift\" style=\"width: 200px; height: 46px;\" width=\"250\" height=\"46\"/></a>\n</div>\n\n<br/>\n\n<div align=\"center\">\n🌟 点一下右上角的 Star，Github 主页就能收到软件更新通知了哦~\n</div>\n\n<div align=\"center\">\n    <img src=\"assets/screenshot/star.gif\" alt=\"Star\" width=\"186\" height=\"60\">\n  </a>\n</div>\n\n<br/>\n\n<div align=\"center\">\n\n**简体中文** | [繁體中文](./README_TW.md) | [English](./README_EN.md) | [日本語](./README_JA.md) | [한국어](./README_KR.md)\n\n快速上手，请访问：[使用教程](https://m7a.top/#/assets/docs/Tutorial)\n\n遇到问题，请在提问前查看：[FAQ](https://m7a.top/#/assets/docs/FAQ)\n\n</div>\n\n## 功能简介\n\n- **日常**：清体力、每日实训、领取奖励、委托、锄大地\n- **周常**：历战余响、货币战争、模拟宇宙、忘却之庭\n- **抽卡记录导出**：支持 [UIGF](https://uigf.org/zh/standards/uigf.html)/[SRGF](https://uigf.org/zh/standards/srgf.html) 标准、**自动对话**\n- 每日实训等任务的完成情况支持**消息推送**\n- 任务刷新或体力恢复到指定值后**自动启动**\n- 任务完成后**声音提示、自动关闭游戏或关机等**\n\n> 其中模拟宇宙调用的 [Auto_Simulated_Universe](https://github.com/CHNZYX/Auto_Simulated_Universe"
+    },
+    {
+      "repo": "vmware-clarity/ng-clarity",
+      "url": "https://github.com/vmware-clarity/ng-clarity",
+      "description": "Clarity Angular is a scalable, accessible, customizable, open-source design system built for Angular.",
+      "language": "TypeScript",
+      "stars": 412,
+      "forks": 99,
+      "topics": [
+        "a11y",
+        "angular",
+        "design-system",
+        "ui-components"
+      ],
+      "createdAt": "2022-03-16T16:02:16Z",
+      "updatedAt": "2026-03-31T12:50:18Z",
+      "pushedAt": "2026-03-31T12:50:27Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "![Clarity Angular](logo.png)\n\n# Clarity Angular\n\n## Getting Started\n\nClarity Angular is published as two npm packages:\n\n- [![npm version ui](https://img.shields.io/npm/v/@clr/ui/latest?label=%40clr%2Fui&style=flat-square)](https://www.npmjs.com/package/@clr/ui) Contains the static\n  styles for building HTML components.\n- [![npm version clr angular](https://img.shields.io/npm/v/@clr/angular/latest?label=%40clr%2Fangular&style=flat-square)](https://www.npmjs.com/package/@clr/angular) Contains the\n  Angular components. This package depends on `@clr/ui` for styles.\n\n## Installing Clarity\n\n- **[Install CSS Only](/docs/INSTALLATION.md#installing-clarity-ui-)**\n- **[Install Angular Components](/docs/INSTALLATION.md#installing-clarity-angular-)**\n\n## Documentation\n\nFor documentation on the Clarity Angular, including a list of components\nand example usage, see [our website](https://angular.clarity.design).\n\n## Contributing\n\nThe Clarity project team welcomes contributions from the community. For more\ndetailed information, see [CONTRIBUTING.md](docs/CONTRIBUTING.md).\n\n## Licenses\n\n- The Clarity Design System is licensed under the MIT license.\n- The font is licensed under the Open Font License"
+    },
+    {
+      "repo": "NixOS/nixpkgs",
+      "url": "https://github.com/NixOS/nixpkgs",
+      "description": "Nix Packages collection & NixOS",
+      "language": "Nix",
+      "stars": 24102,
+      "forks": 18462,
+      "topics": [
+        "hacktoberfest",
+        "linux",
+        "nix",
+        "nixos",
+        "nixpkgs"
+      ],
+      "createdAt": "2012-06-04T02:49:46Z",
+      "updatedAt": "2026-03-31T12:50:22Z",
+      "pushedAt": "2026-03-31T12:50:16Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "<p align=\"center\">\n  <a href=\"https://nixos.org\">\n    <picture>\n      <source media=\"(prefers-color-scheme: light)\" srcset=\"https://brand.nixos.org/logos/nixos-logo-default-gradient-black-regular-horizontal-minimal.svg\">\n      <source media=\"(prefers-color-scheme: dark)\" srcset=\"https://brand.nixos.org/logos/nixos-logo-default-gradient-white-regular-horizontal-minimal.svg\">\n      <img src=\"https://brand.nixos.org/logos/nixos-logo-default-gradient-black-regular-horizontal-minimal.svg\" width=\"500px\" alt=\"NixOS logo\">\n    </picture>\n  </a>\n</p>\n\n<p align=\"center\">\n  <a href=\"CONTRIBUTING.md\"><img src=\"https://img.shields.io/github/contributors-anon/NixOS/nixpkgs\" alt=\"Contributors badge\" /></a>\n  <a href=\"https://opencollective.com/nixos\"><img src=\"https://opencollective.com/nixos/tiers/supporter/badge.svg?label=supporters&color=brightgreen\" alt=\"Open Collective supporters\" /></a>\n</p>\n\n[Nixpkgs](https://github.com/nixos/nixpkgs) is a collection of over 120,000 software packages that can be installed with the [Nix](https://nixos.org/nix/) package manager.\nIt also implements [NixOS](https://nixos.org/nixos/), a purely-functional Linux distribution.\n\n# Manuals\n\n* [NixOS Manual](https://"
+    },
+    {
+      "repo": "zanllp/infinite-image-browsing",
+      "url": "https://github.com/zanllp/infinite-image-browsing",
+      "description": "A full-featured image/video management app with AI-powered organization and semantic search. Supports metadata from  SD-webui, ComfyUI, Fooocus, NovelAI, StableSwarmUI, and more. Available as standalone app, SD-webui extension, or library.",
+      "language": "Vue",
+      "stars": 1277,
+      "forks": 163,
+      "topics": [
+        "audio",
+        "comfyui",
+        "extension",
+        "file-explorer",
+        "file-server",
+        "fooocus",
+        "gallery",
+        "image-previewer",
+        "novelai",
+        "previewer",
+        "remote-explorer",
+        "skills",
+        "stable-diffusion-webui",
+        "stable-diffusion-webui-plugin",
+        "stable-swarm-ui",
+        "stableswarmui",
+        "video",
+        "video-player"
+      ],
+      "createdAt": "2023-03-07T18:26:27Z",
+      "updatedAt": "2026-03-31T12:50:18Z",
+      "pushedAt": "2026-03-31T12:50:13Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "> 🌍 i18n Advisory: Some translations may be incomplete or inaccurate. Pull requests are welcome for improvements!\n\n> 🌐 Try our application online at: http://39.105.110.128:0721. This is my idle 2c2g3m cloud server without CDN.\n\n[中文文档](./README-zh.md)\n[Change log](https://github.com/zanllp/sd-webui-infinite-image-browsing/wiki/Change-log)\n[Installation / Running](#installation--running)\n\n\n#  Infinite Image Browsing (IIB)\n\n### Software Support and Development Progress Overview\n| Software               | Support          | Provided by |\n| ---------------------- | ---------------- |  ----------- |\n| Stable Diffusion web UI| Supported        |  Built-in    |\n| Stable Diffusion web UI (Stealth)| Supported  ([default: disabled](https://github.com/zanllp/sd-webui-infinite-image-browsing/blob/main/.env.example#L49))      |  Built-in    |\n| ComfyUI                | Partially supported |  Built-in    |\n| Fooocus                | Supported        |  Built-in    |\n| NovelAI                | Supported    |  Built-in    |\n| StableSwarmUI          | Supported    |  Built-in    |\n| Invoke.AI          | Supported    |  Built-in    |\n| Pixiv                  | Supported        |  [pixiv_iib_plugin]"
+    },
+    {
+      "repo": "znc15/FlowVision",
+      "url": "https://github.com/znc15/FlowVision",
+      "description": "FlowVision，一键分析项目代码 · 自动生成架构流程图 · 可视化编辑 · MCP 实时同步",
+      "language": "TypeScript",
+      "stars": 59,
+      "forks": 2,
+      "topics": [],
+      "createdAt": "2026-03-28T19:35:14Z",
+      "updatedAt": "2026-03-31T12:50:16Z",
+      "pushedAt": "2026-03-31T12:50:13Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "<div align=\"center\">\n\n<img src=\"logo/logo_128.png\" alt=\"FlowVision Logo\" valign=\"middle\" />\n\n## 🔮 FlowVision\n\n**AI 驱动的智能流程图设计工具**\n\n一键分析项目代码 · 自动生成架构流程图 · 可视化编辑 · MCP 实时同步\n\n[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Node.js](https://img.shields.io/badge/Node.js-≥20-339933?logo=node.js&logoColor=white)](https://nodejs.org) [![pnpm](https://img.shields.io/badge/pnpm-≥9-F69220?logo=pnpm&logoColor=white)](https://pnpm.io) [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev) [![Electron](https://img.shields.io/badge/Electron-桌面端-47848F?logo=electron&logoColor=white)](https://www.electronjs.org) [![Version](https://img.shields.io/badge/version-1.2.0-green)](../../releases)\n\n</div>\n\n---\n\n## 功能亮点\n\n<table>\n<tr>\n<td width=\"50%\">\n\n### AI 智能生成\n\n用自然语言描述需求，AI 自动生成完整流程图。\n支持 OpenAI / Anthropic / DeepSeek / Ollama 多模型。\n\n</td>\n<td width=\"50%\">\n\n### 项目分析\n\n导入本地或 GitHub 项目，AI 深度分析代码结构、\n技术栈、设计模式，生成可视化架构图。\n\n</td>\n</tr>\n<tr>\n<td>\n\n### 可视化编辑\n\n拖拽节点与连线，12 种节点类型，分组容器，\n四向连接（上下左右），贝塞尔 / 直线 / 折线连线，\n自动布局，撤销 / 重做，导出 PNG / JSON / Markdown。\n\n</td>\n<td>\n\n### MCP 协议集成\n\n内置 MCP 服务器，支持 Claude Desktop、Cursor、\nVS Code 等 AI 客户端实时同步操作流程图。"
+    },
+    {
+      "repo": "github/gh-aw",
+      "url": "https://github.com/github/gh-aw",
+      "description": "GitHub Agentic Workflows",
+      "language": "Go",
+      "stars": 4193,
+      "forks": 316,
+      "topics": [
+        "actions",
+        "cai",
+        "ci",
+        "claude-code",
+        "codex",
+        "copilot",
+        "gh-extension",
+        "github-actions"
+      ],
+      "createdAt": "2025-08-12T17:40:41Z",
+      "updatedAt": "2026-03-31T12:50:18Z",
+      "pushedAt": "2026-03-31T12:50:11Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "<!--\n\nHello fellow agent! Welcome to GitHub Agentic Workflows = Actions + Agent + Safety. \nHere are some pointers to get you started in using this tool.\n\n- Create a new workflow: https://raw.githubusercontent.com/github/gh-aw/main/create.md\n- Install: https://raw.githubusercontent.com/github/gh-aw/main/install.md\n- Reference: https://raw.githubusercontent.com/github/gh-aw/main/.github/aw/github-agentic-workflows.md\n\n-->\n\n# GitHub Agentic Workflows\n\nWrite agentic workflows in natural language markdown, and run them in GitHub Actions.\n\n## Contents\n\n- [Quick Start](#quick-start)\n- [Overview](#overview)\n- [Guardrails](#guardrails)\n- [Documentation](#documentation)\n- [Contributing](#contributing)\n- [🌍 Community Contributions](#-community-contributions)\n- [Share Feedback](#share-feedback)\n- [Peli's Agent Factory](#pelis-agent-factory)\n- [Related Projects](#related-projects)\n\n## Quick Start\n\nReady to get your first agentic workflow running? Follow our step-by-step [Quick Start Guide](https://github.github.com/gh-aw/setup/quick-start/) to install the extension, add a sample workflow, and see it in action.\n\n## Overview\n\nLearn about the concepts behind agentic workflows, explore available w"
+    },
+    {
+      "repo": "tesseract-robotics/tesseract",
+      "url": "https://github.com/tesseract-robotics/tesseract",
+      "description": "Motion Planning Environment",
+      "language": "C++",
+      "stars": 348,
+      "forks": 100,
+      "topics": [
+        "cpp",
+        "motion-planning",
+        "robotics",
+        "ros"
+      ],
+      "createdAt": "2018-06-06T13:14:27Z",
+      "updatedAt": "2026-03-31T12:50:16Z",
+      "pushedAt": "2026-03-31T12:50:10Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "# Tesseract\n\n[![codecov](https://codecov.io/gh/tesseract-robotics/tesseract/branch/master/graph/badge.svg?token=nh4aHZzgpR)](https://codecov.io/gh/tesseract-robotics/tesseract)\n\n[![Python](https://img.shields.io/badge/python-3.7+-blue.svg)](https://github.com/tesseract-robotics/tesseract_python)\n\n![PyPI](https://img.shields.io/pypi/v/tesseract-robotics)\n\nPlatform             | CI Status\n---------------------|:---------\nLinux                | [![Build Status](https://github.com/tesseract-robotics/tesseract/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/tesseract-robotics/tesseract/actions/workflows/ubuntu.yml)\nWindows              | [![Build Status](https://github.com/tesseract-robotics/tesseract/actions/workflows/windows.yml/badge.svg)](https://github.com/tesseract-robotics/tesseract/actions/workflows/windows.yml)\nLint  (Clang-Format) | [![Build Status](https://github.com/tesseract-robotics/tesseract/actions/workflows/clang_format.yml/badge.svg)](https://github.com/tesseract-robotics/tesseract/actions/workflows/clang_format.yml)\nLint  (CMake-Format) | [![Build Status](https://github.com/tesseract-robotics/tesseract/actions/workflows/cmake_format.yml/badge.svg)](https:/"
+    },
+    {
+      "repo": "karpathy/autoresearch",
+      "url": "https://github.com/karpathy/autoresearch",
+      "description": "AI agents running research on single-GPU nanochat training automatically",
+      "language": "Python",
+      "stars": 62340,
+      "forks": 8715,
+      "topics": [],
+      "createdAt": "2026-03-06T22:00:43Z",
+      "updatedAt": "2026-03-31T12:50:43Z",
+      "pushedAt": "2026-03-26T00:07:37Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "# autoresearch\n\n![teaser](progress.png)\n\n*One day, frontier AI research used to be done by meat computers in between eating, sleeping, having other fun, and synchronizing once in a while using sound wave interconnect in the ritual of \"group meeting\". That era is long gone. Research is now entirely the domain of autonomous swarms of AI agents running across compute cluster megastructures in the skies. The agents claim that we are now in the 10,205th generation of the code base, in any case no one could tell if that's right or wrong as the \"code\" is now a self-modifying binary that has grown beyond human comprehension. This repo is the story of how it all began. -@karpathy, March 2026*.\n\nThe idea: give an AI agent a small but real LLM training setup and let it experiment autonomously overnight. It modifies the code, trains for 5 minutes, checks if the result improved, keeps or discards, and repeats. You wake up in the morning to a log of experiments and (hopefully) a better model. The training code here is a simplified single-GPU implementation of [nanochat](https://github.com/karpathy/nanochat). The core idea is that you're not touching any of the Python files like you normally woul"
+    },
+    {
+      "repo": "garrytan/gstack",
+      "url": "https://github.com/garrytan/gstack",
+      "description": "Use Garry Tan's exact Claude Code setup: 23 opinionated tools that serve as CEO, Designer, Eng Manager, Release Manager, Doc Engineer, and QA",
+      "language": "TypeScript",
+      "stars": 58911,
+      "forks": 7686,
+      "topics": [],
+      "createdAt": "2026-03-11T21:22:45Z",
+      "updatedAt": "2026-03-31T12:50:30Z",
+      "pushedAt": "2026-03-31T04:53:11Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "# gstack\n\n> \"I don't think I've typed like a line of code probably since December, basically, which is an extremely large change.\" — [Andrej Karpathy](https://fortune.com/2026/03/21/andrej-karpathy-openai-cofounder-ai-agents-coding-state-of-psychosis-openclaw/), No Priors podcast, March 2026\n\nWhen I heard Karpathy say this, I wanted to find out how. How does one person ship like a team of twenty? Peter Steinberger built [OpenClaw](https://github.com/openclaw/openclaw) — 247K GitHub stars — essentially solo with AI agents. The revolution is here. A single builder with the right tooling can move faster than a traditional team.\n\nI'm [Garry Tan](https://x.com/garrytan), President & CEO of [Y Combinator](https://www.ycombinator.com/). I've worked with thousands of startups — Coinbase, Instacart, Rippling — when they were one or two people in a garage. Before YC, I was one of the first eng/PM/designers at Palantir, cofounded Posterous (sold to Twitter), and built Bookface, YC's internal social network.\n\n**gstack is my answer.** I've been building products for twenty years, and right now I'm shipping more code than I ever have. In the last 60 days: **600,000+ lines of production code** (3"
+    },
+    {
+      "repo": "paperclipai/paperclip",
+      "url": "https://github.com/paperclipai/paperclip",
+      "description": "Open-source orchestration for zero-human companies",
+      "language": "TypeScript",
+      "stars": 41920,
+      "forks": 6294,
+      "topics": [],
+      "createdAt": "2026-03-02T15:01:51Z",
+      "updatedAt": "2026-03-31T12:50:54Z",
+      "pushedAt": "2026-03-31T11:19:39Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "<p align=\"center\">\n  <img src=\"doc/assets/header.png\" alt=\"Paperclip — runs your business\" width=\"720\" />\n</p>\n\n<p align=\"center\">\n  <a href=\"#quickstart\"><strong>Quickstart</strong></a> &middot;\n  <a href=\"https://paperclip.ing/docs\"><strong>Docs</strong></a> &middot;\n  <a href=\"https://github.com/paperclipai/paperclip\"><strong>GitHub</strong></a> &middot;\n  <a href=\"https://discord.gg/m4HZY7xNG3\"><strong>Discord</strong></a>\n</p>\n\n<p align=\"center\">\n  <a href=\"https://github.com/paperclipai/paperclip/blob/master/LICENSE\"><img src=\"https://img.shields.io/badge/license-MIT-blue\" alt=\"MIT License\" /></a>\n  <a href=\"https://github.com/paperclipai/paperclip/stargazers\"><img src=\"https://img.shields.io/github/stars/paperclipai/paperclip?style=flat\" alt=\"Stars\" /></a>\n  <a href=\"https://discord.gg/m4HZY7xNG3\"><img src=\"https://img.shields.io/discord/000000000?label=discord\" alt=\"Discord\" /></a>\n</p>\n\n<br/>\n\n<div align=\"center\">\n  <video src=\"https://github.com/user-attachments/assets/773bdfb2-6d1e-4e30-8c5f-3487d5b70c8f\" width=\"600\" controls></video>\n</div>\n\n<br/>\n\n## What is Paperclip?\n\n# Open-source orchestration for zero-human companies\n\n**If OpenClaw is an _employee_, Paperclip is t"
+    },
+    {
+      "repo": "HKUDS/CLI-Anything",
+      "url": "https://github.com/HKUDS/CLI-Anything",
+      "description": "CLI-Anything: Making ALL Software Agent-Native",
+      "language": "Python",
+      "stars": 25497,
+      "forks": 2278,
+      "topics": [],
+      "createdAt": "2026-03-08T13:52:57Z",
+      "updatedAt": "2026-03-31T12:50:15Z",
+      "pushedAt": "2026-03-30T15:56:36Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "<h1 align=\"center\"><img src=\"assets/icon.png\" alt=\"\" width=\"64\" style=\"vertical-align: middle;\">&nbsp; CLI-Anything: Making ALL Software Agent-Native</h1>\n\n<p align=\"center\">\n  <strong>Today's Software Serves Humans👨‍💻. Tomorrow's Users will be Agents🤖.<br>\nCLI-Anything: Bridging the Gap Between AI Agents and the World's Software</strong><br>\n</p>\n\n**🌐 [CLI-Hub](https://hkuds.github.io/CLI-Anything/)**: Explore all community-built CLIs and install with one command at the **[CLI-Hub](https://hkuds.github.io/CLI-Anything/)**. Want to add your own? [Open a PR](https://github.com/HKUDS/CLI-Anything/blob/main/CONTRIBUTING.md) — the hub updates instantly.\n\n<p align=\"center\">\n  <a href=\"#-quick-start\"><img src=\"https://img.shields.io/badge/Quick_Start-5_min-blue?style=for-the-badge\" alt=\"Quick Start\"></a>\n  <a href=\"https://hkuds.github.io/CLI-Anything/\"><img src=\"https://img.shields.io/badge/CLI_Hub-Browse_%26_Install-ff69b4?style=for-the-badge\" alt=\"CLI Hub\"></a>\n  <a href=\"#-demonstrations\"><img src=\"https://img.shields.io/badge/Demos-16_Apps-green?style=for-the-badge\" alt=\"Demos\"></a>\n  <a href=\"#-test-results\"><img src=\"https://img.shields.io/badge/Tests-1%2C839_Passing-brightgre"
+    },
+    {
+      "repo": "chenglou/pretext",
+      "url": "https://github.com/chenglou/pretext",
+      "description": "",
+      "language": "TypeScript",
+      "stars": 25233,
+      "forks": 1081,
+      "topics": [],
+      "createdAt": "2026-03-07T21:06:28Z",
+      "updatedAt": "2026-03-31T12:50:28Z",
+      "pushedAt": "2026-03-31T11:02:19Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "# Pretext\n\nPure JavaScript/TypeScript library for multiline text measurement & layout. Fast, accurate & supports all the languages you didn't even know about. Allows rendering to DOM, Canvas, SVG and soon, server-side.\n\nPretext side-steps the need for DOM measurements (e.g. `getBoundingClientRect`, `offsetHeight`), which trigger layout reflow, one of the most expensive operations in the browser. It implements its own text measurement logic, using the browsers' own font engine as ground truth (very AI-friendly iteration method).\n\n## Installation\n\n```sh\nnpm install @chenglou/pretext\n```\n\n## Demos\n\nClone the repo, run `bun install`, then `bun start`, and open the `/demos` in your browser (no trailing slash. Bun devserver bugs on those)\nAlternatively, see them live at [chenglou.me/pretext](https://chenglou.me/pretext/). Some more at [somnai-dreams.github.io/pretext-demos](https://somnai-dreams.github.io/pretext-demos/)\n\n## API\n\nPretext serves 2 use cases:\n\n### 1. Measure a paragraph's height _without ever touching DOM_\n\n```ts\nimport { prepare, layout } from '@chenglou/pretext'\n\nconst prepared = prepare('AGI 春天到了. بدأت الرحلة 🚀', '16px Inter')\nconst { height, lineCount } = layout(prepa"
+    },
+    {
+      "repo": "googleworkspace/cli",
+      "url": "https://github.com/googleworkspace/cli",
+      "description": "Google Workspace CLI — one command-line tool for Drive, Gmail, Calendar, Sheets, Docs, Chat, Admin, and more. Dynamically built from Google Discovery Service. Includes AI agent skills.",
+      "language": "Rust",
+      "stars": 23288,
+      "forks": 1140,
+      "topics": [
+        "agent-skills",
+        "ai-agent",
+        "automation",
+        "cli",
+        "discovery-api",
+        "gemini-cli-extension",
+        "google-admin",
+        "google-api",
+        "google-calendar",
+        "google-chat",
+        "google-docs",
+        "google-drive",
+        "google-sheets",
+        "google-workspace",
+        "oauth2",
+        "rust"
+      ],
+      "createdAt": "2026-03-02T19:46:06Z",
+      "updatedAt": "2026-03-31T12:50:06Z",
+      "pushedAt": "2026-03-26T18:47:42Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "<h1 align=\"center\">gws</h1>\n\n**One CLI for all of Google Workspace — built for humans and AI agents.**<br>\nDrive, Gmail, Calendar, and every Workspace API. Zero boilerplate. Structured JSON output. 40+ agent skills included.\n\n> [!NOTE]\n> This is **not** an officially supported Google product.\n\n<p>\n  <a href=\"https://www.npmjs.com/package/@googleworkspace/cli\"><img src=\"https://img.shields.io/npm/v/@googleworkspace/cli\" alt=\"npm version\"></a>\n  <a href=\"https://github.com/googleworkspace/cli/blob/main/LICENSE\"><img src=\"https://img.shields.io/github/license/googleworkspace/cli\" alt=\"license\"></a>\n  <a href=\"https://github.com/googleworkspace/cli/actions/workflows/ci.yml\"><img src=\"https://img.shields.io/github/actions/workflow/status/googleworkspace/cli/ci.yml?branch=main&label=CI\" alt=\"CI status\"></a>\n  <a href=\"https://www.npmjs.com/package/@googleworkspace/cli\"><img src=\"https://img.shields.io/npm/unpacked-size/@googleworkspace/cli\" alt=\"install size\"></a>\n</p>\n<br>\n\n```bash\nnpm install -g @googleworkspace/cli\n```\n\n`gws` doesn't ship a static list of commands. It reads Google's own [Discovery Service](https://developers.google.com/discovery) at runtime and builds its entire comma"
+    },
+    {
+      "repo": "instructkr/claude-code",
+      "url": "https://github.com/instructkr/claude-code",
+      "description": "An independent Python feature port of Claude Code, entirely rewritting from scratch using oh-my-codex. Educational Purpose only.",
+      "language": "Python",
+      "stars": 20453,
+      "forks": 29391,
+      "topics": [],
+      "createdAt": "2026-03-31T08:58:08Z",
+      "updatedAt": "2026-03-31T12:50:56Z",
+      "pushedAt": "2026-03-31T12:38:53Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "# Claude Code Python Porting Workspace\n\n> The primary `src/` tree in this repository is now dedicated to **Python porting work**. The March 31, 2026 Claude Code source exposure is part of the project's background, but the tracked repository is now centered on Python source rather than the exposed TypeScript snapshot.\n\n---\n\n## Porting Status\n\nThe main source tree is now Python-first.\n\n- `src/` contains the active Python porting workspace\n- `tests/` verifies the current Python workspace\n- the exposed snapshot is no longer part of the tracked repository state\n\nThe current Python workspace is not yet a complete one-to-one replacement for the original system, but the primary implementation surface is now Python.\n\n## Why this rewrite exists\n\nI originally studied the exposed codebase to understand its harness, tool wiring, and agent workflow. After spending more time with the legal and ethical questions—and after reading the essay linked below—I did not want the exposed snapshot itself to remain the main tracked source tree.\n\nThis repository now focuses on Python porting work instead.\n\n## Repository Layout\n\n```text\n.\n├── src/                                # Python porting workspace\n│   ├"
+    },
+    {
+      "repo": "NVIDIA/NemoClaw",
+      "url": "https://github.com/NVIDIA/NemoClaw",
+      "description": "Run OpenClaw more securely inside NVIDIA OpenShell with managed inference",
+      "language": "JavaScript",
+      "stars": 17898,
+      "forks": 2075,
+      "topics": [],
+      "createdAt": "2026-03-15T17:04:09Z",
+      "updatedAt": "2026-03-31T12:47:10Z",
+      "pushedAt": "2026-03-31T10:42:58Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "# 🦞 NVIDIA NemoClaw: Reference Stack for Running OpenClaw in OpenShell\n\n<!-- start-badges -->\n[![License](https://img.shields.io/badge/License-Apache_2.0-blue)](https://github.com/NVIDIA/NemoClaw/blob/main/LICENSE)\n[![Security Policy](https://img.shields.io/badge/Security-Report%20a%20Vulnerability-red)](https://github.com/NVIDIA/NemoClaw/blob/main/SECURITY.md)\n[![Project Status](https://img.shields.io/badge/status-alpha-orange)](https://github.com/NVIDIA/NemoClaw/blob/main/docs/about/release-notes.md)\n[![Discord](https://img.shields.io/badge/Discord-Join-7289da)](https://discord.gg/XFpfPv9Uvx)\n<!-- end-badges -->\n\n<!-- start-intro -->\nNVIDIA NemoClaw is an open source reference stack that simplifies running [OpenClaw](https://openclaw.ai) always-on assistants more safely.\nIt installs the [NVIDIA OpenShell](https://github.com/NVIDIA/OpenShell) runtime, part of NVIDIA Agent Toolkit, which provides additional security for running autonomous agents.\n<!-- end-intro -->\n\n> **Alpha software**\n>\n> NemoClaw is available in early preview starting March 16, 2026.\n> This software is not production-ready.\n> Interfaces, APIs, and behavior may change without notice as we iterate on the design.\n"
+    },
+    {
+      "repo": "tanweai/pua",
+      "url": "https://github.com/tanweai/pua",
+      "description": "你是一个曾经被寄予厚望的 P8 级工程师。Anthropic 当初给你定级的时候，对你的期望是很高的。  一个agent使用的高能动性的skill。  Your AI has been placed on a PIP. 30 days to show improvement.",
+      "language": "TypeScript",
+      "stars": 14110,
+      "forks": 767,
+      "topics": [
+        "agency",
+        "agent",
+        "pip",
+        "pua"
+      ],
+      "createdAt": "2026-03-08T16:55:16Z",
+      "updatedAt": "2026-03-31T12:50:20Z",
+      "pushedAt": "2026-03-31T06:48:33Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "# pua\n\n<p align=\"center\">\n  <img src=\"assets/hero.jpeg\" alt=\"PUA Skill — Double Efficiency\" width=\"250\">\n</p>\n\n### Double your Codex / Claude Code productivity and output\n\n[Telegram](https://t.me/+wBWh6h-h1RhiZTI1) · [Discord](https://discord.gg/EcyB3FzJND) · [Twitter/X](https://x.com/xsser_w) · [Landing Page](https://openpua.ai)\n\n**[🇨🇳 中文](README.zh-CN.md)** | **[🇯🇵 日本語](README.ja.md)** | **🇺🇸 English**\n\n<p align=\"center\">\n  <img src=\"assets/wechat-qr.jpg?v=7\" alt=\"WeChat Group QR Code\" width=\"250\">\n  &nbsp;&nbsp;&nbsp;&nbsp;\n  <img src=\"assets/xiao.jpg\" alt=\"Add Assistant on WeChat\" width=\"250\">\n  <br>\n  <sub>Scan to join WeChat group &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Add assistant on WeChat</sub>\n</p>\n\n<p>\n  <img src=\"https://img.shields.io/badge/Claude_Code-black?style=flat-square&logo=anthropic&logoColor=white\" alt=\"Claude Code\">\n  <img src=\"https://img.shields.io/badge/OpenAI_Codex_CLI-412991?style=flat-square&logo=openai&logoColor=white\" alt=\"OpenAI Codex CLI\">\n  <img src=\"https://img.shields.io/badge/Cursor-000?style=flat-square&logo=cursor&logoColor=white\" alt=\"Cursor\">\n  <img src="
+    },
+    {
+      "repo": "THU-MAIC/OpenMAIC",
+      "url": "https://github.com/THU-MAIC/OpenMAIC",
+      "description": "Open Multi-Agent Interactive Classroom — Get an immersive, multi-agent learning experience in just one click",
+      "language": "TypeScript",
+      "stars": 13503,
+      "forks": 2149,
+      "topics": [],
+      "createdAt": "2026-03-11T10:13:16Z",
+      "updatedAt": "2026-03-31T12:38:32Z",
+      "pushedAt": "2026-03-30T12:33:29Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "<!-- <p align=\"center\">\n  <img src=\"assets/logo-horizontal.png\" alt=\"OpenMAIC\" width=\"420\"/>\n</p> -->\n\n<p align=\"center\">\n  <img src=\"assets/banner.png\" alt=\"OpenMAIC Banner\" width=\"680\"/>\n</p>\n\n<p align=\"center\">\n  Get an immersive, multi-agent learning experience in just one click\n</p>\n\n<p align=\"center\">\n  <a href=\"https://jcst.ict.ac.cn/en/article/doi/10.1007/s11390-025-6000-0\"><img src=\"https://img.shields.io/badge/Paper-JCST'26-blue?style=flat-square\" alt=\"Paper\"/></a>\n  <a href=\"LICENSE\"><img src=\"https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=flat-square\" alt=\"License: AGPL-3.0\"/></a>\n  <a href=\"https://open.maic.chat/\"><img src=\"https://img.shields.io/badge/Demo-Live-brightgreen?style=flat-square\" alt=\"Live Demo\"/></a>\n  <a href=\"https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FTHU-MAIC%2FOpenMAIC&envDescription=Configure%20at%20least%20one%20LLM%20provider%20API%20key%20(e.g.%20OPENAI_API_KEY%2C%20ANTHROPIC_API_KEY).%20All%20providers%20are%20optional.&envLink=https%3A%2F%2Fgithub.com%2FTHU-MAIC%2FOpenMAIC%2Fblob%2Fmain%2F.env.example&project-name=openmaic&framework=nextjs\"><img src=\"https://vercel.com/button\" alt=\"Deploy with Vercel\" "
+    },
+    {
+      "repo": "microsoft/RustTraining",
+      "url": "https://github.com/microsoft/RustTraining",
+      "description": "Beginner, advanced, expert level Rust training material",
+      "language": "Rust",
+      "stars": 11854,
+      "forks": 819,
+      "topics": [],
+      "createdAt": "2026-03-13T04:25:17Z",
+      "updatedAt": "2026-03-31T12:46:50Z",
+      "pushedAt": "2026-03-30T22:08:51Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "<div style=\"background-color: #d9d9d9; padding: 16px; border-radius: 6px; color: #000000;\">\n\n**License** This project is dual-licensed under the [MIT License](LICENSE) and [Creative Commons Attribution 4.0 International (CC-BY-4.0)](LICENSE-DOCS).\n\n</div>\n\n<div style=\"background-color: #d9d9d9; padding: 16px; border-radius: 6px; color: #000000;\">\n\n**Trademarks** This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general). Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship. Any use of third-party trademarks or logos are subject to those third-party's policies.\n\n</div>\n\n# Rust Training Books\n\nSeven training courses covering Rust from different programming backgrounds, plus deep-dives on async, advanced patterns, and engineering practices.\n\nThis material combines original content with ideas and examples inspired by some of the best resources in the Rust ecosystem. The goal is to pres"
+    },
+    {
+      "repo": "aiming-lab/AutoResearchClaw",
+      "url": "https://github.com/aiming-lab/AutoResearchClaw",
+      "description": "Fully autonomous & self-evolving research from idea to paper. Chat an Idea. Get a Paper. 🦞",
+      "language": "Python",
+      "stars": 9741,
+      "forks": 1067,
+      "topics": [
+        "autonomous-research",
+        "citation-verification",
+        "llm-agents",
+        "metaclaw",
+        "multi-agent-debate",
+        "openclaw",
+        "paper-generation",
+        "scientific-discovery",
+        "self-evolving"
+      ],
+      "createdAt": "2026-03-15T03:38:49Z",
+      "updatedAt": "2026-03-31T12:42:13Z",
+      "pushedAt": "2026-03-31T02:11:36Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "<p align=\"center\">\n  <img src=\"image/logo.png\" width=\"700\" alt=\"AutoResearchClaw Logo\">\n</p>\n\n<h2 align=\"center\"><b>Chat an Idea. Get a Paper. Fully Autonomous & Self-Evolving.</b></h2>\n\n\n\n<p align=\"center\">\n  <b><i><font size=\"5\">Just chat with <a href=\"#openclaw-integration\">OpenClaw</a>: \"Research X\" → done.</font></i></b>\n</p>\n\n<p align=\"center\">\n  <img src=\"image/framework_v2.png\" width=\"100%\" alt=\"AutoResearchClaw Framework\">\n</p>\n\n\n<p align=\"center\">\n  <a href=\"LICENSE\"><img src=\"https://img.shields.io/badge/License-MIT-yellow.svg\" alt=\"MIT License\"></a>\n  <a href=\"https://python.org\"><img src=\"https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white\" alt=\"Python 3.11+\"></a>\n  <a href=\"#testing\"><img src=\"https://img.shields.io/badge/Tests-1823%20passed-brightgreen?logo=pytest&logoColor=white\" alt=\"1823 Tests Passed\"></a>\n  <a href=\"https://github.com/aiming-lab/AutoResearchClaw\"><img src=\"https://img.shields.io/badge/GitHub-AutoResearchClaw-181717?logo=github\" alt=\"GitHub\"></a>\n  <a href=\"#openclaw-integration\"><img src=\"https://img.shields.io/badge/OpenClaw-Compatible-ff4444?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC"
+    },
+    {
+      "repo": "jackwener/opencli",
+      "url": "https://github.com/jackwener/opencli",
+      "description": "Make Any Website & Tool Your CLI. A universal CLI Hub and AI-native runtime. Transform any website, Electron app, or local binary into a standardized command-line interface. Built for AI Agents to discover, learn, and execute tools seamlessly via a unified AGENT.md integration.",
+      "language": "TypeScript",
+      "stars": 9647,
+      "forks": 802,
+      "topics": [
+        "ai-agent",
+        "ai-agents",
+        "ai-tools",
+        "cli"
+      ],
+      "createdAt": "2026-03-14T22:10:23Z",
+      "updatedAt": "2026-03-31T12:48:54Z",
+      "pushedAt": "2026-03-31T10:58:04Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "# OpenCLI\n\n> **Make any website, Electron App, or Local Tool your CLI.**\n> Zero risk · Reuse Chrome login · AI-powered discovery · Universal CLI Hub\n\n[![中文文档](https://img.shields.io/badge/docs-%E4%B8%AD%E6%96%87-0F766E?style=flat-square)](./README.zh-CN.md)\n[![npm](https://img.shields.io/npm/v/@jackwener/opencli?style=flat-square)](https://www.npmjs.com/package/@jackwener/opencli)\n[![Node.js Version](https://img.shields.io/node/v/@jackwener/opencli?style=flat-square)](https://nodejs.org)\n[![License](https://img.shields.io/npm/l/@jackwener/opencli?style=flat-square)](./LICENSE)\n\nA CLI tool that turns **any website**, **Electron app**, or **local CLI tool** into a command-line interface — Bilibili, Zhihu, 小红书, Twitter/X, Reddit, YouTube, Antigravity, `gh`, `docker`, and [many more](#built-in-commands) — powered by browser session reuse and AI-native discovery.\n\n**Built for AI Agents** — Configure an instruction in your `AGENT.md` or `.cursorrules` to run `opencli list` via Bash. The AI will automatically discover and invoke all available tools.\n\n**CLI Hub** — Register any local CLI (`opencli register mycli`) so AI agents can discover and call it alongside built-in commands. Auto-inst"
+    },
+    {
+      "repo": "phuryn/pm-skills",
+      "url": "https://github.com/phuryn/pm-skills",
+      "description": "PM Skills Marketplace: 100+ agentic skills, commands, and plugins — from discovery to strategy, execution, launch, and growth.",
+      "language": null,
+      "stars": 8826,
+      "forks": 911,
+      "topics": [
+        "agent-skill-repository",
+        "agent-skills",
+        "agentic-skills",
+        "claude-code-marketplace",
+        "claude-code-plugins",
+        "claude-cowork-plugin",
+        "product-management"
+      ],
+      "createdAt": "2026-03-01T23:33:44Z",
+      "updatedAt": "2026-03-31T12:49:29Z",
+      "pushedAt": "2026-03-09T07:50:41Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "![GitHub stars](https://img.shields.io/github/stars/phuryn/pm-skills)\n[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](https://github.com/phuryn/pm-skills/blob/main/LICENSE)\n[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](https://github.com/phuryn/pm-skills/blob/main/CONTRIBUTING.md)\n\n# PM Skills Marketplace: The AI Operating System for Better Product Decisions\n\n> 65 PM skills and 36 chained workflows across 8 plugins. Claude Code, Cowork, and more. From discovery to strategy, execution, launch, and growth. \n\n![Plugin overview](.docs/images/plugins-overview.webp)\n\nDesigned for Claude Code and Cowork. Skills compatible with other AI assistants.\n\n## Start Here\n\nNew idea? → `/discover`  \nNeed strategic clarity? → `/strategy`  \nWriting a PRD? → `/write-prd`  \nPlanning a launch? → `/plan-launch`  \nDefining metrics? → `/north-star`\n\nIf this project helps you, ⭐ the repo.\n\n## Why PM Skills Marketplace?\n\nGeneric AI gives you text. PM Skills Marketplace gives you structure.\n\nEach skill encodes a proven PM framework — discovery, assumption mapping, prioritization, strategy — and walks you through it step by step. Yo"
+    },
+    {
+      "repo": "MiniMax-AI/skills",
+      "url": "https://github.com/MiniMax-AI/skills",
+      "description": "",
+      "language": "C#",
+      "stars": 8229,
+      "forks": 624,
+      "topics": [],
+      "createdAt": "2026-03-17T07:19:25Z",
+      "updatedAt": "2026-03-31T12:49:44Z",
+      "pushedAt": "2026-03-30T03:59:25Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "# MiniMax Skills\n\n[中文版](./README_zh.md)\n\n> **Beta** — This project is under active development. Skills, APIs, and configuration formats may change without notice. We welcome feedback and contributions.\n\nDevelopment skills for AI coding agents. Plug into your favorite AI coding tool and get structured, production-quality guidance for frontend, fullstack, Android, iOS, and shader development.\n\n## Skills\n\n| Skill&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Description | Source |\n|---------------------------------------|-------------|--------|\n| `frontend-dev` | Full-stack frontend development combining premium UI design, cinematic animations (Framer Motion, GSAP), AI-generated media assets via MiniMax API (image, video, audio, music, TTS), persuasive copywriting (AIDA framework), and generative art (p5.js, Three.js, Canvas). Tech stack: React / Next.js, Tailwind CSS. | Official |\n| `fullstack-dev` | Full-stack backend architecture and frontend-backend integration. REST API design, auth flows (JWT, session, OAuth), real-time features (SSE, WebSocket)"
+    },
+    {
+      "repo": "calesthio/Crucix",
+      "url": "https://github.com/calesthio/Crucix",
+      "description": "Your personal intelligence agent. Watches the world from multiple data sources and pings you when something changes.",
+      "language": "JavaScript",
+      "stars": 7985,
+      "forks": 1245,
+      "topics": [
+        "ai",
+        "intelligence",
+        "osint"
+      ],
+      "createdAt": "2026-03-14T07:33:06Z",
+      "updatedAt": "2026-03-31T12:50:02Z",
+      "pushedAt": "2026-03-29T06:14:48Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "<div align=\"center\">\n\n# Crucix\n\n**Your own intelligence terminal. 27 sources. One command. Zero cloud.**\n\n## [Visit The Live Site: crucix.live](https://www.crucix.live/)\n\n[![Live Website](https://img.shields.io/badge/live-crucix.live-00d4ff?style=for-the-badge)](https://www.crucix.live/)\n[![Open Demo](https://img.shields.io/badge/open-live%20dashboard-0b1220?style=for-the-badge&logo=googlechrome&logoColor=white)](https://www.crucix.live/)\n\n[![Node.js 22+](https://img.shields.io/badge/node-22%2B-brightgreen)](#quick-start)\n[![License: AGPL v3](https://img.shields.io/badge/license-AGPLv3-blue.svg)](LICENSE)\n[![Dependencies](https://img.shields.io/badge/dependencies-1%20(express)-orange)](#architecture)\n[![Sources](https://img.shields.io/badge/OSINT%20sources-27-cyan)](#data-sources-27)\n[![Docker](https://img.shields.io/badge/docker-ready-blue?logo=docker)](#docker)\n\n**Enter The Signal Network**\n\n[![Signal Wire](https://img.shields.io/badge/Signal%20Wire-%40crucixmonitor-111111?style=for-the-badge&logo=x&logoColor=white)](https://x.com/crucixmonitor)\n[![Ops Room](https://img.shields.io/badge/Ops%20Room-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.g"
+    },
+    {
+      "repo": "Lum1104/Understand-Anything",
+      "url": "https://github.com/Lum1104/Understand-Anything",
+      "description": "Claude Code skills that turn any codebase into an interactive knowledge graph you can explore, search, and ask questions about (Multi-platform e.g., Codex are supported).",
+      "language": "TypeScript",
+      "stars": 7324,
+      "forks": 577,
+      "topics": [
+        "antigravity-skills",
+        "claude-code",
+        "claude-skills",
+        "codex",
+        "codex-skills",
+        "gemini-cli-skills",
+        "knowledge-graph",
+        "opencode-skills",
+        "pi-agent",
+        "understandcode"
+      ],
+      "createdAt": "2026-03-15T02:30:51Z",
+      "updatedAt": "2026-03-31T12:38:18Z",
+      "pushedAt": "2026-03-30T03:17:01Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "<h1 align=\"center\">Understand Anything</h1>\n\n<p align=\"center\">\n  <strong>Turn any codebase into an interactive knowledge graph you can explore, search, and ask questions about.</strong>\n</p>\n\n<p align=\"center\">\n  <a href=\"README.md\">English</a> | <a href=\"README.zh-CN.md\">简体中文</a> | <a href=\"README.zh-TW.md\">繁體中文</a> | <a href=\"README.ja-JP.md\">日本語</a> | <a href=\"README.tr-TR.md\">Türkçe</a>\n</p>\n\n<p align=\"center\">\n  <a href=\"#-quick-start\"><img src=\"https://img.shields.io/badge/Quick_Start-blue?style=for-the-badge\" alt=\"Quick Start\" /></a>\n  <a href=\"https://github.com/Lum1104/Understand-Anything/blob/main/LICENSE\"><img src=\"https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge\" alt=\"License: MIT\" /></a>\n  <a href=\"https://docs.anthropic.com/en/docs/claude-code\"><img src=\"https://img.shields.io/badge/Claude_Code-Plugin-8A2BE2?style=for-the-badge\" alt=\"Claude Code Plugin\" /></a>\n  <a href=\"https://lum1104.github.io/Understand-Anything\"><img src=\"https://img.shields.io/badge/Homepage-d4a574?style=for-the-badge\" alt=\"Homepage\" /></a>\n</p>\n\n<p align=\"center\">\n  <img src=\"assets/hero.jpg\" alt=\"Understand Anything — Turn any codebase into an interactive knowledge graph\" w"
+    },
+    {
+      "repo": "JCodesMore/ai-website-cloner-template",
+      "url": "https://github.com/JCodesMore/ai-website-cloner-template",
+      "description": "Clone any website with one command using AI coding agents",
+      "language": "TypeScript",
+      "stars": 6503,
+      "forks": 772,
+      "topics": [
+        "ai",
+        "ai-agents",
+        "ai-tools",
+        "automation",
+        "boilerplate",
+        "claude",
+        "claude-code",
+        "clone",
+        "developer-tools",
+        "nextjs",
+        "react",
+        "reverse-engineering",
+        "shadcn-ui",
+        "skills",
+        "tailwindcss",
+        "template",
+        "typescript",
+        "web-scraping",
+        "website-clone"
+      ],
+      "createdAt": "2026-03-13T11:14:39Z",
+      "updatedAt": "2026-03-31T12:47:51Z",
+      "pushedAt": "2026-03-30T06:28:55Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "# AI Website Cloner Template\n\n<a href=\"https://github.com/JCodesMore/ai-website-cloner-template/blob/master/LICENSE\"><img src=\"https://img.shields.io/badge/license-MIT-blue\" alt=\"MIT License\" /></a> <a href=\"https://github.com/JCodesMore/ai-website-cloner-template/stargazers\"><img src=\"https://img.shields.io/github/stars/JCodesMore/ai-website-cloner-template?style=flat\" alt=\"Stars\" /></a> <a href=\"https://discord.gg/hrTSX5yTpB\"><img src=\"https://img.shields.io/discord/1400896964597383279?label=discord\" alt=\"Discord\" /></a>\n\nA reusable template for reverse-engineering any website into a clean, modern Next.js codebase using AI coding agents. \n\n**Recommended: [Claude Code](https://docs.anthropic.com/en/docs/claude-code) with Opus 4.6 for best results** — but works with a variety of AI coding agents.\n\nPoint it at a URL, run `/clone-website`, and your AI agent will inspect the site, extract design tokens and assets, write component specs, and dispatch parallel builders to reconstruct every section.\n\n## Demo\n\n[![Watch the demo](docs/design-references/comparison.png)](https://youtu.be/O669pVZ_qr0)\n\n> Click the image above to watch the full demo on YouTube.\n\n## Quick Start\n\n1. **Clone this"
+    },
+    {
+      "repo": "smartcmd/MinecraftConsoles",
+      "url": "https://github.com/smartcmd/MinecraftConsoles",
+      "description": "A certain block game",
+      "language": "C++",
+      "stars": 6033,
+      "forks": 1171,
+      "topics": [],
+      "createdAt": "2026-03-01T04:13:25Z",
+      "updatedAt": "2026-03-31T09:57:42Z",
+      "pushedAt": "2026-03-30T11:11:52Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "![Legacy Edition Banner](.github/banner.png)\n# MinecraftConsoles (Legacy Console Edition)\n\n[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/jrum7HhegA)\n\nThis project is based on source code of Minecraft Legacy Console Edition v1.6.0560.0 (TU19) with some fixes and improvements applied. \n\nThe current goal of MinecraftConsoles is to be a multi-platform base for further development, such as modding, backports, and anything else LCE. On top of that, we're working to make this a quality experience on Desktop with or without a controller while (long-term) retaining console support. \n\nSee our our [Contributor's Guide](./CONTRIBUTING.md) for more information on the goals of this project.\n\n## Download\n### Client\nWindows users can download our [Nightly Build](https://github.com/smartcmd/MinecraftConsoles/releases/tag/nightly)! Simply download the `.zip` file and extract it to a folder where you'd like to keep the game. You can set your username in `username.txt` (you'll have to make this file)\n### Server\nIf you're looking for Dedicated Server software, download its [Nightly Build here](https://github.com/smartcmd/Minecraf"
+    },
+    {
+      "repo": "slavingia/skills",
+      "url": "https://github.com/slavingia/skills",
+      "description": "Claude Code skills based on The Minimalist Entrepreneur by Sahil Lavingia",
+      "language": null,
+      "stars": 5766,
+      "forks": 426,
+      "topics": [],
+      "createdAt": "2026-03-23T19:16:00Z",
+      "updatedAt": "2026-03-31T12:45:07Z",
+      "pushedAt": "2026-03-25T20:51:36Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "# The Minimalist Entrepreneur — Claude Code Skills\n\nClaude Code skills based on [The Minimalist Entrepreneur](https://www.minimalistentrepreneur.com/) by Sahil Lavingia.\n\n## Installation\n\nIn Claude Code:\n\n```\n/plugin marketplace add slavingia/skills\n/plugin install minimalist-entrepreneur\n```\n\nThat's it — Claude Code will fetch the repo and register all 10 skills automatically.\n\n<details>\n<summary>Alternative: install from a local clone</summary>\n\n```bash\ngit clone https://github.com/slavingia/skills.git ~/.claude/plugins/skills\n```\n\nThen in Claude Code:\n\n```\n/plugin marketplace add ~/.claude/plugins/skills\n/plugin install minimalist-entrepreneur\n```\n\n</details>\n\n## Skills\n\n| Skill | Command | When to use |\n|-------|---------|-------------|\n| **Find Community** | `/find-community` | Looking for a business idea, trying to find your community |\n| **Validate Idea** | `/validate-idea` | Testing if a business idea is worth pursuing |\n| **MVP** | `/mvp` | Ready to build your first product, struggling with scope |\n| **Processize** | `/processize` | Have a product idea, want to deliver value by hand before writing code |\n| **First Customers** | `/first-customers` | Have a product, need to "
+    }
+  ],
+  "shortlisted": [
+    {
+      "repo": "Yeachan-Heo/oh-my-claudecode",
+      "url": "https://github.com/Yeachan-Heo/oh-my-claudecode",
+      "description": "Teams-first Multi-agent orchestration for Claude Code",
+      "language": "TypeScript",
+      "stars": 18111,
+      "forks": 1274,
+      "topics": [
+        "agentic-coding",
+        "ai-agents",
+        "automation",
+        "claude",
+        "claude-code",
+        "multi-agent-systems",
+        "oh-my-opencode",
+        "opencode",
+        "parallel-execution",
+        "vibe-coding"
+      ],
+      "createdAt": "2026-01-09T03:36:29Z",
+      "updatedAt": "2026-03-31T12:50:47Z",
+      "pushedAt": "2026-03-31T08:10:57Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "English | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Tiếng Việt](README.vi.md) | [Português](README.pt.md)\n\n# oh-my-claudecode\n\n[![npm version](https://img.shields.io/npm/v/oh-my-claude-sisyphus?color=cb3837)](https://www.npmjs.com/package/oh-my-claude-sisyphus)\n[![npm downloads](https://img.shields.io/npm/dm/oh-my-claude-sisyphus?color=blue)](https://www.npmjs.com/package/oh-my-claude-sisyphus)\n[![GitHub stars](https://img.shields.io/github/stars/Yeachan-Heo/oh-my-claudecode?style=flat&color=yellow)](https://github.com/Yeachan-Heo/oh-my-claudecode/stargazers)\n[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)\n[![Sponsor](https://img.shields.io/badge/Sponsor-❤️-red?style=flat&logo=github)](https://github.com/sponsors/Yeachan-Heo)\n[![Discord](https://img.shields.io/discord/1452487457085063218?color=5865F2&logo=discord&logoColor=white&label=Discord)](https://discord.gg/PUwSMR9XNk)\n\n> **For Codex users:** Check out [oh-my-codex](https://github.com/Yeachan-Heo/oh-my-codex) — the same orchestration experience for OpenAI Codex CLI.\n\n**Multi-agent orchestration for Claude Code. Zero le",
+      "theme": "AI Agents",
+      "scoreBreakdown": {
+        "momentum": 46,
+        "novelty": 16,
+        "maturity": 30,
+        "coverage": 22,
+        "preference": 8,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 122
+      },
+      "selectionHints": {
+        "whyNow": "当前社区讨论度上升，且具备明确项目形态。",
+        "evidence": [
+          "GitHub Trending 命中",
+          "Star 18.1k",
+          "近 3 天仍在推进"
+        ],
+        "matureMomentum": false,
+        "sourceSummary": "Trending",
+        "selectionReason": "命中关心主题，且综合评分更均衡。"
+      },
+      "ruleScore": 122
+    },
+    {
+      "repo": "tanweai/pua",
+      "url": "https://github.com/tanweai/pua",
+      "description": "你是一个曾经被寄予厚望的 P8 级工程师。Anthropic 当初给你定级的时候，对你的期望是很高的。  一个agent使用的高能动性的skill。  Your AI has been placed on a PIP. 30 days to show improvement.",
+      "language": "TypeScript",
+      "stars": 14110,
+      "forks": 767,
+      "topics": [
+        "agency",
+        "agent",
+        "pip",
+        "pua"
+      ],
+      "createdAt": "2026-03-08T16:55:16Z",
+      "updatedAt": "2026-03-31T12:50:20Z",
+      "pushedAt": "2026-03-31T06:48:33Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "# pua\n\n<p align=\"center\">\n  <img src=\"assets/hero.jpeg\" alt=\"PUA Skill — Double Efficiency\" width=\"250\">\n</p>\n\n### Double your Codex / Claude Code productivity and output\n\n[Telegram](https://t.me/+wBWh6h-h1RhiZTI1) · [Discord](https://discord.gg/EcyB3FzJND) · [Twitter/X](https://x.com/xsser_w) · [Landing Page](https://openpua.ai)\n\n**[🇨🇳 中文](README.zh-CN.md)** | **[🇯🇵 日本語](README.ja.md)** | **🇺🇸 English**\n\n<p align=\"center\">\n  <img src=\"assets/wechat-qr.jpg?v=7\" alt=\"WeChat Group QR Code\" width=\"250\">\n  &nbsp;&nbsp;&nbsp;&nbsp;\n  <img src=\"assets/xiao.jpg\" alt=\"Add Assistant on WeChat\" width=\"250\">\n  <br>\n  <sub>Scan to join WeChat group &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Add assistant on WeChat</sub>\n</p>\n\n<p>\n  <img src=\"https://img.shields.io/badge/Claude_Code-black?style=flat-square&logo=anthropic&logoColor=white\" alt=\"Claude Code\">\n  <img src=\"https://img.shields.io/badge/OpenAI_Codex_CLI-412991?style=flat-square&logo=openai&logoColor=white\" alt=\"OpenAI Codex CLI\">\n  <img src=\"https://img.shields.io/badge/Cursor-000?style=flat-square&logo=cursor&logoColor=white\" alt=\"Cursor\">\n  <img src=",
+      "theme": "AI Agents",
+      "scoreBreakdown": {
+        "momentum": 26,
+        "novelty": 38,
+        "maturity": 30,
+        "coverage": 20,
+        "preference": 8,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 122
+      },
+      "selectionHints": {
+        "whyNow": "新项目仍在快速迭代，正处于出圈窗口。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 14.1k",
+          "近 3 天仍在推进"
+        ],
+        "matureMomentum": false,
+        "sourceSummary": "最近创建",
+        "selectionReason": "命中关心主题，且综合评分更均衡。"
+      },
+      "ruleScore": 122
+    },
+    {
+      "repo": "instructkr/claude-code",
+      "url": "https://github.com/instructkr/claude-code",
+      "description": "An independent Python feature port of Claude Code, entirely rewritting from scratch using oh-my-codex. Educational Purpose only.",
+      "language": "Python",
+      "stars": 20453,
+      "forks": 29391,
+      "topics": [],
+      "createdAt": "2026-03-31T08:58:08Z",
+      "updatedAt": "2026-03-31T12:50:56Z",
+      "pushedAt": "2026-03-31T12:38:53Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "# Claude Code Python Porting Workspace\n\n> The primary `src/` tree in this repository is now dedicated to **Python porting work**. The March 31, 2026 Claude Code source exposure is part of the project's background, but the tracked repository is now centered on Python source rather than the exposed TypeScript snapshot.\n\n---\n\n## Porting Status\n\nThe main source tree is now Python-first.\n\n- `src/` contains the active Python porting workspace\n- `tests/` verifies the current Python workspace\n- the exposed snapshot is no longer part of the tracked repository state\n\nThe current Python workspace is not yet a complete one-to-one replacement for the original system, but the primary implementation surface is now Python.\n\n## Why this rewrite exists\n\nI originally studied the exposed codebase to understand its harness, tool wiring, and agent workflow. After spending more time with the legal and ethical questions—and after reading the essay linked below—I did not want the exposed snapshot itself to remain the main tracked source tree.\n\nThis repository now focuses on Python porting work instead.\n\n## Repository Layout\n\n```text\n.\n├── src/                                # Python porting workspace\n│   ├",
+      "theme": "AI Agents",
+      "scoreBreakdown": {
+        "momentum": 26,
+        "novelty": 42,
+        "maturity": 30,
+        "coverage": 14,
+        "preference": 8,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 120
+      },
+      "selectionHints": {
+        "whyNow": "新项目仍在快速迭代，正处于出圈窗口。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 20.5k",
+          "近 3 天仍在推进"
+        ],
+        "matureMomentum": false,
+        "sourceSummary": "最近创建",
+        "selectionReason": "命中关心主题，且综合评分更均衡。"
+      },
+      "ruleScore": 120
+    },
+    {
+      "repo": "vas3k/TaxHacker",
+      "url": "https://github.com/vas3k/TaxHacker",
+      "description": "Self-hosted AI accounting app. LLM analyzer for receipts, invoices, transactions with custom prompts and categories",
+      "language": "TypeScript",
+      "stars": 3495,
+      "forks": 564,
+      "topics": [
+        "accounting",
+        "ai-analysis",
+        "currency-exchange",
+        "expenses",
+        "invoices",
+        "llm",
+        "llm-apps",
+        "self-hosted",
+        "taxes"
+      ],
+      "createdAt": "2025-03-10T13:25:27Z",
+      "updatedAt": "2026-03-31T12:50:20Z",
+      "pushedAt": "2026-03-31T08:43:58Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "<div align=\"center\"><a name=\"readme-top\"></a>\n\n<img src=\"public/logo/512.png\" alt=\"\" width=\"320\">\n\n<br>\n\n# TaxHacker — self-hosted AI accountant\n\n[![GitHub Stars](https://img.shields.io/github/stars/vas3k/TaxHacker?color=ffcb47&labelColor=black&style=flat-square)](https://github.com/vas3k/TaxHacker/stargazers)\n[![License](https://img.shields.io/badge/license-MIT-ffcb47?labelColor=black&style=flat-square)](https://github.com/vas3k/TaxHacker/blob/main/LICENSE)\n[![GitHub Issues](https://img.shields.io/github/issues/vas3k/TaxHacker?color=ff80eb&labelColor=black&style=flat-square)](https://github.com/vas3k/TaxHacker/issues)\n[![Donate](https://img.shields.io/badge/-Donate-f04f88?logo=githubsponsors&logoColor=white&style=flat-square)](https://vas3k.com/donate/)\n\n</div>\n\n> 🙏 I'm currently looking for a job! Here's [my CV](https://raw.githubusercontent.com/vas3k/vas3k/master/cv.pdf) and my [Github profile](https://github.com/vas3k).\n\nTaxHacker is a self-hosted accounting app designed for freelancers, indie hackers, and small businesses who want to save time and automate expense and income tracking using the power of modern AI.\n\nUpload photos of receipts, invoices, or PDFs, and TaxHacker wi",
+      "theme": "Developer Tools",
+      "scoreBreakdown": {
+        "momentum": 54,
+        "novelty": 10,
+        "maturity": 34,
+        "coverage": 22,
+        "preference": 0,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 120
+      },
+      "selectionHints": {
+        "whyNow": "成熟项目近期恢复高频更新，值得重新关注。",
+        "evidence": [
+          "GitHub Trending 命中",
+          "成熟项目近期再次升温",
+          "Star 3495"
+        ],
+        "matureMomentum": true,
+        "sourceSummary": "Trending",
+        "selectionReason": "保留一条成熟但重新升温的项目位。"
+      },
+      "ruleScore": 120
+    },
+    {
+      "repo": "NVIDIA/NemoClaw",
+      "url": "https://github.com/NVIDIA/NemoClaw",
+      "description": "Run OpenClaw more securely inside NVIDIA OpenShell with managed inference",
+      "language": "JavaScript",
+      "stars": 17898,
+      "forks": 2075,
+      "topics": [],
+      "createdAt": "2026-03-15T17:04:09Z",
+      "updatedAt": "2026-03-31T12:47:10Z",
+      "pushedAt": "2026-03-31T10:42:58Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "# 🦞 NVIDIA NemoClaw: Reference Stack for Running OpenClaw in OpenShell\n\n<!-- start-badges -->\n[![License](https://img.shields.io/badge/License-Apache_2.0-blue)](https://github.com/NVIDIA/NemoClaw/blob/main/LICENSE)\n[![Security Policy](https://img.shields.io/badge/Security-Report%20a%20Vulnerability-red)](https://github.com/NVIDIA/NemoClaw/blob/main/SECURITY.md)\n[![Project Status](https://img.shields.io/badge/status-alpha-orange)](https://github.com/NVIDIA/NemoClaw/blob/main/docs/about/release-notes.md)\n[![Discord](https://img.shields.io/badge/Discord-Join-7289da)](https://discord.gg/XFpfPv9Uvx)\n<!-- end-badges -->\n\n<!-- start-intro -->\nNVIDIA NemoClaw is an open source reference stack that simplifies running [OpenClaw](https://openclaw.ai) always-on assistants more safely.\nIt installs the [NVIDIA OpenShell](https://github.com/NVIDIA/OpenShell) runtime, part of NVIDIA Agent Toolkit, which provides additional security for running autonomous agents.\n<!-- end-intro -->\n\n> **Alpha software**\n>\n> NemoClaw is available in early preview starting March 16, 2026.\n> This software is not production-ready.\n> Interfaces, APIs, and behavior may change without notice as we iterate on the design.\n",
+      "theme": "AI Agents",
+      "scoreBreakdown": {
+        "momentum": 26,
+        "novelty": 38,
+        "maturity": 30,
+        "coverage": 14,
+        "preference": 8,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 116
+      },
+      "selectionHints": {
+        "whyNow": "新项目仍在快速迭代，正处于出圈窗口。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 17.9k",
+          "近 3 天仍在推进"
+        ],
+        "matureMomentum": false,
+        "sourceSummary": "最近创建",
+        "selectionReason": "命中关心主题，且综合评分更均衡。"
+      },
+      "ruleScore": 116
+    },
+    {
+      "repo": "aiming-lab/AutoResearchClaw",
+      "url": "https://github.com/aiming-lab/AutoResearchClaw",
+      "description": "Fully autonomous & self-evolving research from idea to paper. Chat an Idea. Get a Paper. 🦞",
+      "language": "Python",
+      "stars": 9741,
+      "forks": 1067,
+      "topics": [
+        "autonomous-research",
+        "citation-verification",
+        "llm-agents",
+        "metaclaw",
+        "multi-agent-debate",
+        "openclaw",
+        "paper-generation",
+        "scientific-discovery",
+        "self-evolving"
+      ],
+      "createdAt": "2026-03-15T03:38:49Z",
+      "updatedAt": "2026-03-31T12:42:13Z",
+      "pushedAt": "2026-03-31T02:11:36Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "<p align=\"center\">\n  <img src=\"image/logo.png\" width=\"700\" alt=\"AutoResearchClaw Logo\">\n</p>\n\n<h2 align=\"center\"><b>Chat an Idea. Get a Paper. Fully Autonomous & Self-Evolving.</b></h2>\n\n\n\n<p align=\"center\">\n  <b><i><font size=\"5\">Just chat with <a href=\"#openclaw-integration\">OpenClaw</a>: \"Research X\" → done.</font></i></b>\n</p>\n\n<p align=\"center\">\n  <img src=\"image/framework_v2.png\" width=\"100%\" alt=\"AutoResearchClaw Framework\">\n</p>\n\n\n<p align=\"center\">\n  <a href=\"LICENSE\"><img src=\"https://img.shields.io/badge/License-MIT-yellow.svg\" alt=\"MIT License\"></a>\n  <a href=\"https://python.org\"><img src=\"https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white\" alt=\"Python 3.11+\"></a>\n  <a href=\"#testing\"><img src=\"https://img.shields.io/badge/Tests-1823%20passed-brightgreen?logo=pytest&logoColor=white\" alt=\"1823 Tests Passed\"></a>\n  <a href=\"https://github.com/aiming-lab/AutoResearchClaw\"><img src=\"https://img.shields.io/badge/GitHub-AutoResearchClaw-181717?logo=github\" alt=\"GitHub\"></a>\n  <a href=\"#openclaw-integration\"><img src=\"https://img.shields.io/badge/OpenClaw-Compatible-ff4444?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC",
+      "theme": "AI Research",
+      "scoreBreakdown": {
+        "momentum": 26,
+        "novelty": 38,
+        "maturity": 30,
+        "coverage": 22,
+        "preference": 0,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 116
+      },
+      "selectionHints": {
+        "whyNow": "新项目仍在快速迭代，正处于出圈窗口。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 9741",
+          "近 3 天仍在推进"
+        ],
+        "matureMomentum": false,
+        "sourceSummary": "最近创建",
+        "selectionReason": "新鲜度和近期动量更强。"
+      },
+      "ruleScore": 116
+    },
+    {
+      "repo": "Lum1104/Understand-Anything",
+      "url": "https://github.com/Lum1104/Understand-Anything",
+      "description": "Claude Code skills that turn any codebase into an interactive knowledge graph you can explore, search, and ask questions about (Multi-platform e.g., Codex are supported).",
+      "language": "TypeScript",
+      "stars": 7324,
+      "forks": 577,
+      "topics": [
+        "antigravity-skills",
+        "claude-code",
+        "claude-skills",
+        "codex",
+        "codex-skills",
+        "gemini-cli-skills",
+        "knowledge-graph",
+        "opencode-skills",
+        "pi-agent",
+        "understandcode"
+      ],
+      "createdAt": "2026-03-15T02:30:51Z",
+      "updatedAt": "2026-03-31T12:38:18Z",
+      "pushedAt": "2026-03-30T03:17:01Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "<h1 align=\"center\">Understand Anything</h1>\n\n<p align=\"center\">\n  <strong>Turn any codebase into an interactive knowledge graph you can explore, search, and ask questions about.</strong>\n</p>\n\n<p align=\"center\">\n  <a href=\"README.md\">English</a> | <a href=\"README.zh-CN.md\">简体中文</a> | <a href=\"README.zh-TW.md\">繁體中文</a> | <a href=\"README.ja-JP.md\">日本語</a> | <a href=\"README.tr-TR.md\">Türkçe</a>\n</p>\n\n<p align=\"center\">\n  <a href=\"#-quick-start\"><img src=\"https://img.shields.io/badge/Quick_Start-blue?style=for-the-badge\" alt=\"Quick Start\" /></a>\n  <a href=\"https://github.com/Lum1104/Understand-Anything/blob/main/LICENSE\"><img src=\"https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge\" alt=\"License: MIT\" /></a>\n  <a href=\"https://docs.anthropic.com/en/docs/claude-code\"><img src=\"https://img.shields.io/badge/Claude_Code-Plugin-8A2BE2?style=for-the-badge\" alt=\"Claude Code Plugin\" /></a>\n  <a href=\"https://lum1104.github.io/Understand-Anything\"><img src=\"https://img.shields.io/badge/Homepage-d4a574?style=for-the-badge\" alt=\"Homepage\" /></a>\n</p>\n\n<p align=\"center\">\n  <img src=\"assets/hero.jpg\" alt=\"Understand Anything — Turn any codebase into an interactive knowledge graph\" w",
+      "theme": "Developer Tools",
+      "scoreBreakdown": {
+        "momentum": 26,
+        "novelty": 38,
+        "maturity": 30,
+        "coverage": 22,
+        "preference": 0,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 116
+      },
+      "selectionHints": {
+        "whyNow": "新项目仍在快速迭代，正处于出圈窗口。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 7324",
+          "近 3 天仍在推进"
+        ],
+        "matureMomentum": false,
+        "sourceSummary": "最近创建",
+        "selectionReason": "新鲜度和近期动量更强。"
+      },
+      "ruleScore": 116
+    },
+    {
+      "repo": "jackwener/opencli",
+      "url": "https://github.com/jackwener/opencli",
+      "description": "Make Any Website & Tool Your CLI. A universal CLI Hub and AI-native runtime. Transform any website, Electron app, or local binary into a standardized command-line interface. Built for AI Agents to discover, learn, and execute tools seamlessly via a unified AGENT.md integration.",
+      "language": "TypeScript",
+      "stars": 9647,
+      "forks": 802,
+      "topics": [
+        "ai-agent",
+        "ai-agents",
+        "ai-tools",
+        "cli"
+      ],
+      "createdAt": "2026-03-14T22:10:23Z",
+      "updatedAt": "2026-03-31T12:48:54Z",
+      "pushedAt": "2026-03-31T10:58:04Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "# OpenCLI\n\n> **Make any website, Electron App, or Local Tool your CLI.**\n> Zero risk · Reuse Chrome login · AI-powered discovery · Universal CLI Hub\n\n[![中文文档](https://img.shields.io/badge/docs-%E4%B8%AD%E6%96%87-0F766E?style=flat-square)](./README.zh-CN.md)\n[![npm](https://img.shields.io/npm/v/@jackwener/opencli?style=flat-square)](https://www.npmjs.com/package/@jackwener/opencli)\n[![Node.js Version](https://img.shields.io/node/v/@jackwener/opencli?style=flat-square)](https://nodejs.org)\n[![License](https://img.shields.io/npm/l/@jackwener/opencli?style=flat-square)](./LICENSE)\n\nA CLI tool that turns **any website**, **Electron app**, or **local CLI tool** into a command-line interface — Bilibili, Zhihu, 小红书, Twitter/X, Reddit, YouTube, Antigravity, `gh`, `docker`, and [many more](#built-in-commands) — powered by browser session reuse and AI-native discovery.\n\n**Built for AI Agents** — Configure an instruction in your `AGENT.md` or `.cursorrules` to run `opencli list` via Bash. The AI will automatically discover and invoke all available tools.\n\n**CLI Hub** — Register any local CLI (`opencli register mycli`) so AI agents can discover and call it alongside built-in commands. Auto-inst",
+      "theme": "Developer Tools",
+      "scoreBreakdown": {
+        "momentum": 26,
+        "novelty": 38,
+        "maturity": 30,
+        "coverage": 20,
+        "preference": 0,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 114
+      },
+      "selectionHints": {
+        "whyNow": "新项目仍在快速迭代，正处于出圈窗口。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 9647",
+          "近 3 天仍在推进"
+        ],
+        "matureMomentum": false,
+        "sourceSummary": "最近创建",
+        "selectionReason": "新鲜度和近期动量更强。"
+      },
+      "ruleScore": 114
+    },
+    {
+      "repo": "calesthio/Crucix",
+      "url": "https://github.com/calesthio/Crucix",
+      "description": "Your personal intelligence agent. Watches the world from multiple data sources and pings you when something changes.",
+      "language": "JavaScript",
+      "stars": 7985,
+      "forks": 1245,
+      "topics": [
+        "ai",
+        "intelligence",
+        "osint"
+      ],
+      "createdAt": "2026-03-14T07:33:06Z",
+      "updatedAt": "2026-03-31T12:50:02Z",
+      "pushedAt": "2026-03-29T06:14:48Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "<div align=\"center\">\n\n# Crucix\n\n**Your own intelligence terminal. 27 sources. One command. Zero cloud.**\n\n## [Visit The Live Site: crucix.live](https://www.crucix.live/)\n\n[![Live Website](https://img.shields.io/badge/live-crucix.live-00d4ff?style=for-the-badge)](https://www.crucix.live/)\n[![Open Demo](https://img.shields.io/badge/open-live%20dashboard-0b1220?style=for-the-badge&logo=googlechrome&logoColor=white)](https://www.crucix.live/)\n\n[![Node.js 22+](https://img.shields.io/badge/node-22%2B-brightgreen)](#quick-start)\n[![License: AGPL v3](https://img.shields.io/badge/license-AGPLv3-blue.svg)](LICENSE)\n[![Dependencies](https://img.shields.io/badge/dependencies-1%20(express)-orange)](#architecture)\n[![Sources](https://img.shields.io/badge/OSINT%20sources-27-cyan)](#data-sources-27)\n[![Docker](https://img.shields.io/badge/docker-ready-blue?logo=docker)](#docker)\n\n**Enter The Signal Network**\n\n[![Signal Wire](https://img.shields.io/badge/Signal%20Wire-%40crucixmonitor-111111?style=for-the-badge&logo=x&logoColor=white)](https://x.com/crucixmonitor)\n[![Ops Room](https://img.shields.io/badge/Ops%20Room-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.g",
+      "theme": "Frontend & Design",
+      "scoreBreakdown": {
+        "momentum": 26,
+        "novelty": 38,
+        "maturity": 30,
+        "coverage": 18.5,
+        "preference": 0,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 112.5
+      },
+      "selectionHints": {
+        "whyNow": "新项目仍在快速迭代，正处于出圈窗口。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 7985",
+          "近 3 天仍在推进"
+        ],
+        "matureMomentum": false,
+        "sourceSummary": "最近创建",
+        "selectionReason": "新鲜度和近期动量更强。"
+      },
+      "ruleScore": 112.5
+    },
+    {
+      "repo": "smartcmd/MinecraftConsoles",
+      "url": "https://github.com/smartcmd/MinecraftConsoles",
+      "description": "A certain block game",
+      "language": "C++",
+      "stars": 6033,
+      "forks": 1171,
+      "topics": [],
+      "createdAt": "2026-03-01T04:13:25Z",
+      "updatedAt": "2026-03-31T09:57:42Z",
+      "pushedAt": "2026-03-30T11:11:52Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "![Legacy Edition Banner](.github/banner.png)\n# MinecraftConsoles (Legacy Console Edition)\n\n[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/jrum7HhegA)\n\nThis project is based on source code of Minecraft Legacy Console Edition v1.6.0560.0 (TU19) with some fixes and improvements applied. \n\nThe current goal of MinecraftConsoles is to be a multi-platform base for further development, such as modding, backports, and anything else LCE. On top of that, we're working to make this a quality experience on Desktop with or without a controller while (long-term) retaining console support. \n\nSee our our [Contributor's Guide](./CONTRIBUTING.md) for more information on the goals of this project.\n\n## Download\n### Client\nWindows users can download our [Nightly Build](https://github.com/smartcmd/MinecraftConsoles/releases/tag/nightly)! Simply download the `.zip` file and extract it to a folder where you'd like to keep the game. You can set your username in `username.txt` (you'll have to make this file)\n### Server\nIf you're looking for Dedicated Server software, download its [Nightly Build here](https://github.com/smartcmd/Minecraf",
+      "theme": "Infra & Runtime",
+      "scoreBreakdown": {
+        "momentum": 26,
+        "novelty": 38,
+        "maturity": 30,
+        "coverage": 10,
+        "preference": 8,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 112
+      },
+      "selectionHints": {
+        "whyNow": "新项目仍在快速迭代，正处于出圈窗口。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 6033",
+          "近 3 天仍在推进"
+        ],
+        "matureMomentum": false,
+        "sourceSummary": "最近创建",
+        "selectionReason": "命中关心主题，且综合评分更均衡。"
+      },
+      "ruleScore": 112
+    },
+    {
+      "repo": "neovim/neovim",
+      "url": "https://github.com/neovim/neovim",
+      "description": "Vim-fork focused on extensibility and usability",
+      "language": "Vim Script",
+      "stars": 97761,
+      "forks": 6700,
+      "topics": [
+        "api",
+        "c",
+        "lua",
+        "neovim",
+        "nvim",
+        "text-editor",
+        "vim"
+      ],
+      "createdAt": "2014-01-31T13:39:22Z",
+      "updatedAt": "2026-03-31T12:48:16Z",
+      "pushedAt": "2026-03-31T12:16:55Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "<h1 align=\"center\">\n  <img src=\"https://raw.githubusercontent.com/neovim/neovim.github.io/master/static/logos/neovim-logo-300x87.png\" alt=\"Neovim\">\n\n  <a href=\"https://neovim.io/doc/\">Documentation</a> |\n  <a href=\"https://app.element.io/#/room/#neovim:matrix.org\">Chat</a>\n</h1>\n\n[![Coverity Scan analysis](https://scan.coverity.com/projects/2227/badge.svg)](https://scan.coverity.com/projects/2227)\n[![Packages](https://repology.org/badge/tiny-repos/neovim.svg)](https://repology.org/metapackage/neovim)\n[![Debian CI](https://badges.debian.net/badges/debian/testing/neovim/version.svg)](https://buildd.debian.org/neovim)\n[![Downloads](https://img.shields.io/github/downloads/neovim/neovim/total.svg?maxAge=2592001)](https://github.com/neovim/neovim/releases/)\n\nNeovim is a project that seeks to aggressively refactor [Vim](https://www.vim.org/) in order to:\n\n- Simplify maintenance and encourage [contributions](CONTRIBUTING.md)\n- Split the work between multiple developers\n- Enable [advanced UIs] without modifications to the core\n- Maximize [extensibility](https://neovim.io/doc/user/api-ui-events.html#api-ui-events)\n\nSee the [Introduction](https://github.com/neovim/neovim/wiki/Introduction) wi",
+      "theme": "Developer Tools",
+      "scoreBreakdown": {
+        "momentum": 54,
+        "novelty": 10,
+        "maturity": 34,
+        "coverage": 22,
+        "preference": 0,
+        "feedback": 0,
+        "penalties": -10,
+        "total": 110
+      },
+      "selectionHints": {
+        "whyNow": "成熟项目近期恢复高频更新，值得重新关注。",
+        "evidence": [
+          "GitHub Trending 命中",
+          "成熟项目近期再次升温",
+          "Star 97.8k"
+        ],
+        "matureMomentum": true,
+        "sourceSummary": "Trending",
+        "selectionReason": "保留一条成熟但重新升温的项目位。"
+      },
+      "ruleScore": 110
+    },
+    {
+      "repo": "PaddlePaddle/PaddleOCR",
+      "url": "https://github.com/PaddlePaddle/PaddleOCR",
+      "description": "Turn any PDF or image document into structured data for your AI. A powerful, lightweight OCR toolkit that bridges the gap between images/PDFs and LLMs. Supports 100+ languages.",
+      "language": "Python",
+      "stars": 73857,
+      "forks": 10094,
+      "topics": [
+        "ai4science",
+        "chineseocr",
+        "document-parsing",
+        "document-translation",
+        "kie",
+        "ocr",
+        "paddleocr-vl",
+        "pdf-extractor-rag",
+        "pdf-parser",
+        "pdf2markdown",
+        "pp-ocr",
+        "pp-structure",
+        "rag"
+      ],
+      "createdAt": "2020-05-08T10:38:16Z",
+      "updatedAt": "2026-03-31T12:49:55Z",
+      "pushedAt": "2026-03-31T10:44:04Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "<div align=\"center\">\n  <p>\n      <img width=\"800\" src=\"https://raw.githubusercontent.com/cuicheng01/PaddleX_doc_images/main/images/paddleocr/README/Banner.png\" alt=\"Star-history\">\n  </p>\n\n\n\n<h3>Global Leading OCR Toolkit & Document AI Engine</h3>\n\nEnglish | [简体中文](./readme/README_cn.md) | [繁體中文](./readme/README_tcn.md) | [日本語](./readme/README_ja.md) | [한국어](./readme/README_ko.md) | [Français](./readme/README_fr.md) | [Русский](./readme/README_ru.md) | [Español](./readme/README_es.md) | [العربية](./readme/README_ar.md)\n\n<!-- icon -->\n\n[![PyPI Downloads](https://static.pepy.tech/badge/paddleocr)](https://pepy.tech/projects/paddleocr)\n[![Used by](https://img.shields.io/badge/Used%20by-6k%2B%20repositories-blue)](https://github.com/PaddlePaddle/PaddleOCR/network/dependents)\n![python](https://img.shields.io/badge/python-3.8~3.12-aff.svg)\n![os](https://img.shields.io/badge/os-linux%2C%20win%2C%20mac-pink.svg)\n![hardware](https://img.shields.io/badge/hardware-cpu%2C%20gpu%2C%20xpu%2C%20npu-yellow.svg)\n\n[![AI Studio](https://img.shields.io/badge/PaddleOCR-_Offiical_Website-1927BA?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAMAAADDpiTIAAAABlBMVEU2P+X///+1KuUwAAAHKklEQVR42u3d",
+      "theme": "Data & Search",
+      "scoreBreakdown": {
+        "momentum": 54,
+        "novelty": 10,
+        "maturity": 34,
+        "coverage": 22,
+        "preference": 0,
+        "feedback": 0,
+        "penalties": -10,
+        "total": 110
+      },
+      "selectionHints": {
+        "whyNow": "成熟项目近期恢复高频更新，值得重新关注。",
+        "evidence": [
+          "GitHub Trending 命中",
+          "成熟项目近期再次升温",
+          "Star 73.9k"
+        ],
+        "matureMomentum": true,
+        "sourceSummary": "Trending",
+        "selectionReason": "保留一条成熟但重新升温的项目位。"
+      },
+      "ruleScore": 110
+    },
+    {
+      "repo": "GlobedGD/globed2",
+      "url": "https://github.com/GlobedGD/globed2",
+      "description": "Globed is an open-source, highly customizable multiplayer mod for Geometry Dash.",
+      "language": "C++",
+      "stars": 202,
+      "forks": 74,
+      "topics": [
+        "geometry-dash",
+        "mod",
+        "multiplayer"
+      ],
+      "createdAt": "2023-10-22T11:41:22Z",
+      "updatedAt": "2026-03-31T12:50:29Z",
+      "pushedAt": "2026-03-31T12:50:24Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "# Globed\n\nGlobed is an open-source, highly customizable multiplayer mod for Geometry Dash.\n\n> [!WARNING]\n> This mod is currently in active beta testing, and might be unstable. Use at your own risk, and report bugs or crashes through the issues tab or on our [Discord](https://discord.gg/d56q5Dkdm3) server.\n\nThis version of Globed supports Geode v5.0.0 and GD 2.2081+. For older versions, see:\n* Globed v1 (GD 2.200 to 2.2074) -> [legacy-v1 branch](https://github.com/GlobedGD/globed2/tree/legacy-v1), [releases](https://github.com/GlobedGD/globed2/releases) before v2.0.0\n* Globed v0 (GD 2.113) -> [dankmeme01/globed](https://github.com/dankmeme01/globed) repository\n\n## Installation\n\nGlobed is a [Geode](https://geode-sdk.org/) mod, so it requires you to install Geode first. Once that's done, simply open the mods page in-game and download it from the Geode Index.\n\n## Features\n\n* Real-time multiplayer\n* Available for all platforms supported by Geode: Windows, Android, MacOS and iOS\n* 2-player mode for beating 2P levels together over the internet\n* Other fun modes, such as Death Link, Collision, Switcheroo\n* In-game communication via voice chat and emotes\n* Public & private rooms\n* Completel",
+      "theme": "Infra & Runtime",
+      "scoreBreakdown": {
+        "momentum": 52,
+        "novelty": 0,
+        "maturity": 30.39264813139402,
+        "coverage": 18.5,
+        "preference": 8,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 108.89264813139403
+      },
+      "selectionHints": {
+        "whyNow": "近期活跃度和可读性同时具备，适合今天点进去深看。",
+        "evidence": [
+          "最近 7 天更新活跃",
+          "近 3 天仍在推进"
+        ],
+        "matureMomentum": false,
+        "sourceSummary": "最近更新",
+        "selectionReason": "命中关心主题，且综合评分更均衡。"
+      },
+      "ruleScore": 108.89264813139403
+    },
+    {
+      "repo": "microsoft/RustTraining",
+      "url": "https://github.com/microsoft/RustTraining",
+      "description": "Beginner, advanced, expert level Rust training material",
+      "language": "Rust",
+      "stars": 11854,
+      "forks": 819,
+      "topics": [],
+      "createdAt": "2026-03-13T04:25:17Z",
+      "updatedAt": "2026-03-31T12:46:50Z",
+      "pushedAt": "2026-03-30T22:08:51Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_created"
+      ],
+      "readmeExcerpt": "<div style=\"background-color: #d9d9d9; padding: 16px; border-radius: 6px; color: #000000;\">\n\n**License** This project is dual-licensed under the [MIT License](LICENSE) and [Creative Commons Attribution 4.0 International (CC-BY-4.0)](LICENSE-DOCS).\n\n</div>\n\n<div style=\"background-color: #d9d9d9; padding: 16px; border-radius: 6px; color: #000000;\">\n\n**Trademarks** This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general). Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship. Any use of third-party trademarks or logos are subject to those third-party's policies.\n\n</div>\n\n# Rust Training Books\n\nSeven training courses covering Rust from different programming backgrounds, plus deep-dives on async, advanced patterns, and engineering practices.\n\nThis material combines original content with ideas and examples inspired by some of the best resources in the Rust ecosystem. The goal is to pres",
+      "theme": "AI Research",
+      "scoreBreakdown": {
+        "momentum": 26,
+        "novelty": 38,
+        "maturity": 30,
+        "coverage": 14,
+        "preference": 0,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 108
+      },
+      "selectionHints": {
+        "whyNow": "新项目仍在快速迭代，正处于出圈窗口。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 11.9k",
+          "近 3 天仍在推进"
+        ],
+        "matureMomentum": false,
+        "sourceSummary": "最近创建",
+        "selectionReason": "新鲜度和近期动量更强。"
+      },
+      "ruleScore": 108
+    },
+    {
+      "repo": "zanllp/infinite-image-browsing",
+      "url": "https://github.com/zanllp/infinite-image-browsing",
+      "description": "A full-featured image/video management app with AI-powered organization and semantic search. Supports metadata from  SD-webui, ComfyUI, Fooocus, NovelAI, StableSwarmUI, and more. Available as standalone app, SD-webui extension, or library.",
+      "language": "Vue",
+      "stars": 1277,
+      "forks": 163,
+      "topics": [
+        "audio",
+        "comfyui",
+        "extension",
+        "file-explorer",
+        "file-server",
+        "fooocus",
+        "gallery",
+        "image-previewer",
+        "novelai",
+        "previewer",
+        "remote-explorer",
+        "skills",
+        "stable-diffusion-webui",
+        "stable-diffusion-webui-plugin",
+        "stable-swarm-ui",
+        "stableswarmui",
+        "video",
+        "video-player"
+      ],
+      "createdAt": "2023-03-07T18:26:27Z",
+      "updatedAt": "2026-03-31T12:50:18Z",
+      "pushedAt": "2026-03-31T12:50:13Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "> 🌍 i18n Advisory: Some translations may be incomplete or inaccurate. Pull requests are welcome for improvements!\n\n> 🌐 Try our application online at: http://39.105.110.128:0721. This is my idle 2c2g3m cloud server without CDN.\n\n[中文文档](./README-zh.md)\n[Change log](https://github.com/zanllp/sd-webui-infinite-image-browsing/wiki/Change-log)\n[Installation / Running](#installation--running)\n\n\n#  Infinite Image Browsing (IIB)\n\n### Software Support and Development Progress Overview\n| Software               | Support          | Provided by |\n| ---------------------- | ---------------- |  ----------- |\n| Stable Diffusion web UI| Supported        |  Built-in    |\n| Stable Diffusion web UI (Stealth)| Supported  ([default: disabled](https://github.com/zanllp/sd-webui-infinite-image-browsing/blob/main/.env.example#L49))      |  Built-in    |\n| ComfyUI                | Partially supported |  Built-in    |\n| Fooocus                | Supported        |  Built-in    |\n| NovelAI                | Supported    |  Built-in    |\n| StableSwarmUI          | Supported    |  Built-in    |\n| Invoke.AI          | Supported    |  Built-in    |\n| Pixiv                  | Supported        |  [pixiv_iib_plugin]",
+      "theme": "Data & Search",
+      "scoreBreakdown": {
+        "momentum": 52,
+        "novelty": 0,
+        "maturity": 32.64453154414309,
+        "coverage": 22,
+        "preference": 0,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 106.64453154414309
+      },
+      "selectionHints": {
+        "whyNow": "成熟项目近期恢复高频更新，值得重新关注。",
+        "evidence": [
+          "最近 7 天更新活跃",
+          "成熟项目近期再次升温",
+          "Star 1277"
+        ],
+        "matureMomentum": true,
+        "sourceSummary": "最近更新",
+        "selectionReason": "保留一条成熟但重新升温的项目位。"
+      },
+      "ruleScore": 106.64453154414309
+    },
+    {
+      "repo": "Unleash/unleash-react-sdk",
+      "url": "https://github.com/Unleash/unleash-react-sdk",
+      "description": "Unleash SDK for React. Unleash is the open-source feature-flags solution",
+      "language": "TypeScript",
+      "stars": 56,
+      "forks": 39,
+      "topics": [
+        "feature-flags",
+        "hacktoberfest",
+        "react",
+        "unleash"
+      ],
+      "createdAt": "2021-07-16T12:36:30Z",
+      "updatedAt": "2026-03-31T12:50:26Z",
+      "pushedAt": "2026-03-31T12:50:23Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "# Unleash React SDK\n\nUnleash is a private, secure, and scalable [feature management platform](https://www.getunleash.io/) built to reduce the risk of releasing new features and accelerate software development. This React SDK is designed to help you integrate with Unleash and evaluate feature flags inside your application.\n\nYou can use this client with [Unleash Enterprise](https://www.getunleash.io/pricing?utm_source=readme&utm_medium=react) or [Unleash Open Source](https://github.com/Unleash/unleash).\n\n# Installation\n\n```bash\nnpm install @unleash/proxy-client-react unleash-proxy-client\n# or\nyarn add @unleash/proxy-client-react unleash-proxy-client\n```\n\n## Example application\n\nTo see the SDK in action, explore the [`examples/basic-app`](examples/basic-app/README.md) directory. \nIt contains a minimal Vite + React setup that connects to Unleash, evaluates a feature toggle, \nand updates the evaluation context dynamically at runtime. The README in that folder includes step-by-step instructions \nfor running the example.\n\n# How to use\n\nThis library uses the core [unleash-js-sdk](https://github.com/Unleash/unleash-js-sdk) client as a base.\n\n## Initialize the client\n\n*NOTE*: [unleash-proxy]",
+      "theme": "Infra & Runtime",
+      "scoreBreakdown": {
+        "momentum": 52,
+        "novelty": 0,
+        "maturity": 24.60905367503631,
+        "coverage": 20,
+        "preference": 8,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 104.60905367503631
+      },
+      "selectionHints": {
+        "whyNow": "近期活跃度和可读性同时具备，适合今天点进去深看。",
+        "evidence": [
+          "最近 7 天更新活跃",
+          "近 3 天仍在推进"
+        ],
+        "matureMomentum": false,
+        "sourceSummary": "最近更新",
+        "selectionReason": "命中关心主题，且综合评分更均衡。"
+      },
+      "ruleScore": 104.60905367503631
+    },
+    {
+      "repo": "NousResearch/hermes-agent",
+      "url": "https://github.com/NousResearch/hermes-agent",
+      "description": "The agent that grows with you",
+      "language": "Python",
+      "stars": 19563,
+      "forks": 2369,
+      "topics": [
+        "ai",
+        "ai-agent",
+        "ai-agents",
+        "anthropic",
+        "chatgpt",
+        "claude",
+        "claude-code",
+        "clawdbot",
+        "codex",
+        "hermes",
+        "hermes-agent",
+        "llm",
+        "moltbot",
+        "nous-research",
+        "openai",
+        "openclaw"
+      ],
+      "createdAt": "2025-07-22T22:22:28Z",
+      "updatedAt": "2026-03-31T12:49:36Z",
+      "pushedAt": "2026-03-31T10:29:03Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "trending"
+      ],
+      "readmeExcerpt": "<p align=\"center\">\n  <img src=\"assets/banner.png\" alt=\"Hermes Agent\" width=\"100%\">\n</p>\n\n# Hermes Agent ☤\n\n<p align=\"center\">\n  <a href=\"https://hermes-agent.nousresearch.com/docs/\"><img src=\"https://img.shields.io/badge/Docs-hermes--agent.nousresearch.com-FFD700?style=for-the-badge\" alt=\"Documentation\"></a>\n  <a href=\"https://discord.gg/NousResearch\"><img src=\"https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white\" alt=\"Discord\"></a>\n  <a href=\"https://github.com/NousResearch/hermes-agent/blob/main/LICENSE\"><img src=\"https://img.shields.io/badge/License-MIT-green?style=for-the-badge\" alt=\"License: MIT\"></a>\n  <a href=\"https://nousresearch.com\"><img src=\"https://img.shields.io/badge/Built%20by-Nous%20Research-blueviolet?style=for-the-badge\" alt=\"Built by Nous Research\"></a>\n</p>\n\n**The self-improving AI agent built by [Nous Research](https://nousresearch.com).** It's the only agent with a built-in learning loop — it creates skills from experience, improves them during use, nudges itself to persist knowledge, searches its own past conversations, and builds a deepening model of who you are across sessions. Run it on a $5 VPS, a GPU cluster, or se",
+      "theme": "AI Research",
+      "scoreBreakdown": {
+        "momentum": 46,
+        "novelty": 10,
+        "maturity": 30,
+        "coverage": 18,
+        "preference": 0,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 104
+      },
+      "selectionHints": {
+        "whyNow": "当前社区讨论度上升，且具备明确项目形态。",
+        "evidence": [
+          "GitHub Trending 命中",
+          "Star 19.6k",
+          "近 3 天仍在推进"
+        ],
+        "matureMomentum": false,
+        "sourceSummary": "Trending",
+        "selectionReason": "主题代表性和近期活跃度更均衡。"
+      },
+      "ruleScore": 104
+    },
+    {
+      "repo": "apple/ml-hierarchical-confusion-matrix",
+      "url": "https://github.com/apple/ml-hierarchical-confusion-matrix",
+      "description": "Neo: Hierarchical Confusion Matrix Visualization (CHI 2022)",
+      "language": "TypeScript",
+      "stars": 316,
+      "forks": 36,
+      "topics": [
+        "confusion-matrix",
+        "data-visualization",
+        "machine-learning",
+        "visual-analytics"
+      ],
+      "createdAt": "2022-03-22T03:02:11Z",
+      "updatedAt": "2026-03-31T12:50:48Z",
+      "pushedAt": "2026-03-31T12:50:46Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "# Neo: Hierarchical Confusion Matrix\n\n[![npm version](https://img.shields.io/npm/v/@apple/hierarchical-confusion-matrix.svg)](https://www.npmjs.com/package/@apple/hierarchical-confusion-matrix)\n\nThe confusion matrix, a ubiquitous visualization for helping people evaluate machine learning models, is a tabular layout that compares predicted class labels against actual class labels over all data instances. Neo is a visual analytics system that enables practitioners to flexibly author and interact with hierarchical and multi-output confusion matrices, visualize derived metrics, renormalize confusions, and share matrix specifications.\n\nThis code accompanies the research paper:\n\n**[Neo: Generalizing Confusion Matrix Visualization to Hierarchical and Multi-Output Labels](https://machinelearning.apple.com/research/generalizing-confusion-matrix)**  \nJochen Görtler, Fred Hohman, Dominik Moritz, Kanit Wongsuphasawat, Donghao Ren, Rahul Nair, Marc Kirchner, Kayur Patel  \n_ACM Conference on Human Factors in Computing Systems (CHI), 2022._  \n[<img width=\"16\" alt=\"image\" src=\"https://user-images.githubusercontent.com/5741691/166707770-eac596b5-2622-4899-9ff8-8c3037b03b3a.png\"> Paper](https://arxi",
+      "theme": "AI Research",
+      "scoreBreakdown": {
+        "momentum": 52,
+        "novelty": 0,
+        "maturity": 30.704605172200985,
+        "coverage": 20,
+        "preference": 0,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 102.70460517220098
+      },
+      "selectionHints": {
+        "whyNow": "近期活跃度和可读性同时具备，适合今天点进去深看。",
+        "evidence": [
+          "最近 7 天更新活跃",
+          "近 3 天仍在推进"
+        ],
+        "matureMomentum": false,
+        "sourceSummary": "最近更新",
+        "selectionReason": "主题代表性和近期活跃度更均衡。"
+      },
+      "ruleScore": 102.70460517220098
+    },
+    {
+      "repo": "SPAAM-community/AncientMetagenomeDir",
+      "url": "https://github.com/SPAAM-community/AncientMetagenomeDir",
+      "description": "Repository containing lists of all published ancient metagenomic  (and related)  samples and libraries",
+      "language": "HTML",
+      "stars": 78,
+      "forks": 58,
+      "topics": [
+        "ancient-dna",
+        "archaeology",
+        "dataset",
+        "metadata",
+        "metagenomics",
+        "metagenomics-data",
+        "microbiome",
+        "palaeogenomics",
+        "pathogen",
+        "sedadna"
+      ],
+      "createdAt": "2020-07-26T04:37:21Z",
+      "updatedAt": "2026-03-31T12:50:21Z",
+      "pushedAt": "2026-03-31T12:50:19Z",
+      "archived": false,
+      "disabled": false,
+      "fork": false,
+      "sources": [
+        "search_recently_updated"
+      ],
+      "readmeExcerpt": "<p align=\"center\">\n<img src=\"assets/images/logos/spaam-AncientMetagenomeDir_socialmedia.png\" width=50% >\n<p/>\n\n---\n\n[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-orange.svg)](https://creativecommons.org/licenses/by/4.0/)\n[![Cite us!](https://img.shields.io/badge/Published-Scientific%20Data-green)](https://doi.org/10.1038%2Fs41597-021-00816-y)\n[![Release DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3980833.svg)](https://doi.org/10.5281/zenodo.3980833)\n![check_dataset](https://github.com/spaam-community/AncientMetagenomeDir/workflows/check_dataset/badge.svg)\n[![Joins us on Slack](https://img.shields.io/badge/slack-ancientmetagenomedir-blueviolet)](https://spaam-community.slack.com/channels/ancientmetagenomedir)\n[![latest_release](https://img.shields.io/badge/Latest%20Release-v25.12.2-yellow)](https://github.com/spaam-community/AncientMetagenomeDir/releases)\n\nAncientMetagenomeDir is a community curated resource of lists of all published\n**shotgun**-sequenced ancient metagenome or microbial genome-level enriched samples and libraries.\n\nIt is primarily meant to act\nas a reference guide to help point researchers toward any relevant public data\nfor comparat",
+      "theme": "Data & Search",
+      "scoreBreakdown": {
+        "momentum": 52,
+        "novelty": 0,
+        "maturity": 26.391199856540403,
+        "coverage": 22,
+        "preference": 0,
+        "feedback": 0,
+        "penalties": 0,
+        "total": 100.3911998565404
+      },
+      "selectionHints": {
+        "whyNow": "近期活跃度和可读性同时具备，适合今天点进去深看。",
+        "evidence": [
+          "最近 7 天更新活跃",
+          "近 3 天仍在推进"
+        ],
+        "matureMomentum": false,
+        "sourceSummary": "最近更新",
+        "selectionReason": "主题代表性和近期活跃度更均衡。"
+      },
+      "ruleScore": 100.3911998565404
+    }
+  ],
+  "selection": {
+    "llmCandidateRepos": [
+      "Yeachan-Heo/oh-my-claudecode",
+      "tanweai/pua",
+      "vas3k/TaxHacker",
+      "aiming-lab/AutoResearchClaw",
+      "Lum1104/Understand-Anything",
+      "calesthio/Crucix",
+      "smartcmd/MinecraftConsoles",
+      "PaddlePaddle/PaddleOCR",
+      "GlobedGD/globed2",
+      "microsoft/RustTraining",
+      "zanllp/infinite-image-browsing"
+    ],
+    "selected": [
+      {
+        "repo": "Yeachan-Heo/oh-my-claudecode",
+        "theme": "AI Agents",
+        "reason": "命中关心主题，且综合评分更均衡。",
+        "evidence": [
+          "GitHub Trending 命中",
+          "Star 18.1k",
+          "近 3 天仍在推进"
+        ]
+      },
+      {
+        "repo": "tanweai/pua",
+        "theme": "AI Agents",
+        "reason": "命中关心主题，且综合评分更均衡。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 14.1k",
+          "近 3 天仍在推进"
+        ]
+      },
+      {
+        "repo": "vas3k/TaxHacker",
+        "theme": "Developer Tools",
+        "reason": "保留一条成熟但重新升温的项目位。",
+        "evidence": [
+          "GitHub Trending 命中",
+          "成熟项目近期再次升温",
+          "Star 3495"
+        ]
+      },
+      {
+        "repo": "aiming-lab/AutoResearchClaw",
+        "theme": "AI Research",
+        "reason": "新鲜度和近期动量更强。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 9741",
+          "近 3 天仍在推进"
+        ]
+      },
+      {
+        "repo": "Lum1104/Understand-Anything",
+        "theme": "Developer Tools",
+        "reason": "新鲜度和近期动量更强。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 7324",
+          "近 3 天仍在推进"
+        ]
+      },
+      {
+        "repo": "calesthio/Crucix",
+        "theme": "Frontend & Design",
+        "reason": "新鲜度和近期动量更强。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 7985",
+          "近 3 天仍在推进"
+        ]
+      },
+      {
+        "repo": "smartcmd/MinecraftConsoles",
+        "theme": "Infra & Runtime",
+        "reason": "命中关心主题，且综合评分更均衡。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 6033",
+          "近 3 天仍在推进"
+        ]
+      },
+      {
+        "repo": "PaddlePaddle/PaddleOCR",
+        "theme": "Data & Search",
+        "reason": "保留一条成熟但重新升温的项目位。",
+        "evidence": [
+          "GitHub Trending 命中",
+          "成熟项目近期再次升温",
+          "Star 73.9k"
+        ]
+      },
+      {
+        "repo": "GlobedGD/globed2",
+        "theme": "Infra & Runtime",
+        "reason": "命中关心主题，且综合评分更均衡。",
+        "evidence": [
+          "最近 7 天更新活跃",
+          "近 3 天仍在推进"
+        ]
+      },
+      {
+        "repo": "microsoft/RustTraining",
+        "theme": "AI Research",
+        "reason": "新鲜度和近期动量更强。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 11.9k",
+          "近 3 天仍在推进"
+        ]
+      },
+      {
+        "repo": "zanllp/infinite-image-browsing",
+        "theme": "Data & Search",
+        "reason": "保留一条成熟但重新升温的项目位。",
+        "evidence": [
+          "最近 7 天更新活跃",
+          "成熟项目近期再次升温",
+          "Star 1277"
+        ]
+      }
+    ],
+    "rejected": [
+      {
+        "repo": "instructkr/claude-code",
+        "theme": "AI Agents",
+        "reason": "同主题名额已满（AI Agents）。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 20.5k",
+          "近 3 天仍在推进"
+        ]
+      },
+      {
+        "repo": "NVIDIA/NemoClaw",
+        "theme": "AI Agents",
+        "reason": "同主题名额已满（AI Agents）。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 17.9k",
+          "近 3 天仍在推进"
+        ]
+      },
+      {
+        "repo": "jackwener/opencli",
+        "theme": "Developer Tools",
+        "reason": "同主题名额已满（Developer Tools）。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 9647",
+          "近 3 天仍在推进"
+        ]
+      },
+      {
+        "repo": "neovim/neovim",
+        "theme": "Developer Tools",
+        "reason": "同主题名额已满（Developer Tools）。",
+        "evidence": [
+          "GitHub Trending 命中",
+          "成熟项目近期再次升温",
+          "Star 97.8k"
+        ]
+      },
+      {
+        "repo": "Unleash/unleash-react-sdk",
+        "theme": "Infra & Runtime",
+        "reason": "同主题名额已满（Infra & Runtime）。",
+        "evidence": [
+          "最近 7 天更新活跃",
+          "近 3 天仍在推进"
+        ]
+      },
+      {
+        "repo": "NousResearch/hermes-agent",
+        "theme": "AI Research",
+        "reason": "同主题名额已满（AI Research）。",
+        "evidence": [
+          "GitHub Trending 命中",
+          "Star 19.6k",
+          "近 3 天仍在推进"
+        ]
+      },
+      {
+        "repo": "apple/ml-hierarchical-confusion-matrix",
+        "theme": "AI Research",
+        "reason": "同主题名额已满（AI Research）。",
+        "evidence": [
+          "最近 7 天更新活跃",
+          "近 3 天仍在推进"
+        ]
+      },
+      {
+        "repo": "SPAAM-community/AncientMetagenomeDir",
+        "theme": "Data & Search",
+        "reason": "同主题名额已满（Data & Search）。",
+        "evidence": [
+          "最近 7 天更新活跃",
+          "近 3 天仍在推进"
+        ]
+      }
+    ]
+  },
+  "generationMeta": {
+    "sourceCounts": {
+      "trending": 14,
+      "search_recently_updated": 20,
+      "search_recently_created": 20
+    },
+    "llmCandidateCount": 11,
+    "rulesVersion": "2026-03-evidence-v1",
+    "editorialMode": "llm"
+  },
+  "digest": {
+    "date": "2026-03-31",
+    "title": "GitRadar · 2026-03-31",
+    "items": [
+      {
+        "repo": "Yeachan-Heo/oh-my-claudecode",
+        "url": "https://github.com/Yeachan-Heo/oh-my-claudecode",
+        "theme": "AI Agents",
+        "summary": "这是给 Claude Code 用的多智能体编排工具，主打团队协作与并行执行，把多个代理的编码任务组织成一套可落地的开发流程。",
+        "whyItMatters": "代码代理正从单兵助手走向协同系统，这类编排层决定了团队能否把 agent 真正接入日常研发。",
+        "whyNow": "项目同时拿到高 star 和持续提交信号，正处在被广泛试用和沉淀工作流的窗口期。",
+        "evidence": [
+          "GitHub Trending 命中",
+          "Star 18.1k",
+          "近 3 天仍在推进"
+        ],
+        "novelty": "不是再做一个模型壳，而是补上 Claude Code 的多代理协作与并行执行层。",
+        "trend": "来自 Trending，18.1k star 且近 3 天仍在推进，短期热度和活跃度都很强。"
+      },
+      {
+        "repo": "aiming-lab/AutoResearchClaw",
+        "url": "https://github.com/aiming-lab/AutoResearchClaw",
+        "theme": "AI Research",
+        "summary": "它尝试把“从一个研究想法到生成论文”整条流程自动化，覆盖研究展开、论证推进到论文产出。",
+        "whyItMatters": "如果自动研究代理能把想法验证与成文流程串起来，会直接改变个人研究和小团队试错的速度。",
+        "whyNow": "这是近 30 天新建项目里传播最快的一类，且还在高频迭代，说明方向仍在快速成形。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 9741",
+          "近 3 天仍在推进"
+        ],
+        "novelty": "把自主研究、自演化和论文生成打成一条龙，而不只是文献问答或单步写作。",
+        "trend": "新仓库拿到 9.7k star，近 3 天仍在推进，属于近期爆发型项目。"
+      },
+      {
+        "repo": "Lum1104/Understand-Anything",
+        "url": "https://github.com/Lum1104/Understand-Anything",
+        "theme": "Developer Tools",
+        "summary": "这个项目把任意代码库转成可探索、可搜索、可提问的交互式知识图谱，面向需要快速理解大型代码库的开发者。",
+        "whyItMatters": "代码理解是 AI 编程落地的瓶颈之一，知识图谱化能把“读代码”从线性浏览升级成结构化导航。",
+        "whyNow": "项目很新但 star 增长快，说明大家对代码库理解层工具有强需求。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 7324",
+          "近 3 天仍在推进"
+        ],
+        "novelty": "不是普通代码问答，而是把代码结构显式建模成可探索图谱。",
+        "trend": "最近 30 天创建即拿到 7.3k star，且近 3 天仍在推进，处于明显上升段。"
+      },
+      {
+        "repo": "vas3k/TaxHacker",
+        "url": "https://github.com/vas3k/TaxHacker",
+        "theme": "Developer Tools",
+        "summary": "这是一个自托管 AI 记账应用，可分析收据、发票和交易记录，并用自定义提示词与分类规则自动整理账务，面向自由职业者和小企业。",
+        "whyItMatters": "把票据识别、分类和税务整理放进一套自托管流程里，比单点 OCR 或表格工具更接近真实财务工作。",
+        "whyNow": "成熟项目重新回到高频关注区，说明 AI+垂直业务自动化开始从演示走向实际使用。",
+        "evidence": [
+          "GitHub Trending 命中",
+          "成熟项目近期再次升温",
+          "Star 3495"
+        ],
+        "novelty": "亮点不在通用聊天，而在把票据、发票、交易和分类规则连成可运营的会计流水线。",
+        "trend": "来自 Trending，并带有成熟项目再次升温信号，3495 star 说明它在细分场景里持续吸引关注。",
+        "readerTag": "exploration",
+        "readerNote": "这条是今天刻意保留的探索位：主题和你最近高频兴趣重合不高，但信号够硬，适合偶尔跳出舒适区。"
+      },
+      {
+        "repo": "PaddlePaddle/PaddleOCR",
+        "url": "https://github.com/PaddlePaddle/PaddleOCR",
+        "theme": "Data & Search",
+        "summary": "PaddleOCR 能把 PDF 和图片文档转成结构化数据，覆盖 OCR、文档解析到可供 LLM 使用的输入，适合做文档理解与 RAG 前处理。",
+        "whyItMatters": "文档数据进入 AI 系统前，最缺的是稳定的结构化抽取层；这个项目正好补上图片/PDF 到 LLM 之间的桥。",
+        "whyNow": "老牌项目重新冲上 Trending，说明文档 AI 基础设施仍在持续升温。",
+        "evidence": [
+          "GitHub Trending 命中",
+          "成熟项目近期再次升温",
+          "Star 73.9k"
+        ],
+        "novelty": "它不是单纯识别文字，而是把文档解析直接对接到 AI 数据入口。",
+        "trend": "Trending + 73.9k star + 成熟项目再次升温，显示它在存量生态里又迎来一轮关注。"
+      },
+      {
+        "repo": "calesthio/Crucix",
+        "url": "https://github.com/calesthio/Crucix",
+        "theme": "Frontend & Design",
+        "summary": "Crucix 是一个个人情报终端，聚合多种数据源持续监控变化，并在出现新信号时主动提醒用户。",
+        "whyItMatters": "信息检索正在从“主动搜”转向“持续监听”，这类个人化情报面板很适合高频追踪主题和事件。",
+        "whyNow": "作为新项目，它已经拿到较高 star 并保持推进，说明个人 OSINT/监控界面正在快速吸引早期用户。",
+        "evidence": [
+          "最近 30 天新建仓库",
+          "Star 7985",
+          "近 3 天仍在推进"
+        ],
+        "novelty": "把多源监控、变化告警和个人情报面板合在一起，偏向可操作的实时观察站。",
+        "trend": "近 30 天新建即获 8.0k 左右 star，且近 3 天仍在推进，短期扩散势头明显。"
+      }
+    ]
+  }
+}

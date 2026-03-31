@@ -1,0 +1,10 @@
+{
+  "source": "github",
+  "workflowName": "Daily Digest",
+  "trigger": "workflow_dispatch",
+  "lastRunAt": "2026-03-31T12:51:35.865Z",
+  "lastRunStatus": "success",
+  "lastArchiveDate": "2026-03-31",
+  "runUrl": "https://github.com/Noreply1018/GitRadar/actions/runs/23798195379",
+  "ref": "main"
+}
