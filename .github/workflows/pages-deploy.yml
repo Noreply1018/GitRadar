@@ -44,10 +44,23 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b
 
+      - name: Package Pages artifact
+        run: |
+          chmod -R +rX web/dist
+          tar \
+            --dereference \
+            --hard-dereference \
+            --directory web/dist \
+            -cvf /tmp/github-pages.tar \
+            .
+          gzip -f /tmp/github-pages.tar
+
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          path: web/dist
+          name: github-pages
+          path: /tmp/github-pages.tar.gz
+          retention-days: 1
 
       - name: Deploy Pages
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
