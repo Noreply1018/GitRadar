@@ -478,10 +478,6 @@ label span {
   gap: 12px;
 }
 
-.insight-grid.compact {
-  margin-bottom: 18px;
-}
-
 .insight-card,
 .preference-suggestion,
 .editorial-intro {

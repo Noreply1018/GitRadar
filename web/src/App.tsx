@@ -1492,19 +1492,6 @@ export default function App() {
                   ) : null}
                 </section>
 
-                <div className="insight-grid compact">
-                  <InsightCard
-                    title="我最近真正感兴趣的主题"
-                    items={archiveReaderContext.interestTrack.interestedThemes}
-                    emptyText="还没形成明显偏好。"
-                  />
-                  <InsightCard
-                    title="我最近连续跳过的主题"
-                    items={archiveReaderContext.interestTrack.skippedThemes}
-                    emptyText="目前没有明显跳过趋势。"
-                  />
-                </div>
-
                 <div className="reader-body">
                   <button
                     className="pager-button"
