@@ -35,19 +35,19 @@ GitRadar 2.0 解决的不是“怎么把热门仓库列出来”，而是：
 
 ### 首页
 
-![GitRadar Console Home](./assets/console/console-home.png)
+![GitRadar Console Home](./assets/console/console-home-github.png)
 
 ### 环境配置
 
-![GitRadar Console Environment](./assets/console/console-environment.png)
+![GitRadar Console Environment](./assets/console/console-environment-github.png)
 
 ### 收藏与兴趣轨迹
 
-![GitRadar Console Saved](./assets/console/console-saved.png)
+![GitRadar Console Saved](./assets/console/console-saved-github.png)
 
 ### 归档日报阅读
 
-![GitRadar Console Archive Reader](./assets/console/console-archive-reader.png)
+![GitRadar Console Archive Reader](./assets/console/console-archive-reader-github.png)
 
 ## v2.0.0 亮点
 

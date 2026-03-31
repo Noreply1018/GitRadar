@@ -9,10 +9,10 @@
 - Release 封面图：
   [release-cover-v2.0.0.png](./assets/release-cover-v2.0.0.png)
 - 控制台截图：
-  [console-home.png](./assets/console/console-home.png)
-  [console-environment.png](./assets/console/console-environment.png)
-  [console-saved.png](./assets/console/console-saved.png)
-  [console-archive-reader.png](./assets/console/console-archive-reader.png)
+  [console-home-github.png](./assets/console/console-home-github.png)
+  [console-environment-github.png](./assets/console/console-environment-github.png)
+  [console-saved-github.png](./assets/console/console-saved-github.png)
+  [console-archive-reader-github.png](./assets/console/console-archive-reader-github.png)
 - 企业微信实发样例图：
   [wecom-sample-digest.png](./assets/wecom-sample-digest.png)
 - 传播文案：
@@ -68,10 +68,10 @@
 
 建议组合：
 
-1. 首页总览：`console-home.png`
-2. 环境配置：`console-environment.png`
-3. 收藏与轨迹：`console-saved.png`
-4. 归档阅读：`console-archive-reader.png`
+1. 首页总览：`console-home-github.png`
+2. 环境配置：`console-environment-github.png`
+3. 收藏与轨迹：`console-saved-github.png`
+4. 归档阅读：`console-archive-reader-github.png`
 
 ## 组合使用建议
 

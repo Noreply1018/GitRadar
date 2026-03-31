@@ -24,19 +24,19 @@ async function main(): Promise<void> {
   await page.goto(BASE_URL, { waitUntil: "networkidle" });
   await page.waitForTimeout(1200);
 
-  await capture(page, "console-home.png");
+  await capture(page, "console-home-github.png");
 
   await page.getByRole("button", { name: "环境配置" }).click();
   await page.waitForTimeout(800);
-  await capture(page, "console-environment.png");
+  await capture(page, "console-environment-github.png");
 
   await page.getByRole("button", { name: "收藏与待看" }).click();
   await page.waitForTimeout(800);
-  await capture(page, "console-saved.png");
+  await capture(page, "console-saved-github.png");
 
   await page.getByRole("button", { name: "归档日报" }).click();
   await page.waitForTimeout(1000);
-  await capture(page, "console-archive-reader.png");
+  await capture(page, "console-archive-reader-github.png");
 
   await browser.close();
 
