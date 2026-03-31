@@ -5,7 +5,7 @@
 ![License](https://img.shields.io/badge/license-MIT-2ea44f)
 ![Topics](https://img.shields.io/badge/topics-github%20radar%20%7C%20llm%20%7C%20wecom-2F6B8A)
 
-![GitRadar Symbol](./image.png)
+> 一个把“今天值得看什么”收敛成中文日报，并持续沉淀个人兴趣轨迹的 GitHub 开源项目雷达。
 
 GitRadar 是一个面向个人与小团队的开源项目发现雷达。它每天从 GitHub 获取候选仓库，用规则筛选、证据整理和 LLM 编辑把“今天真正值得看什么”收敛成一份中文日报；同时把配置、归档、反馈、偏好学习和环境验证统一收口到本地中文控制台里。
 
