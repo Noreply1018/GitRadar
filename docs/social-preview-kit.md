@@ -5,16 +5,16 @@
 ## 资产清单
 
 - GitHub 仓库置顶预览图：
-  [github-pinned-preview.svg](./assets/github-pinned-preview.svg)
+  [github-pinned-preview.png](./assets/github-pinned-preview.png)
 - Release 封面图：
-  [release-cover-v2.0.0.svg](./assets/release-cover-v2.0.0.svg)
+  [release-cover-v2.0.0.png](./assets/release-cover-v2.0.0.png)
 - 控制台截图：
   [console-home.png](./assets/console/console-home.png)
   [console-environment.png](./assets/console/console-environment.png)
   [console-saved.png](./assets/console/console-saved.png)
   [console-archive-reader.png](./assets/console/console-archive-reader.png)
 - 企业微信实发样例图：
-  [wecom-sample-digest.svg](./assets/wecom-sample-digest.svg)
+  [wecom-sample-digest.png](./assets/wecom-sample-digest.png)
 - 传播文案：
   [promo-copy.md](./promo-copy.md)
 - GitHub Profile 置顶配置清单：
@@ -44,7 +44,7 @@
 
 建议使用：
 
-- [github-pinned-preview.svg](./assets/github-pinned-preview.svg)
+- [github-pinned-preview.png](./assets/github-pinned-preview.png)
 
 ## Release 封面图建议
 
@@ -56,7 +56,7 @@
 
 建议使用：
 
-- [release-cover-v2.0.0.svg](./assets/release-cover-v2.0.0.svg)
+- [release-cover-v2.0.0.png](./assets/release-cover-v2.0.0.png)
 
 ## 控制台截图建议
 
@@ -82,6 +82,12 @@
 3. Profile pinned repo 或仓库推广使用置顶预览图
 4. Release 页面使用 `release-cover-v2.0.0.svg`
 5. 想强调“这不是概念图”时，再补企业微信实发样例图
+
+## 兼容性约定
+
+- GitHub README、Showcase、Release 和 Social Preview 默认优先使用 PNG
+- 同名 SVG 保留为设计源文件，便于后续重新导出
+- 更新 SVG 后，执行 `npm run render:assets` 同步生成公开展示所用 PNG
 
 ## 关联文档
 

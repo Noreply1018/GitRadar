@@ -31,7 +31,7 @@
 
 素材路径：
 
-- [github-pinned-preview.svg](./assets/github-pinned-preview.svg)
+- [github-pinned-preview.png](./assets/github-pinned-preview.png)
 
 ### README / 展示页真实截图
 
@@ -41,7 +41,7 @@
 
 素材路径：
 
-- [release-cover-v2.0.0.svg](./assets/release-cover-v2.0.0.svg)
+- [release-cover-v2.0.0.png](./assets/release-cover-v2.0.0.png)
 
 ## 可直接照着做的配置清单
 
@@ -70,7 +70,7 @@
 1. 仓库首页  
    `https://github.com/Noreply1018/GitRadar`
 2. 展示页  
-   `https://github.com/Noreply1018/GitRadar/blob/main/docs/showcase.md`
+   `https://noreply1018.github.io/GitRadar/`
 3. Release  
    `https://github.com/Noreply1018/GitRadar/releases/tag/v2.0.0`
 

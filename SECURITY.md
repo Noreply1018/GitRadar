@@ -30,6 +30,10 @@ GitRadar 当前只对下面两个范围提供安全修复支持：
 - 如果已经有 PoC，请附上最小可复现版本
 - 是否涉及 token、webhook、workflow、依赖供应链或归档数据
 
+如果当前仓库还未开启 GitHub private vulnerability reporting，或你无法访问该入口，请发邮件到：
+
+`Noreply1018@users.noreply.github.com`
+
 如果你只是发现安全加固建议，但并不存在可利用风险，可以正常提公开 issue。
 
 ## Response Expectations

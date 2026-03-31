@@ -2,7 +2,7 @@
   "name": "gitradar",
   "version": "2.0.0",
   "license": "MIT",
-  "private": true,
+  "private": false,
   "description": "Personal GitHub open-source discovery radar.",
   "scripts": {
     "generate:digest": "tsx src/commands/generate-daily-digest.ts",
@@ -13,6 +13,7 @@
     "migrate:archives": "tsx src/commands/migrate-archives.ts",
     "send:wecom:sample": "tsx src/commands/send-wecom-sample.ts",
     "capture:screenshots": "tsx scripts/capture-console-screenshots.ts",
+    "render:assets": "tsx scripts/render-social-assets.ts",
     "dev:web": "vite --config web/vite.config.ts",
     "dev:web-api": "tsx src/web-api/server.ts",
     "start:console": "tsx src/web-api/server.ts",

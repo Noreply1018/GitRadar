@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/badge/license-MIT-2ea44f)
 ![Topics](https://img.shields.io/badge/topics-github%20radar%20%7C%20feedback%20%7C%20console-2F6B8A)
 
-![GitRadar Showcase Hero](./assets/showcase-hero.svg)
+![GitRadar Showcase Hero](./assets/showcase-hero.png)
 
 ## 一句话介绍
 
@@ -85,7 +85,7 @@ GitRadar 2.0 解决的不是“怎么把热门仓库列出来”，而是：
 
 下面这张图基于已实际送达并由人工确认收到的企业微信样例消息整理而成：
 
-![WeCom Delivered Sample Digest](./assets/wecom-sample-digest.svg)
+![WeCom Delivered Sample Digest](./assets/wecom-sample-digest.png)
 
 ## 为什么这个版本值得发布
 

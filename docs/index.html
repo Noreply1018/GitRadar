@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>GitRadar | GitHub 开源兴趣雷达</title>
+    <meta
+      name="description"
+      content="GitRadar 是一个 GitHub 开源兴趣雷达：筛选值得关注的仓库，生成带证据的中文日报，并沉淀反馈、归档与环境验证。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./site.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="https://github.com/Noreply1018/GitRadar"
+        >GitRadar</a
+      >
+      <nav class="site-nav" aria-label="快捷入口">
+        <a href="https://github.com/Noreply1018/GitRadar">仓库</a>
+        <a href="https://github.com/Noreply1018/GitRadar/releases">Releases</a>
+        <a href="https://github.com/Noreply1018/GitRadar/blob/main/README.md"
+          >README</a
+        >
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy reveal">
+          <p class="eyebrow">OPEN SOURCE INTEREST RADAR</p>
+          <h1>GitRadar 把“今天值得看什么”做成一个可以长期使用的判断系统。</h1>
+          <p class="lede">
+            它不是热榜搬运器，而是用候选信号、规则筛选、证据整理和中文编辑，把当天真正值得看的
+            GitHub
+            项目收敛成可解释日报，并把归档、反馈、偏好提示和环境验证统一进本地控制台。
+          </p>
+          <div class="hero-actions">
+            <a
+              class="button button-primary"
+              href="https://github.com/Noreply1018/GitRadar"
+            >
+              打开仓库
+            </a>
+            <a
+              class="button button-secondary"
+              href="https://github.com/Noreply1018/GitRadar/releases"
+            >
+              查看 Release
+            </a>
+          </div>
+          <ul class="hero-points" aria-label="核心差异">
+            <li>证据化发现，而不是只贴 Trending</li>
+            <li>中文日报、反馈闭环与兴趣轨迹</li>
+            <li>本地控制台验证 GitHub / LLM / 企业微信链路</li>
+          </ul>
+        </div>
+
+        <figure class="hero-visual reveal reveal-delay">
+          <img
+            src="./assets/showcase-hero.png"
+            alt="GitRadar 展示首图，展示信号来源、规则引擎、中文日报与归档链路"
+          />
+        </figure>
+      </section>
+
+      <section class="proof">
+        <div class="section-heading reveal">
+          <p class="eyebrow">REAL PRODUCT SURFACE</p>
+          <h2>不是概念图，首页直接展示当前真实控制台。</h2>
+        </div>
+
+        <div class="shot-grid">
+          <article class="shot reveal">
+            <img
+              src="./assets/console/console-home.png"
+              alt="GitRadar 控制台首页"
+            />
+            <div>
+              <h3>首页与环境状态</h3>
+              <p>
+                把调度、环境可用性指纹、主题入口和归档入口统一收口，先看系统是不是活的。
+              </p>
+            </div>
+          </article>
+          <article class="shot reveal">
+            <img
+              src="./assets/console/console-environment.png"
+              alt="GitRadar 环境配置页面"
+            />
+            <div>
+              <h3>环境验证</h3>
+              <p>
+                直接查看
+                GitHub、LLM、企业微信最近一次成功验证结果，不再靠“已配置”猜状态。
+              </p>
+            </div>
+          </article>
+          <article class="shot reveal">
+            <img
+              src="./assets/console/console-saved.png"
+              alt="GitRadar 收藏与待看页面"
+            />
+            <div>
+              <h3>反馈闭环</h3>
+              <p>
+                支持 `收藏 / 稍后看 /
+                跳过`，并在控制台里回看最近真正感兴趣和连续跳过的主题。
+              </p>
+            </div>
+          </article>
+          <article class="shot reveal">
+            <img
+              src="./assets/console/console-archive-reader.png"
+              alt="GitRadar 归档日报阅读页面"
+            />
+            <div>
+              <h3>归档阅读</h3>
+              <p>
+                逐日阅读中文日报，先看总编前言，再看每条项目为什么值得看、为什么是现在。
+              </p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="workflow">
+        <div class="section-heading reveal">
+          <p class="eyebrow">HOW IT WORKS</p>
+          <h2>把“发现”拆成一个可解释、可验证、可复盘的工作流。</h2>
+        </div>
+
+        <div class="workflow-layout">
+          <ol class="steps reveal">
+            <li>从 Trending、最近更新、最近创建三类来源抓候选。</li>
+            <li>用规则引擎控制质量、主题多样性与证据完整度。</li>
+            <li>在受限候选池内生成中文日报，而不是让模型随意发挥。</li>
+            <li>归档结果、记录反馈，再回到下一轮筛选与偏好提示。</li>
+          </ol>
+
+          <div class="runways reveal reveal-delay">
+            <div>
+              <span>CLI</span>
+              <p>
+                `npm run generate:digest`、`npm run analyze:digest`、`npm run
+                feedback:list`
+              </p>
+            </div>
+            <div>
+              <span>Console</span>
+              <p>
+                `npm run build:web && npm run start:console`
+                后访问本地中文控制台。
+              </p>
+            </div>
+            <div>
+              <span>Docker</span>
+              <p>
+                `docker compose up --build` 常驻运行，保留配置、数据和归档。
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="final-cta">
+        <div class="section-heading reveal">
+          <p class="eyebrow">START HERE</p>
+          <h2>公开仓库入口已经收口，下一步直接看 README 或跑本地控制台。</h2>
+        </div>
+        <div class="cta-links reveal reveal-delay">
+          <a href="https://github.com/Noreply1018/GitRadar/blob/main/README.md"
+            >README</a
+          >
+          <a
+            href="https://github.com/Noreply1018/GitRadar/blob/main/docs/showcase.md"
+            >Showcase</a
+          >
+          <a
+            href="https://github.com/Noreply1018/GitRadar/blob/main/docs/social-preview-kit.md"
+          >
+            Social Preview Kit
+          </a>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

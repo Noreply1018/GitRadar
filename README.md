@@ -5,46 +5,48 @@
 ![License](https://img.shields.io/badge/license-MIT-2ea44f)
 ![Topics](https://img.shields.io/badge/topics-github%20radar%20%7C%20llm%20%7C%20wecom-2F6B8A)
 
-> 一个把“今天值得看什么”收敛成中文日报，并持续沉淀个人兴趣轨迹的 GitHub 开源项目雷达。
+> 一个把“今天值得看什么”收敛成中文日报，并持续沉淀个人兴趣轨迹的 GitHub 开源兴趣雷达。
 
-GitRadar 是一个面向个人与小团队的开源项目发现雷达。它每天从 GitHub 获取候选仓库，用规则筛选、证据整理和 LLM 编辑把“今天真正值得看什么”收敛成一份中文日报；同时把配置、归档、反馈、偏好学习和环境验证统一收口到本地中文控制台里。
+![GitRadar Showcase Hero](./docs/assets/showcase-hero.png)
 
-GitRadar 2.0 的重点已经不再是“把日报发出去”，而是把它做成一个可以持续使用、持续判断、持续复盘的个人开源兴趣雷达。
+GitRadar 面向个人与小团队，用 GitHub 候选信号、规则筛选、证据整理和 LLM 编辑，把每天真正值得看的开源项目收敛成一份可解释的中文日报。它不只生成日报，还把归档、反馈、偏好提示和环境验证统一收口到本地中文控制台里。
+
+GitRadar 2.0 的重点已经从“把日报发出去”转向“把判断长期保留下来”：为什么选这些项目、为什么是今天、我最近真正关心什么、当前这套系统是不是活的，都能直接在产品里看到。
+
+## 快速入口
+
+- GitHub Pages 展示页：<https://noreply1018.github.io/GitRadar/>
+- Release：<https://github.com/Noreply1018/GitRadar/releases>
+- Showcase：[`docs/showcase.md`](./docs/showcase.md)
+- 架构与路线：[`docs/architecture-roadmap.md`](./docs/architecture-roadmap.md)
+- 开发约定：[`docs/development.md`](./docs/development.md)
 
 ## 一眼看懂
 
 - 定位：中文开源项目雷达，不是热榜搬运器
 - 产出：每天一份“为什么值得看、为什么是现在”的中文日报
 - 形态：CLI + Docker + 本地中文控制台
-- 核心差异：反馈闭环、偏好学习提示、环境可用性指纹、可回看的个人兴趣轨迹
-
-## 快速入口
-
-- Release：<https://github.com/Noreply1018/GitRadar/releases>
-- Showcase：[`docs/showcase.md`](./docs/showcase.md)
-- 架构与路线：[`docs/architecture-roadmap.md`](./docs/architecture-roadmap.md)
-- 更新记录：[`CHANGELOG.md`](./CHANGELOG.md)
+- 差异：证据化发现、反馈闭环、偏好提示、环境可用性指纹、可回看归档
 
 ## 现在长什么样
 
-![GitRadar 2.0 Release Cover](./docs/assets/release-cover-v2.0.0.svg)
+![GitRadar Release Cover](./docs/assets/release-cover-v2.0.0.png)
 
-| 首页与环境总览 | 环境配置与可用性指纹 |
-| --- | --- |
+| 首页与环境总览                                                   | 环境配置与可用性指纹                                                           |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | ![GitRadar Console Home](./docs/assets/console/console-home.png) | ![GitRadar Console Environment](./docs/assets/console/console-environment.png) |
 
-| 收藏、待看与兴趣轨迹 | 归档日报阅读 |
-| --- | --- |
+| 收藏、待看与兴趣轨迹                                               | 归档日报阅读                                                                         |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
 | ![GitRadar Console Saved](./docs/assets/console/console-saved.png) | ![GitRadar Console Archive Reader](./docs/assets/console/console-archive-reader.png) |
 
-## GitRadar 2.0 核心能力
+## 核心能力
 
-- 证据化发现：不是简单抄热榜，而是从 Trending、最近更新、最近创建三类候选里收敛当天真正值得看的项目
+- 证据化发现：不是直接抄 Trending，而是从 Trending、最近更新、最近创建三类候选里收敛当天真正值得看的项目
 - 中文编辑日报：每条项目都带“做什么、为什么值得看、为什么是现在、证据、新意、热度”
-- 本地中文控制台：把环境配置、主题偏好、收藏反馈、归档阅读和验证入口放到一个界面
+- 本地中文控制台：把环境配置、主题偏好、反馈、归档阅读和验证入口放到一个界面
 - 轻反馈闭环：支持对归档项目标记 `收藏 / 稍后看 / 跳过`
-- 轻个性化：根据已有反馈生成兴趣轨迹与偏好学习提示，但不做失控的黑盒推荐
-- 编辑型归档：归档顶部会解释“今天为什么是这几条”，而不是只给项目列表
+- 轻个性化：根据已有反馈生成兴趣轨迹和偏好学习提示，但不做失控的黑盒推荐
 - 环境确定感：GitHub / LLM / 企业微信会显示最近一次成功验证的可用性指纹
 - 长期可复盘：本地保留归档、反馈、失败报告和分析结果
 - 多运行方式：CLI、Docker、本地控制台、Windows 双击启动都可用
@@ -66,42 +68,6 @@ GitRadar 把这些问题拆成一条稳定链路：
 3. 用模型在受限候选池内完成中文编辑
 4. 把结果保存成可重看的归档
 5. 记录后续反馈，形成轻量个性化
-
-## 为什么仓库首页先值得看
-
-- README 展示的是当前真实产品，不是概念稿
-- 所有控制台截图都来自运行中的本地实例
-- 你可以从首页直接判断它是不是你要的工具，而不用先翻代码
-
-## 控制台现在包含什么
-
-### 环境配置
-
-- GitHub 源配置与连通性测试
-- LLM Base URL / Model / API Key 配置与测试
-- 企业微信 Webhook 配置与测试发送
-- 调度时间与时区设置
-- 最近一次成功验证的账号、模型、发送时间等可用性指纹
-
-### 主题偏好
-
-- 维护关心主题
-- 维护自定义主题词
-- 把“感兴趣的方向”显式写入后续筛选逻辑
-
-### 收藏与待看
-
-- 查看当前仍有效的收藏与待看项目
-- 从反馈里提炼最近真正感兴趣的主题
-- 观察最近连续跳过的主题
-
-### 归档日报
-
-- 逐日查看归档
-- 单条阅读每个项目
-- 记录 `收藏 / 稍后看 / 跳过`
-- 阅读总编前言与偏好学习提示
-- 识别“探索位”项目，偶尔跳出舒适区
 
 ## 快速开始
 
@@ -145,17 +111,24 @@ npm run dev:web
 - API：`http://127.0.0.1:3210`
 - 前端开发服务：`http://127.0.0.1:4173`
 
-### 3. 运行截图脚本
+### 3. 更新展示截图或社交素材
 
-如果你要更新 README 和展示页里的控制台截图：
+控制台截图：
 
 ```bash
 npm run capture:screenshots
 ```
 
-默认会从运行中的本地控制台抓取截图，输出到：
+SVG 主视觉转 PNG：
 
-- `docs/assets/console/`
+```bash
+npm run render:assets
+```
+
+输出目录：
+
+- 控制台截图：`docs/assets/console/`
+- 社交素材 PNG：`docs/assets/`
 
 ## Docker 运行
 
@@ -207,18 +180,7 @@ Windows 上可直接双击：
 - `start-gitradar.bat`
 - `stop-gitradar.bat`
 
-`start-gitradar.bat` 会自动完成：
-
-1. 检查 Docker Desktop
-2. 检查 `docker compose`
-3. 检查 `.env`
-4. 构建或启动容器
-5. 等待控制台健康检查通过
-6. 打开 `http://127.0.0.1:3210`
-
-## CLI 仍然完整可用
-
-GitRadar 2.0 不是“只有前端”。当前 CLI 依然是调试、分析和自动化的重要入口。
+## CLI 入口
 
 ```bash
 npm run validate:digest-rules
@@ -242,14 +204,12 @@ npm run send:wecom:sample
 
 ## 配置结构
 
-当前版本的配置入口主要分成 4 类：
-
 - 规则配置：`config/digest-rules.json`
 - 调度配置：`config/schedule.json`
 - 环境变量：`.env`
 - 运行数据：`data/`
 
-### 必填环境变量
+必填环境变量：
 
 - `GITHUB_TOKEN`
 - `GR_API_KEY`
@@ -257,45 +217,13 @@ npm run send:wecom:sample
 - `GR_MODEL`
 - `GITRADAR_WECOM_WEBHOOK_URL`
 
-### 可选覆盖项
+## 项目治理
 
-- `GR_GH_API_URL`
-- `GR_GH_TRENDING_URL`
+- 安全策略：[`SECURITY.md`](./SECURITY.md)
+- 贡献约定：[`CONTRIBUTING.md`](./CONTRIBUTING.md)
+- 行为准则：[`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md)
+- PR 模板：[`/.github/pull_request_template.md`](./.github/pull_request_template.md)
 
-## 归档、反馈与轻个性化
+## 许可证
 
-GitRadar 2.0 的核心价值在于：发完日报之后，系统不会忘记你看过什么、收藏了什么、持续跳过什么。
-
-它会把这些信息继续沉淀成：
-
-- 当前仍有效的收藏与待看列表
-- 最近真正感兴趣的主题
-- 最近被连续跳过的主题
-- 归档页里的偏好学习提示
-- 下一轮日报筛选时的轻量 rerank
-
-这不是一个重推荐系统，但足够把 GitRadar 从“日报生成器”推进成“个人开源兴趣雷达”。
-
-## 真实链路与验证口径
-
-GitRadar 当前默认区分三件事：
-
-- 代码已改
-- 测试已过
-- 真实终端已验证
-
-这意味着按钮点击、配置写入和链路成功不会混在一起表述。对用户可见的交互，GitRadar 会尽量明确区分：
-
-- 已配置
-- 已验证
-- 上次验证失败
-- 最近成功验证的真实指纹
-
-## 关联文档
-
-- [Changelog](./CHANGELOG.md)
-- [展示页](./docs/showcase.md)
-- [传播文案](./docs/promo-copy.md)
-- [社交传播套件](./docs/social-preview-kit.md)
-- [版本管理说明](./docs/versioning.md)
-- [架构设计与版本路线](./docs/architecture-roadmap.md)
+GitRadar 使用 [MIT License](./LICENSE)。
