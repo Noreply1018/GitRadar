@@ -42,12 +42,12 @@ jobs:
         run: npm run build:web
 
       - name: Configure Pages
-        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b
+        uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@5b2b6b9638ed5dded3b4297f4e5c61a1fbd8a1af
+        uses: actions/upload-pages-artifact@v3
         with:
           path: web/dist
 
       - name: Deploy Pages
-        uses: actions/deploy-pages@6bd01c6fb5f42d69e11923378bcb3d93910fba5c
+        uses: actions/deploy-pages@v4
