@@ -38,3 +38,9 @@ GitRadar 3.0.0 的正式配置分成两层：
 - 可审阅、可版本化、会频繁调整的内容进入仓库配置文件
 - Token、API Key、Webhook 等敏感值进入 GitHub Secrets
 - 所有正式运行均以仓库配置和 GitHub Secrets 的组合为准
+
+## 开发调试模板
+
+如果需要在本地开发命令或控制台时注入环境变量，请参考 [`docs/examples/development.env.example`](../docs/examples/development.env.example)。
+
+这个模板只用于开发调试，不参与 GitRadar 的正式远端运行。

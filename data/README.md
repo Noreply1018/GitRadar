@@ -17,4 +17,4 @@ GitRadar 3.0.0 把 GitHub 仓库视为正式数据载体。
 - `data/runtime/github-runtime.json` 是前端默认展示的正式运行状态
 - `cache/` 和 `exports/` 只服务于本地开发与调试
 
-  3.0.0 不再把 `data/` 定义为“本地数据目录”。
+GitRadar 3.0.0 中，`data/` 表示仓库内的数据工作区：正式远端产物和开发调试产物都在这里分区管理。

@@ -113,6 +113,8 @@ npm run send:wecom:sample
 
 这些命令用于仓库开发、调试和验证；正式运行仍以 `Daily Digest` 工作流为准。
 
+本地开发如需注入环境变量，请以 [`docs/examples/development.env.example`](./docs/examples/development.env.example) 为模板；它只服务于开发调试，不代表正式配置入口。
+
 ## 文档入口
 
 - 架构设计：[`docs/architecture-roadmap.md`](./docs/architecture-roadmap.md)
