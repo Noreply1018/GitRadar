@@ -187,6 +187,16 @@ export async function listRemoteFeedbackItems(
     }));
 }
 
+export function stringifyEvents(events: FeedbackEvent[]): string {
+  return `${events.map((event) => JSON.stringify(event)).join("\n")}${
+    events.length > 0 ? "\n" : ""
+  }`;
+}
+
+export function stringifyFeedbackState(state: FeedbackState): string {
+  return `${JSON.stringify(state, null, 2)}\n`;
+}
+
 export function parseFeedbackSubmission(input: unknown): FeedbackEvent {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     throw new Error("feedback 必须是对象。");
@@ -307,14 +317,6 @@ export function filterFeedbackEvents(
   }
 
   return filtered;
-}
-
-export function stringifyFeedbackState(state: FeedbackState): string {
-  return `${JSON.stringify(state, null, 2)}\n`;
-}
-
-function stringifyEvents(events: FeedbackEvent[]): string {
-  return `${events.map((event) => JSON.stringify(event)).join("\n")}\n`;
 }
 
 function normalizeRepoStates(

@@ -1,0 +1,87 @@
+name: Console Writeback
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Writeback operation"
+        required: true
+        type: choice
+        options:
+          - update_digest_rules
+          - update_schedule
+          - update_preferences
+          - record_feedback
+      payload_base64:
+        description: "Base64 encoded JSON payload"
+        required: true
+        type: string
+      request_id:
+        description: "Client request id"
+        required: true
+        type: string
+      requested_by:
+        description: "GitHub login or client label"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  writeback:
+    name: Create writeback pull request
+    runs-on: ubuntu-latest
+    env:
+      GR_WRITEBACK_OPERATION: ${{ github.event.inputs.operation }}
+      GR_WRITEBACK_PAYLOAD_B64: ${{ github.event.inputs.payload_base64 }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply writeback payload
+        run: npm run dispatch:writeback
+
+      - name: Create pull request
+        env:
+          BRANCH_NAME: console-writeback/${{ github.event.inputs.operation }}/${{ github.event.inputs.request_id }}
+          REQUESTED_BY: ${{ github.event.inputs.requested_by }}
+          GH_TOKEN: ${{ github.token }}
+          OPERATION: ${{ github.event.inputs.operation }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH_NAME"
+          git add config/*.json data/feedback/*.jsonl data/feedback/*.json
+          if git diff --cached --quiet; then
+            echo "No repository changes were produced by writeback."
+            exit 0
+          fi
+          git commit -m "chore: apply GitRadar ${OPERATION} request"
+          git push origin "$BRANCH_NAME"
+          cat > /tmp/gitradar-pr-body.txt <<EOF
+          Requested by: ${REQUESTED_BY:-unknown}
+
+          Client request id: ${{ github.event.inputs.request_id }}
+          Operation: ${OPERATION}
+
+          This PR was created by the GitRadar console writeback workflow.
+          EOF
+          gh pr create \
+            --base "${{ github.event.repository.default_branch }}" \
+            --head "$BRANCH_NAME" \
+            --title "chore: apply GitRadar ${OPERATION} request" \
+            --body-file /tmp/gitradar-pr-body.txt

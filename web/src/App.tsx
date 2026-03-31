@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { DailyDigestArchive } from "../../src/core/archive";
 import type {
-  ArchiveSummary,
   ArchiveReaderContext,
+  ArchiveSummary,
   EnvironmentFingerprints,
   FeedbackAction,
+  FeedbackEvent,
   FeedbackInsights,
   FeedbackListItem,
   FeedbackState,
@@ -19,6 +20,7 @@ import type {
 } from "./api";
 import {
   acceptPreferenceSuggestion,
+  clearGitHubPat,
   fetchArchiveDetail,
   fetchArchives,
   fetchEnvironmentFingerprints,
@@ -30,9 +32,13 @@ import {
   fetchPreferences,
   fetchScheduleSettings,
   fetchWecomSettings,
+  getGitHubAuthSession,
+  getGitHubRepoContext,
   recordFeedback,
+  saveGitHubPat,
   savePreferences,
   saveScheduleSettings,
+  validateGitHubPat,
 } from "./api";
 
 type ViewId = "environment" | "preferences" | "saved" | "archives";
@@ -84,12 +90,25 @@ const EMPTY_ARCHIVE_READER_CONTEXT: ArchiveReaderContext = {
   explorationRepo: null,
 };
 
-const EMPTY_WECOM_SETTINGS: WecomSettings = {
+const EMPTY_GITHUB_SETTINGS: GitHubSettings = {
   source: "github",
   readonly: true,
   configured: false,
-  maskedWebhookUrl: null,
-  managedIn: "",
+  maskedToken: null,
+  apiBaseUrl: "https://api.github.com",
+  trendingUrl: "https://github.com/trending?since=daily",
+  managedIn: ".github/workflows/console-writeback.yml",
+  execution: {
+    status: "unknown",
+    lastRunAt: null,
+    runUrl: null,
+  },
+  environment: {
+    status: "unknown",
+    checkedAt: null,
+    detail: "GitHub 环境尚未诊断。",
+    login: null,
+  },
 };
 
 const EMPTY_LLM_SETTINGS: LlmSettings = {
@@ -99,25 +118,47 @@ const EMPTY_LLM_SETTINGS: LlmSettings = {
   maskedApiKey: null,
   baseUrl: null,
   model: null,
-  managedIn: "",
+  managedIn: ".github/workflows/environment-diagnose.yml",
+  execution: {
+    status: "unknown",
+    lastRunAt: null,
+    runUrl: null,
+  },
+  environment: {
+    status: "unknown",
+    checkedAt: null,
+    detail: "LLM 环境尚未诊断。",
+    model: null,
+    baseUrl: null,
+  },
 };
 
-const EMPTY_GITHUB_SETTINGS: GitHubSettings = {
+const EMPTY_WECOM_SETTINGS: WecomSettings = {
   source: "github",
   readonly: true,
   configured: false,
-  maskedToken: null,
-  apiBaseUrl: "https://api.github.com",
-  trendingUrl: "https://github.com/trending?since=daily",
-  managedIn: "",
+  maskedWebhookUrl: null,
+  managedIn: ".github/workflows/environment-diagnose.yml",
+  execution: {
+    status: "unknown",
+    lastRunAt: null,
+    runUrl: null,
+  },
+  environment: {
+    status: "unknown",
+    checkedAt: null,
+    detail: "企业微信环境尚未诊断。",
+    maskedWebhookUrl: null,
+  },
 };
 
 const IDLE_VALIDATION: ValidationStatus = {
   state: "idle",
-  detail: "尚未验证",
+  detail: "尚未验证当前浏览器里的 PAT。",
 };
 
 export default function App() {
+  const repoContext = getGitHubRepoContext();
   const [activeView, setActiveView] = useState<ViewId>("environment");
   const [health, setHealth] = useState<{
     status: string;
@@ -158,63 +199,36 @@ export default function App() {
   const [githubSettings, setGitHubSettings] = useState<GitHubSettings>(
     EMPTY_GITHUB_SETTINGS,
   );
-  const [githubValidation, setGitHubValidation] =
-    useState<ValidationStatus>(IDLE_VALIDATION);
   const [llmSettings, setLlmSettings] =
     useState<LlmSettings>(EMPTY_LLM_SETTINGS);
-  const [llmValidation, setLlmValidation] =
-    useState<ValidationStatus>(IDLE_VALIDATION);
   const [wecomSettings, setWecomSettings] =
     useState<WecomSettings>(EMPTY_WECOM_SETTINGS);
   const [environmentFingerprints, setEnvironmentFingerprints] =
     useState<EnvironmentFingerprints>(EMPTY_ENVIRONMENT_FINGERPRINTS);
-  const [wecomValidation, setWecomValidation] =
+  const [githubValidation, setGitHubValidation] =
     useState<ValidationStatus>(IDLE_VALIDATION);
+  const [patInput, setPatInput] = useState("");
+  const [githubLogin, setGitHubLogin] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<
     | ""
     | "hydrate"
-    | "validate-environment"
+    | "auth"
     | "save-schedule"
     | "save-preferences"
     | "record-feedback"
     | "accept-suggestion"
   >("hydrate");
   const [statusMessage, setStatusMessage] = useState(
-    "正在同步 GitRadar 当前状态…",
+    "正在同步 GitHub 正式归档、状态与配置…",
   );
   const [errorMessage, setErrorMessage] = useState("");
 
-  useEffect(() => {
-    void hydrate();
-  }, []);
-
-  useEffect(() => {
-    if (activeView !== "archives" || !archiveDetail) {
-      return;
-    }
-
-    const maxIndex = archiveDetail.digest.items.length - 1;
-
-    function handleKeydown(event: KeyboardEvent): void {
-      if (event.key === "ArrowLeft") {
-        setCurrentItemIndex((current) => Math.max(current - 1, 0));
-      }
-
-      if (event.key === "ArrowRight") {
-        setCurrentItemIndex((current) => Math.min(current + 1, maxIndex));
-      }
-    }
-
-    window.addEventListener("keydown", handleKeydown);
-    return () => window.removeEventListener("keydown", handleKeydown);
-  }, [activeView, archiveDetail]);
-
+  const hasPat = Boolean(getGitHubAuthSession().token);
   const selectedArchiveSummary = useMemo(
     () =>
       archives.find((archive) => archive.date === selectedArchiveDate) ?? null,
     [archives, selectedArchiveDate],
   );
-
   const currentDigestItem =
     archiveDetail?.digest.items[currentItemIndex] ?? null;
   const currentFeedback = currentDigestItem
@@ -222,33 +236,9 @@ export default function App() {
     : null;
   const feedbackItems = savedViewFilter === "saved" ? savedItems : laterItems;
 
-  const environmentCards = [
-    buildEnvironmentCard(
-      "GitHub 源",
-      githubSettings.configured,
-      githubValidation,
-      environmentFingerprints.github
-        ? `已验证账号 ${environmentFingerprints.github.login}`
-        : undefined,
-    ),
-    buildEnvironmentCard(
-      "LLM 模型",
-      llmSettings.configured,
-      llmValidation,
-      environmentFingerprints.llm
-        ? `${environmentFingerprints.llm.model} · ${environmentFingerprints.llm.baseUrl}`
-        : undefined,
-    ),
-    buildEnvironmentCard(
-      "企业微信",
-      wecomSettings.configured,
-      wecomValidation,
-      environmentFingerprints.wecom
-        ? `最近发送 ${formatDateTime(environmentFingerprints.wecom.lastValidatedAt)}`
-        : undefined,
-    ),
-    buildScheduleCard(scheduleDraft, timezoneOptions),
-  ];
+  useEffect(() => {
+    void hydrate();
+  }, []);
 
   async function hydrate(): Promise<void> {
     setBusyAction("hydrate");
@@ -292,19 +282,14 @@ export default function App() {
       setSavedItems(savedResponse.items);
       setLaterItems(laterResponse.items);
       setGitHubSettings(githubResponse);
-      setGitHubValidation(IDLE_VALIDATION);
       setLlmSettings(llmResponse);
-      setLlmValidation(IDLE_VALIDATION);
       setWecomSettings(wecomResponse);
       setEnvironmentFingerprints(fingerprintResponse);
-      setWecomValidation(IDLE_VALIDATION);
 
-      const initialDate = archiveResponse.archives[0]?.date ?? "";
-      setSelectedArchiveDate(initialDate);
-      setCurrentItemIndex(0);
-
-      if (initialDate) {
-        const detailResponse = await fetchArchiveDetail(initialDate);
+      const date = archiveResponse.archives[0]?.date ?? "";
+      setSelectedArchiveDate(date);
+      if (date) {
+        const detailResponse = await fetchArchiveDetail(date);
         setArchiveDetail(detailResponse.archive);
         setArchiveReaderContext(detailResponse.readerContext);
       } else {
@@ -312,7 +297,9 @@ export default function App() {
         setArchiveReaderContext(EMPTY_ARCHIVE_READER_CONTEXT);
       }
 
-      setStatusMessage("GitRadar 已同步 GitHub 远端正式状态、归档和仓库配置。");
+      setStatusMessage(
+        "已同步 GitHub 正式状态。写操作会通过 GitHub Actions 自动创建 PR。",
+      );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -333,6 +320,70 @@ export default function App() {
     setFeedbackInsights(feedbackResponse.insights);
   }
 
+  async function handleSavePat(): Promise<void> {
+    setBusyAction("auth");
+    setErrorMessage("");
+
+    try {
+      saveGitHubPat(patInput);
+      const result = await validateGitHubPat();
+      setGitHubLogin(result.login);
+      setGitHubValidation({
+        state: "passed",
+        detail: `PAT 已校验，当前账号 ${result.login}`,
+      });
+      setPatInput("");
+      setStatusMessage(
+        `已在浏览器本地保存 PAT，并验证账号 ${result.login}。正式写入将触发 ${repoContext.actionsBaseUrl}。`,
+      );
+    } catch (error) {
+      clearGitHubPat();
+      setGitHubLogin(null);
+      setGitHubValidation({
+        state: "failed",
+        detail: getErrorMessage(error),
+      });
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setBusyAction("");
+    }
+  }
+
+  async function handleValidatePat(): Promise<void> {
+    setBusyAction("auth");
+    setErrorMessage("");
+
+    try {
+      const result = await validateGitHubPat();
+      setGitHubLogin(result.login);
+      setGitHubValidation({
+        state: "passed",
+        detail: `PAT 已校验，当前账号 ${result.login}`,
+      });
+      setStatusMessage(
+        `当前 PAT 仍然可用，之后的保存会触发 workflow dispatch。`,
+      );
+    } catch (error) {
+      setGitHubValidation({
+        state: "failed",
+        detail: getErrorMessage(error),
+      });
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setBusyAction("");
+    }
+  }
+
+  function handleClearPat(): void {
+    clearGitHubPat();
+    setPatInput("");
+    setGitHubLogin(null);
+    setGitHubValidation(IDLE_VALIDATION);
+    setStatusMessage(
+      "已清除浏览器本地 PAT。现在仍可读取公开正式数据，但不能提交写入请求。",
+    );
+  }
+
   async function handleSaveSchedule(): Promise<void> {
     if (!scheduleDraft) {
       return;
@@ -343,10 +394,8 @@ export default function App() {
 
     try {
       const response = await saveScheduleSettings(scheduleDraft);
-      setScheduleDraft(response.settings);
-      setTimezoneOptions(response.availableTimezones);
       setStatusMessage(
-        `调度设置已写入正式仓库配置。${describeRepoSync(response, "后续 GitHub Actions 轮询命中目标时间槽时会按新时间执行。")}`,
+        `调度改动已提交为正式写入请求。${describeRepoSync(response, "请在自动创建的 PR 合并后让正式调度生效。")}`,
       );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
@@ -361,102 +410,13 @@ export default function App() {
 
     try {
       const response = await savePreferences(preferencesDraft);
-      setPreferencesDraft(response.preferences);
-      setAvailableThemes(response.availableThemes);
       setStatusMessage(
-        `关心主题已写入正式仓库配置。${describeRepoSync(response, "后续日报会按远端偏好增加权重。")}`,
+        `偏好改动已提交为正式写入请求。${describeRepoSync(response, "请在 PR 合并后让正式偏好生效。")}`,
       );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
       setBusyAction("");
-    }
-  }
-
-  async function handleSaveGitHubSettings(): Promise<void> {
-    setStatusMessage(
-      "GitHub Token 由仓库的 GitHub Secrets 管理；控制台只展示远端正式映射。",
-    );
-  }
-
-  async function handleTestGitHubSettings(): Promise<void> {
-    setStatusMessage(
-      "GitHub Token 连通性以最近一次 GitHub 远端运行结果为准；修改请前往仓库 Secrets。",
-    );
-  }
-
-  async function handleSaveLlmSettings(): Promise<void> {
-    setStatusMessage(
-      "LLM 敏感配置由 GitHub Secrets 管理；控制台只展示远端正式映射。",
-    );
-  }
-
-  async function handleTestLlmSettings(): Promise<void> {
-    setStatusMessage(
-      "LLM 连通性以最近一次 GitHub 远端运行结果为准；修改请前往 GitHub Secrets。",
-    );
-  }
-
-  async function handleSaveWecomSettings(): Promise<void> {
-    setStatusMessage(
-      "企业微信 Webhook 由 GitHub Secrets 管理；控制台只展示远端正式映射。",
-    );
-  }
-
-  async function handleSendWecomTest(): Promise<void> {
-    setStatusMessage(
-      "企业微信发送结果以最近一次 GitHub 远端运行记录为准；修改请前往 GitHub Secrets。",
-    );
-  }
-
-  async function handleValidateEnvironment(): Promise<void> {
-    await hydrate();
-  }
-
-  async function handleSelectArchive(date: string): Promise<void> {
-    setSelectedArchiveDate(date);
-    setCurrentItemIndex(0);
-    setErrorMessage("");
-
-    try {
-      const detailResponse = await fetchArchiveDetail(date);
-      setArchiveDetail(detailResponse.archive);
-      setArchiveReaderContext(detailResponse.readerContext);
-      setStatusMessage("已切换到新的归档日报。");
-    } catch (error) {
-      setErrorMessage(getErrorMessage(error));
-    }
-  }
-
-  async function handleOpenArchiveFromCollection(
-    date: string,
-    repo: string,
-  ): Promise<void> {
-    setActiveView("archives");
-    setSelectedArchiveDate(date);
-    setCurrentItemIndex(0);
-    setErrorMessage("");
-
-    try {
-      const detailResponse = await fetchArchiveDetail(date);
-      const matchedIndex = detailResponse.archive.digest.items.findIndex(
-        (item) => item.repo === repo,
-      );
-
-      setArchiveDetail(detailResponse.archive);
-      setArchiveReaderContext(detailResponse.readerContext);
-
-      if (matchedIndex >= 0) {
-        setCurrentItemIndex(matchedIndex);
-        setStatusMessage(`已跳转到 ${date} 的归档，并定位到 ${repo}。`);
-        return;
-      }
-
-      setStatusMessage(
-        `已打开 ${date} 的归档，但没有定位到 ${repo}，当前展示当日首条。`,
-      );
-    } catch (error) {
-      setErrorMessage(getErrorMessage(error));
     }
   }
 
@@ -475,10 +435,11 @@ export default function App() {
         action,
         theme: currentDigestItem.theme,
       });
-      setFeedbackState(response.state);
-      await refreshFeedbackCollections();
+      setFeedbackState((current) =>
+        applyOptimisticFeedback(current, response.event),
+      );
       setStatusMessage(
-        `反馈已写入正式仓库数据。${describeRepoSync(response, "收藏与待看列表已同步更新。")}`,
+        `反馈已提交为正式写入请求。${describeRepoSync(response, "合并前，当前界面仅显示本地预览，不代表正式反馈已生效。")}`,
       );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
@@ -498,21 +459,51 @@ export default function App() {
       setPreferencesDraft(response.preferences);
       setAvailableThemes(response.availableThemes);
       setFeedbackInsights(response.insights);
-      setArchiveReaderContext((current) => ({
-        ...current,
-        preferenceSuggestion: response.insights.preferenceSuggestion,
-        interestTrack: {
-          interestedThemes: response.insights.interestedThemes,
-          skippedThemes: response.insights.skippedThemes,
-        },
-      }));
       setStatusMessage(
-        `已把 ${theme} 写入远端关心主题。${describeRepoSync(response, "后续日报会更主动保留这类项目。")}`,
+        `偏好学习建议已提交为正式写入请求。${describeRepoSync(response, "合并 PR 后，GitRadar 才会正式按新偏好加权。")}`,
       );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
       setBusyAction("");
+    }
+  }
+
+  async function handleSelectArchive(date: string): Promise<void> {
+    setErrorMessage("");
+    setSelectedArchiveDate(date);
+    setCurrentItemIndex(0);
+
+    try {
+      const detailResponse = await fetchArchiveDetail(date);
+      setArchiveDetail(detailResponse.archive);
+      setArchiveReaderContext(detailResponse.readerContext);
+      setStatusMessage(`已切换到 ${date} 的正式归档。`);
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+    }
+  }
+
+  async function handleOpenArchiveFromCollection(
+    date: string,
+    repo: string,
+  ): Promise<void> {
+    setActiveView("archives");
+    setSelectedArchiveDate(date);
+    setCurrentItemIndex(0);
+    setErrorMessage("");
+
+    try {
+      const detailResponse = await fetchArchiveDetail(date);
+      setArchiveDetail(detailResponse.archive);
+      setArchiveReaderContext(detailResponse.readerContext);
+      const matchedIndex = detailResponse.archive.digest.items.findIndex(
+        (item) => item.repo === repo,
+      );
+      setCurrentItemIndex(matchedIndex >= 0 ? matchedIndex : 0);
+      setStatusMessage(`已打开 ${date} 的正式归档。`);
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
     }
   }
 
@@ -530,25 +521,16 @@ export default function App() {
 
   function handleAddCustomTopic(): void {
     const topic = customTopicInput.trim();
-
     if (!topic) {
       return;
     }
 
-    setPreferencesDraft((current) => {
-      if (
-        current.customTopics.some(
-          (item) => item.toLowerCase() === topic.toLowerCase(),
-        )
-      ) {
-        return current;
-      }
-
-      return {
-        ...current,
-        customTopics: [...current.customTopics, topic],
-      };
-    });
+    setPreferencesDraft((current) => ({
+      ...current,
+      customTopics: current.customTopics.includes(topic)
+        ? current.customTopics
+        : [...current.customTopics, topic],
+    }));
     setCustomTopicInput("");
   }
 
@@ -565,25 +547,21 @@ export default function App() {
 
       <header className="masthead">
         <div className="masthead-copy">
-          <p className="eyebrow">Open Source Daily Digest</p>
+          <p className="eyebrow">GitHub Native Console</p>
           <h1>GitRadar</h1>
-          <p className="masthead-subtitle">每日开源雷达与归档阅读</p>
+          <p className="masthead-subtitle">
+            Pages 读取正式归档，PAT 触发 Actions，Actions 自动创建 PR
+          </p>
         </div>
 
         <div className="masthead-meta">
           <MetaPill label="服务状态" value={health?.status ?? "loading"} />
-          <MetaPill label="运行源" value="GitHub" />
+          <MetaPill label="运行源" value="GitHub Pages" />
           <MetaPill
             label="版本"
             value={health ? `v${health.version}` : "loading"}
           />
-          <MetaPill label="今日日期" value={formatCurrentDate()} />
-          <MetaPill
-            label="归档数"
-            value={
-              busyAction === "hydrate" ? "loading" : String(archives.length)
-            }
-          />
+          <MetaPill label="归档数" value={String(archives.length)} />
         </div>
       </header>
 
@@ -593,7 +571,7 @@ export default function App() {
             <button
               key={view.id}
               className={
-                view.id === activeView ? "view-tab active" : "view-tab"
+                activeView === view.id ? "view-tab active" : "view-tab"
               }
               onClick={() => setActiveView(view.id)}
               type="button"
@@ -605,10 +583,11 @@ export default function App() {
 
         <button
           className="ghost-button"
+          disabled={busyAction !== ""}
           onClick={() => void hydrate()}
           type="button"
         >
-          刷新
+          {busyAction === "hydrate" ? "同步中…" : "刷新"}
         </button>
       </section>
 
@@ -616,8 +595,8 @@ export default function App() {
         <div className="feedback-main">
           <strong>{statusMessage}</strong>
           <span>
-            {health?.note ??
-              "已区分配置写入、测试验证与归档反馈，不把按钮点击当成链路成功。"}
+            这里明确区分“已提交写入请求”和“已正式生效”。只有 PR
+            合并后，正式配置和反馈才算真正落仓库。
           </span>
         </div>
 
@@ -635,20 +614,19 @@ export default function App() {
             <header className="panel-header compact">
               <div>
                 <p className="eyebrow">Environment</p>
-                <h2>环境摘要</h2>
+                <h2>正式环境摘要</h2>
               </div>
-              <button
-                className="primary-button"
-                disabled={busyAction !== ""}
-                onClick={() => void handleValidateEnvironment()}
-                type="button"
-              >
-                {busyAction === "hydrate" ? "同步中…" : "同步远端状态"}
-              </button>
             </header>
 
             <div className="environment-card-grid">
-              {environmentCards.map((card) => (
+              {buildEnvironmentCards(
+                githubSettings,
+                llmSettings,
+                wecomSettings,
+                environmentFingerprints,
+                scheduleDraft,
+                timezoneOptions,
+              ).map((card) => (
                 <article key={card.label} className="environment-card">
                   <span>{card.label}</span>
                   <strong>{card.status}</strong>
@@ -662,7 +640,7 @@ export default function App() {
             <header className="panel-header compact">
               <div>
                 <p className="eyebrow">GitHub</p>
-                <h2>GitHub 源配置</h2>
+                <h2>PAT 与工作流写入</h2>
               </div>
               <StatusBadge
                 configured={githubSettings.configured}
@@ -671,63 +649,80 @@ export default function App() {
             </header>
 
             <div className="wecom-details">
-              <div className="wecom-row">
-                <span>当前 Token</span>
-                <strong>{githubSettings.maskedToken ?? "尚未配置"}</strong>
-              </div>
-              <div className="wecom-row">
-                <span>已验证账号</span>
-                <strong>
-                  {environmentFingerprints.github?.login ?? "尚未验证"}
-                </strong>
-              </div>
-              <div className="wecom-row">
-                <span>API 地址</span>
-                <strong>{githubSettings.apiBaseUrl}</strong>
-              </div>
-              <div className="wecom-row">
-                <span>最近验证</span>
-                <strong>
-                  {environmentFingerprints.github
-                    ? formatDateTime(
-                        environmentFingerprints.github.lastValidatedAt,
-                      )
-                    : "尚无成功记录"}
-                </strong>
-              </div>
-              <div className="wecom-row">
-                <span>Trending 地址</span>
-                <strong>{githubSettings.trendingUrl}</strong>
-              </div>
-              <div className="wecom-row">
-                <span>管理位置</span>
-                <strong>{githubSettings.managedIn || "--"}</strong>
-              </div>
+              <Row
+                label="正式仓库"
+                value={`${repoContext.owner}/${repoContext.repo}`}
+              />
+              <Row label="默认分支" value={repoContext.branch} />
+              <Row label="Actions 入口" value={githubSettings.managedIn} />
+              <Row
+                label="当前 PAT"
+                value={hasPat ? "已保存在浏览器本地" : "尚未提供"}
+              />
+              <Row
+                label="当前账号"
+                value={
+                  githubLogin ?? githubSettings.environment.login ?? "尚未验证"
+                }
+              />
+              <Row
+                label="最近诊断"
+                value={
+                  githubSettings.environment.checkedAt
+                    ? formatDateTime(githubSettings.environment.checkedAt)
+                    : "尚未诊断"
+                }
+              />
             </div>
 
             <ValidationHint validation={githubValidation} />
-            <div className="environment-inline-note">
-              {githubSettings.note ??
-                "GitHub 访问凭据由仓库 GitHub Secrets 管理。"}
+            <div className="environment-inline-note">{githubSettings.note}</div>
+
+            <div className="custom-topic-input auth-inline">
+              <label className="field">
+                <span>细粒度 GitHub PAT</span>
+                <input
+                  onChange={(event) => setPatInput(event.target.value)}
+                  placeholder="仅保存在本地浏览器，不写回仓库"
+                  type="password"
+                  value={patInput}
+                />
+              </label>
+              <button
+                className="primary-button"
+                disabled={!patInput.trim() || busyAction !== ""}
+                onClick={() => void handleSavePat()}
+                type="button"
+              >
+                {busyAction === "auth" ? "验证中…" : "保存并验证"}
+              </button>
             </div>
 
             <div className="action-row dual-actions">
               <button
                 className="primary-button"
-                disabled={busyAction !== ""}
-                onClick={() => void handleSaveGitHubSettings()}
+                disabled={!hasPat || busyAction !== ""}
+                onClick={() => void handleValidatePat()}
                 type="button"
               >
-                查看 Secrets 说明
+                验证当前 PAT
               </button>
               <button
                 className="ghost-button"
-                disabled={busyAction !== ""}
-                onClick={() => void handleTestGitHubSettings()}
+                disabled={!hasPat || busyAction !== ""}
+                onClick={handleClearPat}
                 type="button"
               >
-                查看远端状态解释
+                清除本地 PAT
               </button>
+              <a
+                className="ghost-button link-button"
+                href={repoContext.actionsBaseUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                打开 Actions 工作流
+              </a>
             </div>
           </section>
 
@@ -735,137 +730,71 @@ export default function App() {
             <header className="panel-header compact">
               <div>
                 <p className="eyebrow">LLM</p>
-                <h2>模型配置</h2>
+                <h2>模型环境</h2>
               </div>
               <StatusBadge
                 configured={llmSettings.configured}
-                validation={llmValidation}
+                validation={IDLE_VALIDATION}
               />
             </header>
 
             <div className="wecom-details">
-              <div className="wecom-row">
-                <span>当前 API Key</span>
-                <strong>{llmSettings.maskedApiKey ?? "尚未配置"}</strong>
-              </div>
-              <div className="wecom-row">
-                <span>Base URL</span>
-                <strong>{llmSettings.baseUrl ?? "尚未配置"}</strong>
-              </div>
-              <div className="wecom-row">
-                <span>Model</span>
-                <strong>
-                  {environmentFingerprints.llm?.model ??
-                    llmSettings.model ??
-                    "尚未配置"}
-                </strong>
-              </div>
-              <div className="wecom-row">
-                <span>最近验证</span>
-                <strong>
-                  {environmentFingerprints.llm
-                    ? formatDateTime(
-                        environmentFingerprints.llm.lastValidatedAt,
-                      )
-                    : "尚无成功记录"}
-                </strong>
-              </div>
-              <div className="wecom-row">
-                <span>管理位置</span>
-                <strong>{llmSettings.managedIn || "--"}</strong>
-              </div>
+              <Row
+                label="模型"
+                value={llmSettings.environment.model ?? "尚未诊断"}
+              />
+              <Row
+                label="Base URL"
+                value={llmSettings.environment.baseUrl ?? "尚未诊断"}
+              />
+              <Row
+                label="最近诊断"
+                value={
+                  llmSettings.environment.checkedAt
+                    ? formatDateTime(llmSettings.environment.checkedAt)
+                    : "尚未诊断"
+                }
+              />
             </div>
 
-            <ValidationHint validation={llmValidation} />
-            <div className="environment-inline-note">
-              {llmSettings.note ??
-                "LLM 凭据由 GitHub Secrets 管理，控制台只展示远端正式状态。"}
-            </div>
-
-            <div className="action-row dual-actions">
-              <button
-                className="primary-button"
-                disabled={busyAction !== ""}
-                onClick={() => void handleSaveLlmSettings()}
-                type="button"
-              >
-                查看 Secrets 说明
-              </button>
-              <button
-                className="ghost-button"
-                disabled={busyAction !== ""}
-                onClick={() => void handleTestLlmSettings()}
-                type="button"
-              >
-                查看远端状态解释
-              </button>
-            </div>
+            <div className="environment-inline-note">{llmSettings.note}</div>
           </section>
 
           <section className="panel wecom-panel">
             <header className="panel-header compact">
               <div>
                 <p className="eyebrow">WeCom</p>
-                <h2>企业微信机器人</h2>
+                <h2>企业微信环境</h2>
               </div>
               <StatusBadge
                 configured={wecomSettings.configured}
-                validation={wecomValidation}
+                validation={IDLE_VALIDATION}
               />
             </header>
 
             <div className="wecom-details">
-              <div className="wecom-row">
-                <span>当前 Webhook</span>
-                <strong>{wecomSettings.maskedWebhookUrl ?? "尚未配置"}</strong>
-              </div>
-              <div className="wecom-row">
-                <span>最近测试发送</span>
-                <strong>
-                  {environmentFingerprints.wecom
-                    ? formatDateTime(
-                        environmentFingerprints.wecom.lastValidatedAt,
-                      )
-                    : "尚无成功记录"}
-                </strong>
-              </div>
-              <div className="wecom-row">
-                <span>管理位置</span>
-                <strong>{wecomSettings.managedIn || "--"}</strong>
-              </div>
+              <Row
+                label="Webhook"
+                value={wecomSettings.environment.maskedWebhookUrl ?? "尚未诊断"}
+              />
+              <Row
+                label="最近诊断"
+                value={
+                  wecomSettings.environment.checkedAt
+                    ? formatDateTime(wecomSettings.environment.checkedAt)
+                    : "尚未诊断"
+                }
+              />
             </div>
 
-            <ValidationHint validation={wecomValidation} />
-            <div className="environment-inline-note">
-              {wecomSettings.note ??
-                "企业微信 Webhook 由 GitHub Secrets 管理，控制台只展示远端正式状态。"}
-            </div>
-
-            <div className="action-row dual-actions">
-              <button
-                className="primary-button"
-                disabled={busyAction !== ""}
-                onClick={() => void handleSaveWecomSettings()}
-                type="button"
-              >
-                查看 Secrets 说明
-              </button>
-              <button
-                className="ghost-button"
-                disabled={busyAction !== ""}
-                onClick={() => void handleSendWecomTest()}
-                type="button"
-              >
-                查看远端状态解释
-              </button>
-            </div>
+            <div className="environment-inline-note">{wecomSettings.note}</div>
           </section>
 
           <section className="panel schedule-panel">
             <header className="panel-header">
               <div>
                 <p className="eyebrow">Schedule</p>
-                <h2>发送时间</h2>
+                <h2>发送调度</h2>
               </div>
               <SchedulePreview
                 schedule={scheduleDraft}
@@ -888,7 +817,6 @@ export default function App() {
                   value={scheduleDraft?.dailySendTime ?? ""}
                 />
               </label>
-
               <label className="field">
                 <span>时区</span>
                 <select
@@ -915,18 +843,17 @@ export default function App() {
             </div>
 
             <div className="environment-inline-note">
-              调度配置保存在仓库 `config/schedule.json`。GitHub Actions 每 5
-              分钟轮询一次，并在命中目标时区时间后生成、发送并归档日报。
+              保存不会直接改默认分支，而是触发 Actions 创建 PR。
             </div>
 
             <div className="action-row">
               <button
                 className="primary-button"
-                disabled={!scheduleDraft || busyAction !== ""}
+                disabled={!scheduleDraft || !hasPat || busyAction !== ""}
                 onClick={() => void handleSaveSchedule()}
                 type="button"
               >
-                {busyAction === "save-schedule" ? "保存中…" : "保存远端调度"}
+                {busyAction === "save-schedule" ? "提交中…" : "提交调度变更"}
               </button>
             </div>
           </section>
@@ -944,19 +871,20 @@ export default function App() {
             </header>
 
             <div className="theme-picker">
-              {availableThemes.map((theme) => {
-                const active = preferencesDraft.preferredThemes.includes(theme);
-                return (
-                  <button
-                    key={theme}
-                    className={active ? "theme-chip active" : "theme-chip"}
-                    onClick={() => handleToggleTheme(theme)}
-                    type="button"
-                  >
-                    {theme}
-                  </button>
-                );
-              })}
+              {availableThemes.map((theme) => (
+                <button
+                  key={theme}
+                  className={
+                    preferencesDraft.preferredThemes.includes(theme)
+                      ? "theme-chip active"
+                      : "theme-chip"
+                  }
+                  onClick={() => handleToggleTheme(theme)}
+                  type="button"
+                >
+                  {theme}
+                </button>
+              ))}
             </div>
 
             <div className="custom-topic-block">
@@ -999,20 +927,17 @@ export default function App() {
                     <span>移除</span>
                   </button>
                 ))}
-                {preferencesDraft.customTopics.length === 0 ? (
-                  <div className="empty-inline">还没有添加自定义主题词。</div>
-                ) : null}
               </div>
             </div>
 
             <div className="action-row">
               <button
                 className="primary-button"
-                disabled={busyAction !== ""}
+                disabled={!hasPat || busyAction !== ""}
                 onClick={() => void handleSavePreferences()}
                 type="button"
               >
-                {busyAction === "save-preferences" ? "保存中…" : "保存关心主题"}
+                {busyAction === "save-preferences" ? "提交中…" : "提交偏好变更"}
               </button>
             </div>
           </section>
@@ -1027,13 +952,9 @@ export default function App() {
                 <p className="eyebrow">Collection</p>
                 <h2>收藏与待看</h2>
                 <p className="reader-meta-line">
-                  只展示当前仍然生效的状态集合，按最新记录时间倒序排列。
+                  默认展示正式反馈聚合结果；刚刚提交但尚未合并 PR
+                  的反馈不会在这里立即成为正式状态。
                 </p>
-              </div>
-
-              <div className="collection-summary">
-                <MetaPill label="已收藏" value={String(savedItems.length)} />
-                <MetaPill label="待会看" value={String(laterItems.length)} />
               </div>
             </header>
 
@@ -1123,13 +1044,6 @@ export default function App() {
                   </div>
                 </article>
               ))}
-
-              {feedbackItems.length === 0 ? (
-                <div className="empty-state">
-                  当前还没有{savedViewFilter === "saved" ? "已收藏" : "待会看"}
-                  项目。
-                </div>
-              ) : null}
             </div>
           </section>
         </main>
@@ -1161,10 +1075,6 @@ export default function App() {
                   <span>{archive.digestCount} 条项目</span>
                 </button>
               ))}
-
-              {archives.length === 0 ? (
-                <div className="empty-inline">当前还没有归档日报。</div>
-              ) : null}
             </div>
           </aside>
 
@@ -1180,7 +1090,6 @@ export default function App() {
                       规则版本 {selectedArchiveSummary.rulesVersion}
                     </p>
                   </div>
-
                   <div className="reader-counter">
                     第 {currentItemIndex + 1} 篇 / 共{" "}
                     {archiveDetail.digest.items.length} 篇
@@ -1203,12 +1112,9 @@ export default function App() {
                       </span>
                       <strong>偏好学习提示</strong>
                       <p>{archiveReaderContext.preferenceSuggestion.reason}</p>
-                      <p className="reader-meta-line">
-                        {archiveReaderContext.preferenceSuggestion.sourceWindow}
-                      </p>
                       <button
                         className="primary-button"
-                        disabled={busyAction !== ""}
+                        disabled={!hasPat || busyAction !== ""}
                         onClick={() =>
                           void handleAcceptPreferenceSuggestion(
                             archiveReaderContext.preferenceSuggestion!.theme,
@@ -1217,8 +1123,8 @@ export default function App() {
                         type="button"
                       >
                         {busyAction === "accept-suggestion"
-                          ? "更新中…"
-                          : "加入关心主题"}
+                          ? "提交中…"
+                          : "提交关心主题变更"}
                       </button>
                     </div>
                   ) : null}
@@ -1241,55 +1147,27 @@ export default function App() {
                       <span className="story-theme">
                         {currentDigestItem.theme}
                       </span>
-                      {currentDigestItem.readerTag === "exploration" ? (
-                        <span className="story-flag">探索位</span>
-                      ) : null}
                       <h3>{currentDigestItem.repo}</h3>
                     </div>
 
-                    {currentDigestItem.readerNote ? (
-                      <p className="story-note">
-                        {currentDigestItem.readerNote}
-                      </p>
-                    ) : null}
-
                     <div className="feedback-actions">
-                      <button
-                        className={
-                          currentFeedback?.action === "saved"
-                            ? "feedback-button active"
-                            : "feedback-button"
-                        }
-                        disabled={busyAction !== ""}
-                        onClick={() => void handleRecordFeedback("saved")}
-                        type="button"
-                      >
-                        收藏
-                      </button>
-                      <button
-                        className={
-                          currentFeedback?.action === "later"
-                            ? "feedback-button active"
-                            : "feedback-button"
-                        }
-                        disabled={busyAction !== ""}
-                        onClick={() => void handleRecordFeedback("later")}
-                        type="button"
-                      >
-                        稍后看
-                      </button>
-                      <button
-                        className={
-                          currentFeedback?.action === "skipped"
-                            ? "feedback-button active"
-                            : "feedback-button"
-                        }
-                        disabled={busyAction !== ""}
-                        onClick={() => void handleRecordFeedback("skipped")}
-                        type="button"
-                      >
-                        跳过
-                      </button>
+                      {(["saved", "later", "skipped"] as FeedbackAction[]).map(
+                        (action) => (
+                          <button
+                            key={action}
+                            className={
+                              currentFeedback?.action === action
+                                ? "feedback-button active"
+                                : "feedback-button"
+                            }
+                            disabled={!hasPat || busyAction !== ""}
+                            onClick={() => void handleRecordFeedback(action)}
+                            type="button"
+                          >
+                            {describeFeedbackAction(action)}
+                          </button>
+                        ),
+                      )}
                       <a
                         className="ghost-button link-button inline-action-link"
                         href={currentDigestItem.url}
@@ -1301,7 +1179,6 @@ export default function App() {
                     </div>
 
                     <p className="story-lead">{currentDigestItem.summary}</p>
-
                     <div className="story-columns">
                       <section>
                         <h4>为什么值得看</h4>
@@ -1360,12 +1237,18 @@ function MetaPill(props: { label: string; value: string }) {
   );
 }
 
+function Row(props: { label: string; value: string }) {
+  return (
+    <div className="wecom-row">
+      <span>{props.label}</span>
+      <strong>{props.value}</strong>
+    </div>
+  );
+}
+
 function InsightCard(props: {
   title: string;
-  items: Array<{
-    theme: string;
-    reason: string;
-  }>;
+  items: Array<{ theme: string; reason: string }>;
   emptyText: string;
 }) {
   return (
@@ -1403,13 +1286,7 @@ function ValidationHint(props: { validation: ValidationStatus }) {
     props.validation.state === "failed"
       ? "validation-hint failed"
       : "validation-hint";
-
-  const detail =
-    props.validation.state === "failed"
-      ? `上次验证失败：${props.validation.detail}`
-      : props.validation.detail;
-
-  return <div className={className}>{detail}</div>;
+  return <div className={className}>{props.validation.detail}</div>;
 }
 
 function SchedulePreview(props: {
@@ -1428,92 +1305,82 @@ function SchedulePreview(props: {
   );
 }
 
-function buildEnvironmentCard(
-  label: string,
-  configured: boolean,
-  validation: ValidationStatus,
-  fingerprintDetail?: string,
-) {
-  return {
-    label,
-    configured,
-    status: buildStatusLabel(configured, validation),
-    detail: fingerprintDetail ?? validation.detail,
-  };
-}
-
-function buildScheduleCard(
-  schedule: ScheduleSettings | null,
-  options: TimezoneOption[],
-) {
-  const validation = validateScheduleConfiguration(schedule, options);
-
-  return {
-    label: "调度",
-    configured: validation.state === "passed",
-    status: validation.state === "passed" ? "已配置" : "待配置",
-    detail: validation.detail,
-  };
-}
-
 function buildStatusLabel(
   configured: boolean,
   validation: ValidationStatus,
 ): string {
-  if (!configured) {
-    return "未配置";
-  }
-
-  if (validation.state === "passed") {
-    return "已验证";
-  }
-
   if (validation.state === "failed") {
-    return "上次验证失败";
+    return "验证失败";
   }
-
-  return "已配置未验证";
+  if (validation.state === "passed") {
+    return "PAT 已验证";
+  }
+  return configured ? "已配置" : "未配置";
 }
 
-function validateScheduleConfiguration(
+function buildEnvironmentCards(
+  githubSettings: GitHubSettings,
+  llmSettings: LlmSettings,
+  wecomSettings: WecomSettings,
+  fingerprints: EnvironmentFingerprints,
   schedule: ScheduleSettings | null,
-  options: TimezoneOption[],
-): ValidationStatus {
-  if (!schedule?.dailySendTime || !schedule.timezone) {
-    return {
-      state: "failed",
-      detail: "尚未配置发送时间或时区",
-    };
-  }
+  timezones: TimezoneOption[],
+) {
+  return [
+    {
+      label: "GitHub",
+      status: githubSettings.environment.status,
+      detail: fingerprints.github?.login ?? githubSettings.environment.detail,
+    },
+    {
+      label: "LLM",
+      status: llmSettings.environment.status,
+      detail: fingerprints.llm
+        ? `${fingerprints.llm.model} · ${fingerprints.llm.baseUrl}`
+        : llmSettings.environment.detail,
+    },
+    {
+      label: "企业微信",
+      status: wecomSettings.environment.status,
+      detail:
+        fingerprints.wecom?.maskedWebhookUrl ??
+        wecomSettings.environment.detail,
+    },
+    {
+      label: "调度",
+      status: schedule ? "configured" : "missing",
+      detail: schedule
+        ? `${schedule.dailySendTime} · ${
+            timezones.find((option) => option.value === schedule.timezone)
+              ?.label ?? schedule.timezone
+          }`
+        : "尚未读取到正式调度配置。",
+    },
+  ];
+}
 
+function applyOptimisticFeedback(
+  state: FeedbackState,
+  event: FeedbackEvent,
+): FeedbackState {
   return {
-    state: "passed",
-    detail: `${schedule.dailySendTime} · ${describeTimezone(
-      schedule.timezone,
-      options,
-    )} · 需重启后生效`,
+    ...state,
+    repoStates: {
+      ...state.repoStates,
+      [event.repo]: {
+        repo: event.repo,
+        date: event.date,
+        action: event.action,
+        theme: event.theme,
+        recordedAt: event.recordedAt,
+      },
+    },
+    recent: [event, ...state.recent].slice(0, 12),
   };
 }
 
-function describeTimezone(
-  timezone: ScheduleSettings["timezone"],
-  options: TimezoneOption[],
-): string {
-  return options.find((option) => option.value === timezone)?.label ?? timezone;
-}
-
 function formatDateTime(value: string): string {
-  return new Date(value).toLocaleString("zh-CN", {
-    hour12: false,
-  });
-}
-
-function formatCurrentDate(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return new Date(value).toLocaleString("zh-CN", { hour12: false });
 }
 
 function getErrorMessage(error: unknown): string {
@@ -1521,29 +1388,17 @@ function getErrorMessage(error: unknown): string {
 }
 
 function describeRepoSync(sync: RemoteSyncMetadata, fallback: string): string {
-  if (!sync.committed) {
-    return `未检测到新的仓库变更，因此没有新增 commit。${fallback}`;
-  }
-
-  const sha = sync.commitSha ? sync.commitSha.slice(0, 7) : "unknown";
-  const target = sync.targetRef ?? "main";
-  const pushed = sync.pushed
-    ? "已推送到远端"
-    : "当前仓库没有 origin，未执行推送";
-
-  return `已生成 commit ${sha} 并写入 ${target}；${pushed}。${fallback}`;
+  return `已提交 request ${sync.requestId} 到 ${sync.branch}，工作流入口：${sync.workflowUrl}。${fallback}`;
 }
 
 function describeFeedbackAction(action: FeedbackAction): string {
   if (action === "saved") {
-    return "已收藏";
+    return "收藏";
   }
-
-  if (action === "skipped") {
-    return "已跳过";
+  if (action === "later") {
+    return "稍后看";
   }
-
-  return "稍后看";
+  return "跳过";
 }
 
 function toRepoUrl(repo: string): string {

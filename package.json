@@ -10,6 +10,8 @@
     "runtime:github": "tsx src/commands/write-github-runtime.ts",
     "analyze:digest": "tsx src/commands/analyze-digest.ts",
     "feedback:list": "tsx src/commands/list-feedback.ts",
+    "dispatch:writeback": "tsx src/commands/process-writeback-request.ts",
+    "diagnose:environment": "tsx src/commands/write-environment-report.ts",
     "validate:digest-rules": "tsx src/commands/validate-digest-rules.ts",
     "send:wecom:sample": "tsx src/commands/send-wecom-sample.ts",
     "dev:web": "vite --config web/vite.config.ts",
