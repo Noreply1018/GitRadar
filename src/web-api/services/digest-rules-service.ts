@@ -1,6 +1,8 @@
 import { writeFile } from "node:fs/promises";
+import path from "node:path";
 
 import {
+  DIGEST_RULES_CONFIG,
   getDefaultDigestRulesConfigPath,
   loadDigestRulesConfig,
   parseDigestRulesConfig,
@@ -11,14 +13,46 @@ import type {
   DigestRulesResponse,
   DigestRulesValidationResponse,
 } from "../types/api";
+import {
+  commitAndPushRepoFiles,
+  readRemoteRepoJson,
+} from "./repo-sync-service";
 
 const DIGEST_RULES_SOURCE = "digestRules";
 
 export function readDigestRulesConfig(): DigestRulesResponse {
-  const path = getDefaultDigestRulesConfigPath();
-  const config = loadDigestRulesConfig(path);
+  const filePath = getDefaultDigestRulesConfigPath();
+  const config = loadDigestRulesConfig(filePath);
 
-  return { config, path };
+  return {
+    config,
+    path: path.relative(process.cwd(), filePath) || "config/digest-rules.json",
+    committed: false,
+    commitSha: null,
+    targetRef: null,
+    pushed: false,
+    committedAt: null,
+  };
+}
+
+export async function readRemoteDigestRulesConfig(
+  rootDir: string,
+): Promise<DigestRulesResponse> {
+  const repoPath = path.join("config", "digest-rules.json");
+  const config = parseDigestRulesConfig(
+    await readRemoteRepoJson(rootDir, repoPath, DIGEST_RULES_CONFIG),
+    repoPath,
+  );
+
+  return {
+    config,
+    path: repoPath,
+    committed: false,
+    commitSha: null,
+    targetRef: null,
+    pushed: false,
+    committedAt: null,
+  };
 }
 
 export function validateDigestRulesDraft(
@@ -40,15 +74,23 @@ export function validateDigestRulesDraft(
 }
 
 export async function saveDigestRulesConfig(
+  rootDir: string,
   draft: unknown,
 ): Promise<DigestRulesResponse> {
   const config = parseDigestRulesConfig(draft, DIGEST_RULES_SOURCE);
   const path = getDefaultDigestRulesConfigPath();
   await writeFile(path, stringifyDigestRulesConfig(config), "utf8");
+  const repoPath = "config/digest-rules.json";
+  const sync = await commitAndPushRepoFiles(
+    rootDir,
+    [repoPath],
+    `chore: update GitRadar digest rules`,
+  );
 
   return {
     config,
-    path,
+    path: repoPath,
+    ...sync,
   };
 }
 

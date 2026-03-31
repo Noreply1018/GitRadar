@@ -3,6 +3,11 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { getIsoTimestamp } from "../core/date";
+import type { FeedbackRecordResponse } from "../web-api/types/api";
+import {
+  commitAndPushRepoFiles,
+  readRemoteRepoJson,
+} from "../web-api/services/repo-sync-service";
 import {
   EMPTY_FEEDBACK_STATE,
   isFeedbackAction,
@@ -16,6 +21,7 @@ import {
 const FEEDBACK_EVENTS_FILE = "feedback-events.jsonl";
 const FEEDBACK_STATE_FILE = "feedback-state.json";
 const MAX_RECENT_EVENTS = 12;
+const FEEDBACK_REPO_DIR = path.join("data", "feedback");
 
 export interface FeedbackSubmission {
   repo: string;
@@ -40,11 +46,19 @@ export interface FeedbackListItem {
 }
 
 export function getFeedbackEventsPath(rootDir: string): string {
-  return path.join(rootDir, "data", "runtime", FEEDBACK_EVENTS_FILE);
+  return path.join(rootDir, FEEDBACK_REPO_DIR, FEEDBACK_EVENTS_FILE);
 }
 
 export function getFeedbackStatePath(rootDir: string): string {
-  return path.join(rootDir, "data", "runtime", FEEDBACK_STATE_FILE);
+  return path.join(rootDir, FEEDBACK_REPO_DIR, FEEDBACK_STATE_FILE);
+}
+
+export function getFeedbackEventsRepoPath(): string {
+  return path.join(FEEDBACK_REPO_DIR, FEEDBACK_EVENTS_FILE);
+}
+
+export function getFeedbackStateRepoPath(): string {
+  return path.join(FEEDBACK_REPO_DIR, FEEDBACK_STATE_FILE);
 }
 
 export async function readFeedbackState(
@@ -82,7 +96,7 @@ export function readFeedbackStateSync(rootDir: string): FeedbackState {
 export async function recordFeedback(
   rootDir: string,
   submission: FeedbackSubmission,
-): Promise<{ event: FeedbackEvent; state: FeedbackState }> {
+): Promise<FeedbackRecordResponse> {
   const event = parseFeedbackSubmission(submission);
   const eventsPath = getFeedbackEventsPath(rootDir);
   const statePath = getFeedbackStatePath(rootDir);
@@ -95,11 +109,27 @@ export async function recordFeedback(
 
   await writeFile(eventsPath, stringifyEvents(nextEvents), "utf8");
   await writeFile(statePath, stringifyFeedbackState(nextState), "utf8");
+  const sync = await commitAndPushRepoFiles(
+    rootDir,
+    [getFeedbackEventsRepoPath(), getFeedbackStateRepoPath()],
+    `chore: record GitRadar feedback`,
+  );
 
   return {
     event,
     state: nextState,
+    ...sync,
   };
+}
+
+export async function readRemoteFeedbackState(
+  rootDir: string,
+): Promise<FeedbackState> {
+  return parseFeedbackState(
+    await readRemoteRepoJson(rootDir, getFeedbackStateRepoPath(), {
+      ...EMPTY_FEEDBACK_STATE,
+    }),
+  );
 }
 
 export async function readFeedbackEvents(
@@ -136,6 +166,27 @@ export async function listFeedbackItems(
   query: FeedbackQuery = {},
 ): Promise<FeedbackListItem[]> {
   const state = await readFeedbackState(rootDir);
+
+  return Object.values(state.repoStates)
+    .filter((item) => !query.action || item.action === query.action)
+    .filter((item) => !query.theme || item.theme === query.theme)
+    .filter((item) => !query.repo || item.repo === query.repo)
+    .sort((left, right) => right.recordedAt.localeCompare(left.recordedAt))
+    .slice(0, normalizeLimit(query.limit) ?? Number.MAX_SAFE_INTEGER)
+    .map((item) => ({
+      repo: item.repo,
+      date: item.date,
+      action: item.action,
+      theme: item.theme,
+      recordedAt: item.recordedAt,
+    }));
+}
+
+export async function listRemoteFeedbackItems(
+  rootDir: string,
+  query: FeedbackQuery = {},
+): Promise<FeedbackListItem[]> {
+  const state = await readRemoteFeedbackState(rootDir);
 
   return Object.values(state.repoStates)
     .filter((item) => !query.action || item.action === query.action)

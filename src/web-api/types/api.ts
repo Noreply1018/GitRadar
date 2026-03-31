@@ -12,8 +12,8 @@ export interface HealthResponse {
   status: "ok" | "degraded" | "unknown";
   app: "GitRadar";
   version: string;
-  mode: "api-only" | "full-console" | "github-actions";
-  source: "github" | "local";
+  mode: "github-actions";
+  source: "github";
   note?: string;
   lastRunAt?: string | null;
   lastRunStatus?: "success" | "failure" | "unknown";
@@ -21,12 +21,20 @@ export interface HealthResponse {
   runUrl?: string | null;
 }
 
+export interface RemoteSyncMetadata {
+  committed: boolean;
+  commitSha?: string | null;
+  targetRef?: string | null;
+  pushed?: boolean;
+  committedAt?: string | null;
+}
+
 export interface DigestRulesIssue {
   path: string;
   message: string;
 }
 
-export interface DigestRulesResponse {
+export interface DigestRulesResponse extends RemoteSyncMetadata {
   config: DigestRulesConfig;
   path: string;
 }
@@ -55,8 +63,8 @@ export interface ScheduleSettings {
   dailySendTime: string;
 }
 
-export interface ScheduleSettingsResponse {
-  source: "github" | "local";
+export interface ScheduleSettingsResponse extends RemoteSyncMetadata {
+  source: "github";
   readonly: boolean;
   path: string;
   settings: ScheduleSettings;
@@ -67,7 +75,7 @@ export interface ScheduleSettingsResponse {
   lastRunStatus?: "success" | "failure" | "unknown";
 }
 
-export interface UserPreferencesResponse {
+export interface UserPreferencesResponse extends RemoteSyncMetadata {
   path: string;
   preferences: UserPreferencesConfig;
   availableThemes: string[];
@@ -95,7 +103,7 @@ export interface FeedbackResponse {
   insights: FeedbackInsights;
 }
 
-export interface FeedbackRecordResponse {
+export interface FeedbackRecordResponse extends RemoteSyncMetadata {
   event: FeedbackEvent;
   state: FeedbackState;
 }
@@ -166,7 +174,7 @@ export interface CommandStartResponse {
 }
 
 export interface WecomSettingsResponse {
-  source: "github" | "local";
+  source: "github";
   readonly: boolean;
   configured: boolean;
   maskedWebhookUrl: string | null;
@@ -178,7 +186,7 @@ export interface WecomSettingsResponse {
 }
 
 export interface GitHubSettingsResponse {
-  source: "github" | "local";
+  source: "github";
   readonly: boolean;
   configured: boolean;
   maskedToken: string | null;
@@ -192,7 +200,7 @@ export interface GitHubSettingsResponse {
 }
 
 export interface LlmSettingsResponse {
-  source: "github" | "local";
+  source: "github";
   readonly: boolean;
   configured: boolean;
   maskedApiKey: string | null;

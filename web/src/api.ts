@@ -9,8 +9,6 @@ export type ScheduleTimezone =
   | "America/New_York"
   | "America/Los_Angeles";
 
-export type RuntimeSource = "github" | "local";
-
 export interface TimezoneOption {
   value: ScheduleTimezone;
   label: string;
@@ -27,7 +25,7 @@ export interface UserPreferences {
 }
 
 export interface GitHubSettings {
-  source: RuntimeSource;
+  source: "github";
   readonly: boolean;
   configured: boolean;
   maskedToken: string | null;
@@ -106,7 +104,7 @@ export interface ArchiveSummary {
 }
 
 export interface WecomSettings {
-  source: RuntimeSource;
+  source: "github";
   readonly: boolean;
   configured: boolean;
   maskedWebhookUrl: string | null;
@@ -118,7 +116,7 @@ export interface WecomSettings {
 }
 
 export interface LlmSettings {
-  source: RuntimeSource;
+  source: "github";
   readonly: boolean;
   configured: boolean;
   maskedApiKey: string | null;
@@ -129,26 +127,6 @@ export interface LlmSettings {
   mappedKeys?: string[];
   lastRunAt?: string | null;
   lastRunStatus?: "success" | "failure" | "unknown";
-}
-
-export interface WecomTestResult {
-  ok: true;
-  message: string;
-  maskedWebhookUrl: string;
-}
-
-export interface LlmTestResult {
-  ok: true;
-  message: string;
-  model: string;
-  baseUrl: string;
-}
-
-export interface GitHubTestResult {
-  ok: true;
-  message: string;
-  login: string;
-  apiBaseUrl: string;
 }
 
 export interface EnvironmentFingerprints {
@@ -178,23 +156,23 @@ export interface ArchiveReaderContext {
   explorationRepo: string | null;
 }
 
-export async function fetchHealth(source: RuntimeSource): Promise<{
+export async function fetchHealth(): Promise<{
   status: string;
   app: string;
   version: string;
   mode: string;
-  source: RuntimeSource;
+  source: "github";
   note?: string;
   lastRunAt?: string | null;
   lastRunStatus?: "success" | "failure" | "unknown";
   lastArchiveDate?: string | null;
   runUrl?: string | null;
 }> {
-  return fetchJson(`/api/health?source=${encodeURIComponent(source)}`);
+  return fetchJson(`/api/health`);
 }
 
-export async function fetchScheduleSettings(source: RuntimeSource): Promise<{
-  source: RuntimeSource;
+export async function fetchScheduleSettings(): Promise<{
+  source: "github";
   readonly: boolean;
   path: string;
   settings: ScheduleSettings;
@@ -204,13 +182,11 @@ export async function fetchScheduleSettings(source: RuntimeSource): Promise<{
   lastRunAt?: string | null;
   lastRunStatus?: "success" | "failure" | "unknown";
 }> {
-  return fetchJson(
-    `/api/settings/schedule?source=${encodeURIComponent(source)}`,
-  );
+  return fetchJson(`/api/settings/schedule`);
 }
 
 export async function saveScheduleSettings(draft: ScheduleSettings): Promise<{
-  source: RuntimeSource;
+  source: "github";
   readonly: boolean;
   path: string;
   settings: ScheduleSettings;
@@ -234,25 +210,8 @@ export async function fetchPreferences(): Promise<{
   return fetchJson("/api/settings/preferences");
 }
 
-export async function fetchGitHubSettings(
-  source: RuntimeSource,
-): Promise<GitHubSettings> {
-  return fetchJson(`/api/settings/github?source=${encodeURIComponent(source)}`);
-}
-
-export async function saveGitHubSettings(input: {
-  token?: string;
-}): Promise<GitHubSettings> {
-  return fetchJson("/api/settings/github", {
-    method: "PUT",
-    body: JSON.stringify(input),
-  });
-}
-
-export async function testGitHubSettings(): Promise<GitHubTestResult> {
-  return fetchJson("/api/settings/github/test", {
-    method: "POST",
-  });
+export async function fetchGitHubSettings(): Promise<GitHubSettings> {
+  return fetchJson(`/api/settings/github`);
 }
 
 export async function savePreferences(draft: UserPreferences): Promise<{
@@ -305,75 +264,28 @@ export async function acceptPreferenceSuggestion(theme: string): Promise<{
   );
 }
 
-export async function fetchWecomSettings(
-  source: RuntimeSource,
-): Promise<WecomSettings> {
-  return fetchJson(`/api/settings/wecom?source=${encodeURIComponent(source)}`);
+export async function fetchWecomSettings(): Promise<WecomSettings> {
+  return fetchJson(`/api/settings/wecom`);
 }
 
-export async function fetchLlmSettings(
-  source: RuntimeSource,
-): Promise<LlmSettings> {
-  return fetchJson(`/api/settings/llm?source=${encodeURIComponent(source)}`);
+export async function fetchLlmSettings(): Promise<LlmSettings> {
+  return fetchJson(`/api/settings/llm`);
 }
 
-export async function fetchEnvironmentFingerprints(
-  source: RuntimeSource,
-): Promise<EnvironmentFingerprints> {
-  return fetchJson(
-    `/api/environment/fingerprints?source=${encodeURIComponent(source)}`,
-  );
+export async function fetchEnvironmentFingerprints(): Promise<EnvironmentFingerprints> {
+  return fetchJson(`/api/environment/fingerprints`);
 }
 
-export async function saveLlmSettings(input: {
-  apiKey?: string;
-  baseUrl: string;
-  model: string;
-}): Promise<LlmSettings> {
-  return fetchJson("/api/settings/llm", {
-    method: "PUT",
-    body: JSON.stringify(input),
-  });
-}
-
-export async function testLlmSettings(): Promise<LlmTestResult> {
-  return fetchJson("/api/settings/llm/test", {
-    method: "POST",
-  });
-}
-
-export async function saveWecomSettings(input: {
-  webhookUrl: string;
-}): Promise<WecomSettings> {
-  return fetchJson("/api/settings/wecom", {
-    method: "PUT",
-    body: JSON.stringify(input),
-  });
-}
-
-export async function sendWecomTest(): Promise<WecomTestResult> {
-  return fetchJson("/api/settings/wecom/test", {
-    method: "POST",
-  });
-}
-
-export async function fetchArchiveDetail(
-  date: string,
-  source: RuntimeSource,
-): Promise<{
+export async function fetchArchiveDetail(date: string): Promise<{
   archive: DailyDigestArchive;
   summary: ArchiveSummary;
   readerContext: ArchiveReaderContext;
 }> {
-  return fetchJson(
-    `/api/archives/${date}?source=${encodeURIComponent(source)}`,
-  );
+  return fetchJson(`/api/archives/${date}`);
 }
 
-export async function fetchArchives(
-  source: RuntimeSource,
-): Promise<{ archives: ArchiveSummary[] }> {
-  return fetchJson(`/api/archives?source=${encodeURIComponent(source)}`);
+export async function fetchArchives(): Promise<{ archives: ArchiveSummary[] }> {
+  return fetchJson(`/api/archives`);
 }
 
 async function fetchJson<T>(input: string, init?: RequestInit): Promise<T> {

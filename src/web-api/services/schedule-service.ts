@@ -6,6 +6,10 @@ import type {
   ScheduleSettingsResponse,
   ScheduleTimezone,
 } from "../types/api";
+import {
+  commitAndPushRepoFiles,
+  readRemoteRepoJson,
+} from "./repo-sync-service";
 
 export const SCHEDULE_TIMEZONE_OPTIONS = [
   { value: "Asia/Shanghai", label: "上海" },
@@ -26,25 +30,37 @@ const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 export async function readScheduleSettings(
   rootDir: string,
 ): Promise<ScheduleSettingsResponse> {
-  const filePath = getScheduleSettingsPath(rootDir);
+  const repoPath = getScheduleSettingsRepoPath();
 
   try {
-    const raw = await readFile(filePath, "utf8");
+    const raw = JSON.stringify(
+      await readRemoteRepoJson(rootDir, repoPath, DEFAULT_SCHEDULE_SETTINGS),
+    );
     return {
-      source: "local",
+      source: "github",
       readonly: false,
-      path: filePath,
+      path: repoPath,
       settings: parseScheduleSettings(JSON.parse(raw)),
       availableTimezones: [...SCHEDULE_TIMEZONE_OPTIONS],
+      committed: false,
+      commitSha: null,
+      targetRef: null,
+      pushed: false,
+      committedAt: null,
     };
   } catch (error) {
     if (isMissingFileError(error)) {
       return {
-        source: "local",
+        source: "github",
         readonly: false,
-        path: filePath,
+        path: repoPath,
         settings: { ...DEFAULT_SCHEDULE_SETTINGS },
         availableTimezones: [...SCHEDULE_TIMEZONE_OPTIONS],
+        committed: false,
+        commitSha: null,
+        targetRef: null,
+        pushed: false,
+        committedAt: null,
       };
     }
 
@@ -57,17 +73,24 @@ export async function saveScheduleSettings(
   draft: unknown,
 ): Promise<ScheduleSettingsResponse> {
   const filePath = getScheduleSettingsPath(rootDir);
+  const repoPath = getScheduleSettingsRepoPath();
   const settings = parseScheduleSettings(draft);
 
   await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, stringifyScheduleSettings(settings), "utf8");
+  const sync = await commitAndPushRepoFiles(
+    rootDir,
+    [repoPath],
+    `chore: update GitRadar schedule`,
+  );
 
   return {
-    source: "local",
+    source: "github",
     readonly: false,
-    path: filePath,
+    path: repoPath,
     settings,
     availableTimezones: [...SCHEDULE_TIMEZONE_OPTIONS],
+    ...sync,
   };
 }
 
@@ -116,7 +139,11 @@ export function convertDailySendTimeToCron(dailySendTime: string): string {
 }
 
 export function getScheduleSettingsPath(rootDir: string): string {
-  return path.join(rootDir, "config", "schedule.json");
+  return path.join(rootDir, getScheduleSettingsRepoPath());
+}
+
+export function getScheduleSettingsRepoPath(): string {
+  return path.join("config", "schedule.json");
 }
 
 function isMissingFileError(error: unknown): boolean {

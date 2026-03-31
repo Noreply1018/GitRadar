@@ -90,6 +90,7 @@ GitRadar 3.0.0 面向普通用户的主路径是 `Use this template` 或 fork，
 
 - `data/history/*.json`
 - `data/runtime/github-runtime.json`
+- `data/feedback/*`
 
 ## 控制台怎么定位
 
@@ -100,6 +101,7 @@ GitRadar 3.0.0 面向普通用户的主路径是 `Use this template` 或 fork，
 - 读取 GitHub 仓库中的正式归档
 - 展示最近一次 GitHub Actions 运行状态
 - 编辑仓库中的非敏感配置，例如发送时间和偏好
+- 记录并回写收藏 / 稍后看 / 跳过反馈
 - 展示哪些敏感配置由 GitHub Secrets 管理
 
 它不再默认做这些事情：

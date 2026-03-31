@@ -7,10 +7,6 @@ import {
 } from "node:http";
 
 import {
-  getArchiveDetail,
-  listArchiveSummaries,
-} from "./services/archive-service";
-import {
   getGitHubArchiveDetail,
   listGitHubArchiveSummaries,
   readGitHubExecutionState,
@@ -22,49 +18,27 @@ import {
   readGitHubModeSettingsOverview,
   readGitHubModeWecomSettings,
 } from "./services/github-runtime-service";
-import { buildFeedbackInsights } from "../feedback/insights";
-import { CommandRunner } from "./services/command-runner";
 import {
-  readDigestRulesConfig,
+  readRemoteDigestRulesConfig,
   saveDigestRulesConfig,
   validateDigestRulesDraft,
 } from "./services/digest-rules-service";
+import { buildFeedbackInsights } from "../feedback/insights";
+import { CommandRunner } from "./services/command-runner";
 import {
   parseScheduleSettings,
-  readScheduleSettings,
   saveScheduleSettings,
 } from "./services/schedule-service";
 import {
-  readUserPreferences,
+  readRemoteUserPreferences,
   saveUserPreferences,
-  writeUserPreferences,
 } from "./services/user-preferences-service";
 import {
-  readLlmSettings,
-  saveLlmSettings,
-  testLlmSettings,
-} from "./services/llm-settings-service";
-import {
-  readGitHubSettings,
-  saveGitHubSettings,
-  testGitHubSettings,
-} from "./services/github-settings-service";
-import {
-  listFeedbackItems,
-  readFeedbackState,
+  listRemoteFeedbackItems,
+  readRemoteFeedbackState,
   recordFeedback,
 } from "../feedback/store";
-import {
-  readWecomSettings,
-  saveWecomSettings,
-  sendWecomTestMessage,
-} from "./services/wecom-settings-service";
-import { readEnvironmentFingerprints } from "./services/environment-fingerprint-service";
 import type { HealthResponse } from "./types/api";
-import {
-  isLocalRuntimeSource,
-  normalizeRuntimeSource,
-} from "./services/runtime-source-service";
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 3210;
@@ -102,19 +76,7 @@ async function handleRequest(
   try {
     const url = new URL(request.url ?? "/", "http://localhost");
     const pathname = url.pathname;
-    const source = normalizeRuntimeSource(url.searchParams.get("source"));
-
     if (request.method === "GET" && pathname === "/api/health") {
-      if (isLocalRuntimeSource(source)) {
-        return sendJson<HealthResponse>(response, 200, {
-          status: "ok",
-          app: "GitRadar",
-          version: packageVersion,
-          mode: (await hasBuiltConsole()) ? "full-console" : "api-only",
-          source: "local",
-        });
-      }
-
       return sendJson<HealthResponse>(
         response,
         200,
@@ -123,26 +85,22 @@ async function handleRequest(
     }
 
     if (request.method === "GET" && pathname === "/api/config/digest-rules") {
-      return sendJson(response, 200, readDigestRulesConfig());
+      return sendJson(
+        response,
+        200,
+        await readRemoteDigestRulesConfig(ROOT_DIR),
+      );
     }
 
     if (request.method === "GET" && pathname === "/api/settings/schedule") {
-      if (isLocalRuntimeSource(source)) {
-        return sendJson(response, 200, await readScheduleSettings(ROOT_DIR));
-      }
-
       return sendJson(response, 200, await readGitHubModeSchedule(ROOT_DIR));
     }
 
     if (request.method === "GET" && pathname === "/api/settings/preferences") {
-      return sendJson(response, 200, readUserPreferences(ROOT_DIR));
+      return sendJson(response, 200, await readRemoteUserPreferences(ROOT_DIR));
     }
 
     if (request.method === "GET" && pathname === "/api/settings/github") {
-      if (isLocalRuntimeSource(source)) {
-        return sendJson(response, 200, await readGitHubSettings(ROOT_DIR));
-      }
-
       return sendJson(
         response,
         200,
@@ -151,18 +109,10 @@ async function handleRequest(
     }
 
     if (request.method === "GET" && pathname === "/api/settings/llm") {
-      if (isLocalRuntimeSource(source)) {
-        return sendJson(response, 200, await readLlmSettings(ROOT_DIR));
-      }
-
       return sendJson(response, 200, await readGitHubModeLlmSettings(ROOT_DIR));
     }
 
     if (request.method === "GET" && pathname === "/api/settings/wecom") {
-      if (isLocalRuntimeSource(source)) {
-        return sendJson(response, 200, await readWecomSettings(ROOT_DIR));
-      }
-
       return sendJson(
         response,
         200,
@@ -174,14 +124,6 @@ async function handleRequest(
       request.method === "GET" &&
       pathname === "/api/environment/fingerprints"
     ) {
-      if (isLocalRuntimeSource(source)) {
-        return sendJson(
-          response,
-          200,
-          await readEnvironmentFingerprints(ROOT_DIR),
-        );
-      }
-
       return sendJson(
         response,
         200,
@@ -198,8 +140,8 @@ async function handleRequest(
     }
 
     if (request.method === "GET" && pathname === "/api/feedback") {
-      const feedbackState = await readFeedbackState(ROOT_DIR);
-      const preferences = readUserPreferences(ROOT_DIR);
+      const feedbackState = await readRemoteFeedbackState(ROOT_DIR);
+      const preferences = await readRemoteUserPreferences(ROOT_DIR);
       return sendJson(response, 200, {
         state: feedbackState,
         insights: buildFeedbackInsights(feedbackState, preferences.preferences),
@@ -209,7 +151,7 @@ async function handleRequest(
     if (request.method === "GET" && pathname === "/api/feedback/items") {
       const action = url.searchParams.get("action") ?? undefined;
       return sendJson(response, 200, {
-        items: await listFeedbackItems(ROOT_DIR, {
+        items: await listRemoteFeedbackItems(ROOT_DIR, {
           action:
             action === "saved" || action === "later" || action === "skipped"
               ? action
@@ -234,7 +176,11 @@ async function handleRequest(
         return sendJson(response, 400, validation);
       }
 
-      return sendJson(response, 200, await saveDigestRulesConfig(body));
+      return sendJson(
+        response,
+        200,
+        await saveDigestRulesConfig(ROOT_DIR, body),
+      );
     }
 
     if (request.method === "PUT" && pathname === "/api/settings/schedule") {
@@ -269,70 +215,6 @@ async function handleRequest(
       }
     }
 
-    if (request.method === "PUT" && pathname === "/api/settings/github") {
-      const body = await readJsonBody(request);
-
-      try {
-        return sendJson(
-          response,
-          200,
-          await saveGitHubSettings(ROOT_DIR, body),
-        );
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        return sendJson(response, 400, { message });
-      }
-    }
-
-    if (request.method === "PUT" && pathname === "/api/settings/llm") {
-      const body = await readJsonBody(request);
-
-      try {
-        return sendJson(response, 200, await saveLlmSettings(ROOT_DIR, body));
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        return sendJson(response, 400, { message });
-      }
-    }
-
-    if (request.method === "PUT" && pathname === "/api/settings/wecom") {
-      const body = await readJsonBody(request);
-
-      try {
-        return sendJson(response, 200, await saveWecomSettings(ROOT_DIR, body));
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        return sendJson(response, 400, { message });
-      }
-    }
-
-    if (request.method === "POST" && pathname === "/api/settings/llm/test") {
-      try {
-        return sendJson(response, 200, await testLlmSettings(ROOT_DIR));
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        return sendJson(response, 400, { message });
-      }
-    }
-
-    if (request.method === "POST" && pathname === "/api/settings/github/test") {
-      try {
-        return sendJson(response, 200, await testGitHubSettings(ROOT_DIR));
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        return sendJson(response, 400, { message });
-      }
-    }
-
-    if (request.method === "POST" && pathname === "/api/settings/wecom/test") {
-      try {
-        return sendJson(response, 200, await sendWecomTestMessage(ROOT_DIR));
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        return sendJson(response, 400, { message });
-      }
-    }
-
     if (request.method === "POST" && pathname === "/api/feedback") {
       const body = await readJsonBody(request);
 
@@ -361,7 +243,7 @@ async function handleRequest(
       }
 
       try {
-        const preferencesResponse = readUserPreferences(ROOT_DIR);
+        const preferencesResponse = await readRemoteUserPreferences(ROOT_DIR);
         const nextPreferences = {
           ...preferencesResponse.preferences,
           preferredThemes: Array.from(
@@ -371,8 +253,8 @@ async function handleRequest(
             ]),
           ),
         };
-        await writeUserPreferences(ROOT_DIR, nextPreferences);
-        const feedbackState = await readFeedbackState(ROOT_DIR);
+        await saveUserPreferences(ROOT_DIR, nextPreferences);
+        const feedbackState = await readRemoteFeedbackState(ROOT_DIR);
 
         return sendJson(response, 200, {
           preferences: nextPreferences,
@@ -446,10 +328,6 @@ async function handleRequest(
     }
 
     if (request.method === "GET" && pathname === "/api/archives") {
-      if (isLocalRuntimeSource(source)) {
-        return sendJson(response, 200, await listArchiveSummaries(ROOT_DIR));
-      }
-
       return sendJson(
         response,
         200,
@@ -459,10 +337,6 @@ async function handleRequest(
 
     if (request.method === "GET" && pathname.startsWith("/api/archives/")) {
       const date = pathname.replace("/api/archives/", "");
-      if (isLocalRuntimeSource(source)) {
-        return sendJson(response, 200, await getArchiveDetail(ROOT_DIR, date));
-      }
-
       return sendJson(
         response,
         200,

@@ -5,13 +5,13 @@ import path from "node:path";
 
 import { parseDailyDigestArchive } from "../../core/archive";
 import { buildFeedbackInsights } from "../../feedback/insights";
-import { readFeedbackState } from "../../feedback/store";
-import { loadUserPreferencesConfig } from "../../config/user-preferences";
+import { readRemoteFeedbackState } from "../../feedback/store";
 import { buildArchiveSummary } from "./archive-service";
 import {
   convertDailySendTimeToCron,
   readScheduleSettings,
 } from "./schedule-service";
+import { readRemoteUserPreferences } from "./user-preferences-service";
 import type {
   ArchiveDetailResponse,
   ArchiveListResponse,
@@ -116,11 +116,12 @@ export async function getGitHubArchiveDetail(
     JSON.parse(raw),
     `GitHub archive ${date}`,
   );
-  const feedbackState = await readFeedbackState(rootDir);
-  const preferences = loadUserPreferencesConfig(
-    path.join(rootDir, "config", "user-preferences.json"),
+  const feedbackState = await readRemoteFeedbackState(rootDir);
+  const preferences = await readRemoteUserPreferences(rootDir);
+  const insights = buildFeedbackInsights(
+    feedbackState,
+    preferences.preferences,
   );
-  const insights = buildFeedbackInsights(feedbackState, preferences);
 
   return {
     archive,
@@ -181,6 +182,11 @@ export async function readGitHubModeSchedule(
     cronExpression: `${workflow.cronExpression} (polling) / ${convertDailySendTimeToCron(config.settings.dailySendTime)} (target)`,
     lastRunAt: state.lastRunAt,
     lastRunStatus: state.lastRunStatus,
+    committed: false,
+    commitSha: null,
+    targetRef: null,
+    pushed: false,
+    committedAt: null,
   };
 }
 

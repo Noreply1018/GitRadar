@@ -123,7 +123,7 @@ export default function App() {
     app: string;
     version: string;
     mode: string;
-    source: "github" | "local";
+    source: "github";
     note?: string;
     lastRunAt?: string | null;
     lastRunStatus?: "success" | "failure" | "unknown";
@@ -274,17 +274,17 @@ export default function App() {
         wecomResponse,
         fingerprintResponse,
       ] = await Promise.all([
-        fetchHealth("github"),
-        fetchScheduleSettings("github"),
+        fetchHealth(),
+        fetchScheduleSettings(),
         fetchPreferences(),
         fetchFeedback(),
-        fetchArchives("github"),
+        fetchArchives(),
         fetchFeedbackItems("saved"),
         fetchFeedbackItems("later"),
-        fetchGitHubSettings("github"),
-        fetchLlmSettings("github"),
-        fetchWecomSettings("github"),
-        fetchEnvironmentFingerprints("github"),
+        fetchGitHubSettings(),
+        fetchLlmSettings(),
+        fetchWecomSettings(),
+        fetchEnvironmentFingerprints(),
       ]);
 
       setHealth(healthResponse);
@@ -310,7 +310,7 @@ export default function App() {
       setCurrentItemIndex(0);
 
       if (initialDate) {
-        const detailResponse = await fetchArchiveDetail(initialDate, "github");
+        const detailResponse = await fetchArchiveDetail(initialDate);
         setArchiveDetail(detailResponse.archive);
         setArchiveReaderContext(detailResponse.readerContext);
       } else {
@@ -354,7 +354,7 @@ export default function App() {
       setScheduleDraft(response.settings);
       setTimezoneOptions(response.availableTimezones);
       setStatusMessage(
-        "调度设置已写入仓库配置文件。后续 GitHub Actions 轮询命中目标时间槽时会按新时间执行。",
+        "调度设置已提交到 GitHub 仓库。后续 GitHub Actions 轮询命中目标时间槽时会按新时间执行。",
       );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
@@ -371,7 +371,9 @@ export default function App() {
       const response = await savePreferences(preferencesDraft);
       setPreferencesDraft(response.preferences);
       setAvailableThemes(response.availableThemes);
-      setStatusMessage("关心主题已保存，后续日报会按偏好增加权重。");
+      setStatusMessage(
+        "关心主题已提交到 GitHub 仓库，后续日报会按远端偏好增加权重。",
+      );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -425,7 +427,7 @@ export default function App() {
     setErrorMessage("");
 
     try {
-      const detailResponse = await fetchArchiveDetail(date, "github");
+      const detailResponse = await fetchArchiveDetail(date);
       setArchiveDetail(detailResponse.archive);
       setArchiveReaderContext(detailResponse.readerContext);
       setStatusMessage("已切换到新的归档日报。");
@@ -444,7 +446,7 @@ export default function App() {
     setErrorMessage("");
 
     try {
-      const detailResponse = await fetchArchiveDetail(date, "github");
+      const detailResponse = await fetchArchiveDetail(date);
       const matchedIndex = detailResponse.archive.digest.items.findIndex(
         (item) => item.repo === repo,
       );
@@ -483,7 +485,7 @@ export default function App() {
       });
       setFeedbackState(response.state);
       await refreshFeedbackCollections();
-      setStatusMessage("反馈已记录，收藏与待看列表已同步更新。");
+      setStatusMessage("反馈已提交到 GitHub 仓库，收藏与待看列表已同步更新。");
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -511,7 +513,7 @@ export default function App() {
         },
       }));
       setStatusMessage(
-        `已把 ${theme} 加入关心主题，后续日报会更主动保留这类项目。`,
+        `已把 ${theme} 提交到远端关心主题，后续日报会更主动保留这类项目。`,
       );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));

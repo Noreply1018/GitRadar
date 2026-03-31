@@ -1,9 +1,8 @@
 import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
-import { createServer } from "node:http";
 import os from "node:os";
 import path from "node:path";
 
-import { afterEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { DIGEST_RULES_CONFIG } from "../src/config/digest-rules";
 import { type DailyDigestArchive } from "../src/core/archive";
@@ -26,44 +25,10 @@ import {
 import {
   listFeedbackItems,
   readFeedbackState,
+  readRemoteFeedbackState,
   recordFeedback,
 } from "../src/feedback/store";
-import {
-  readWecomSettings,
-  saveWecomSettings,
-} from "../src/web-api/services/wecom-settings-service";
-import {
-  readLlmSettings,
-  saveLlmSettings,
-  testLlmSettings,
-} from "../src/web-api/services/llm-settings-service";
-import {
-  readGitHubSettings,
-  saveGitHubSettings,
-  testGitHubSettings,
-} from "../src/web-api/services/github-settings-service";
 import { readGitHubModeSchedule } from "../src/web-api/services/github-runtime-service";
-import { readEnvironmentFingerprints } from "../src/web-api/services/environment-fingerprint-service";
-
-let activeServer: ReturnType<typeof createServer> | null = null;
-
-afterEach(async () => {
-  if (!activeServer) {
-    return;
-  }
-
-  await new Promise<void>((resolve, reject) => {
-    activeServer?.close((error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      resolve();
-    });
-  });
-  activeServer = null;
-});
 
 describe("validateDigestRulesDraft", () => {
   it("accepts the current repository config", () => {
@@ -176,8 +141,9 @@ describe("schedule settings", () => {
     const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-schedule-"));
 
     await expect(readScheduleSettings(rootDir)).resolves.toMatchObject({
-      source: "local",
+      source: "github",
       readonly: false,
+      path: path.join("config", "schedule.json"),
       settings: {
         timezone: "Asia/Shanghai",
         dailySendTime: "08:17",
@@ -199,9 +165,13 @@ describe("schedule settings", () => {
 
     expect(saved.settings.dailySendTime).toBe("09:45");
     expect(saved.settings.timezone).toBe("America/New_York");
-    expect(saved.path).toBe(path.join(rootDir, "config", "schedule.json"));
+    expect(saved.path).toBe(path.join("config", "schedule.json"));
+    expect(saved.committed).toBe(false);
 
-    const file = await readFile(saved.path, "utf8");
+    const file = await readFile(
+      path.join(rootDir, "config", "schedule.json"),
+      "utf8",
+    );
     expect(JSON.parse(file)).toEqual({
       timezone: "America/New_York",
       dailySendTime: "09:45",
@@ -286,6 +256,7 @@ describe("user preferences", () => {
     );
 
     expect(readUserPreferences(rootDir)).toMatchObject({
+      path: path.join("config", "user-preferences.json"),
       preferences: {
         preferredThemes: [],
         customTopics: [],
@@ -308,8 +279,13 @@ describe("user preferences", () => {
       preferredThemes: ["AI Agents", "Frontend & Design"],
       customTopics: ["Fabric", "FPGA"],
     });
+    expect(saved.path).toBe(path.join("config", "user-preferences.json"));
+    expect(saved.committed).toBe(false);
 
-    const file = await readFile(saved.path, "utf8");
+    const file = await readFile(
+      path.join(rootDir, "config", "user-preferences.json"),
+      "utf8",
+    );
     expect(JSON.parse(file)).toEqual({
       preferredThemes: ["AI Agents", "Frontend & Design"],
       customTopics: ["Fabric", "FPGA"],
@@ -367,6 +343,15 @@ describe("feedback store", () => {
       skipped: 1,
     });
     expect(result.state.recent[0]?.repo).toBe("owner/repo-a");
+    expect(result.committed).toBe(false);
+
+    const storedState = JSON.parse(
+      await readFile(
+        path.join(rootDir, "data", "feedback", "feedback-state.json"),
+        "utf8",
+      ),
+    ) as Record<string, unknown>;
+    expect(storedState.repoStates).toBeTruthy();
   });
 
   it("rejects invalid feedback actions", async () => {
@@ -454,259 +439,48 @@ describe("feedback store", () => {
       suggestedAction: "prefer",
     });
   });
-});
 
-describe("wecom settings", () => {
-  it("returns an unconfigured state when .env does not exist", async () => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-wecom-"));
-
-    await expect(readWecomSettings(rootDir)).resolves.toMatchObject({
-      source: "local",
-      readonly: false,
-      configured: false,
-      maskedWebhookUrl: null,
-      envFilePath: path.join(rootDir, ".env"),
-    });
-  });
-
-  it("saves the webhook into .env and returns the masked value", async () => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-wecom-"));
-
-    const response = await saveWecomSettings(rootDir, {
-      webhookUrl:
-        "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=test-key",
-    });
-
-    expect(response).toEqual({
-      source: "local",
-      readonly: false,
-      configured: true,
-      maskedWebhookUrl: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?***",
-      envFilePath: path.join(rootDir, ".env"),
-    });
-
-    const envFile = await readFile(path.join(rootDir, ".env"), "utf8");
-    expect(envFile).toContain(
-      "GITRADAR_WECOM_WEBHOOK_URL=https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=test-key",
-    );
-  });
-
-  it("rejects an invalid webhook url", async () => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-wecom-"));
-
-    await expect(
-      saveWecomSettings(rootDir, { webhookUrl: "not-a-url" }),
-    ).rejects.toThrow(/valid URL/);
-  });
-});
-
-describe("github settings", () => {
-  it("returns an unconfigured state when .env does not exist", async () => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-github-"));
-
-    await expect(readGitHubSettings(rootDir)).resolves.toMatchObject({
-      source: "local",
-      readonly: false,
-      configured: false,
-      maskedToken: null,
-      apiBaseUrl: "https://api.github.com",
-      trendingUrl: "https://github.com/trending?since=daily",
-      envFilePath: path.join(rootDir, ".env"),
-    });
-  });
-
-  it("saves github token into .env and returns masked data", async () => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-github-"));
-
-    const response = await saveGitHubSettings(rootDir, {
-      token: "github-token-sample-value",
-    });
-
-    expect(response).toEqual({
-      source: "local",
-      readonly: false,
-      configured: true,
-      maskedToken: "gith***alue",
-      apiBaseUrl: "https://api.github.com",
-      trendingUrl: "https://github.com/trending?since=daily",
-      envFilePath: path.join(rootDir, ".env"),
-    });
-
-    const envFile = await readFile(path.join(rootDir, ".env"), "utf8");
-    expect(envFile).toContain("GITHUB_TOKEN=github-token-sample-value");
-  });
-
-  it("tests the current github token with a real http request", async () => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-github-"));
-    const server = createServer((request, response) => {
-      expect(request.url).toBe("/user");
-      expect(request.headers.authorization).toBe(
-        "Bearer github-token-sample-value",
-      );
-      expect(request.headers["user-agent"]).toBe("GitRadar");
-      response.writeHead(200, { "content-type": "application/json" });
-      response.end(JSON.stringify({ login: "gitradar-bot" }));
-    });
-    activeServer = server;
-
-    const address = await new Promise<{ port: number }>((resolve, reject) => {
-      server.listen(0, "127.0.0.1", () => {
-        const value = server.address();
-
-        if (!value || typeof value === "string") {
-          reject(new Error("Failed to bind test server."));
-          return;
-        }
-
-        resolve({ port: value.port });
-      });
-    });
-
-    const apiBaseUrl = `http://127.0.0.1:${address.port}`;
-    await saveGitHubSettings(rootDir, {
-      token: "github-token-sample-value",
-    });
-    const currentEnvFile = await readFile(path.join(rootDir, ".env"), "utf8");
+  it("reads the remote feedback state from the formal feedback directory", async () => {
+    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-feedback-"));
+    await mkdir(path.join(rootDir, "data", "feedback"), { recursive: true });
     await writeFile(
-      path.join(rootDir, ".env"),
-      `${currentEnvFile}GR_GH_API_URL=${apiBaseUrl}\n`,
+      path.join(rootDir, "data", "feedback", "feedback-state.json"),
+      JSON.stringify(
+        {
+          repoStates: {
+            "owner/repo-a": {
+              repo: "owner/repo-a",
+              date: "2026-03-31",
+              action: "saved",
+              theme: "AI Agents",
+              recordedAt: "2026-03-31T09:00:00.000Z",
+            },
+          },
+          themeStats: {
+            "AI Agents": { saved: 1, skipped: 0 },
+          },
+          recent: [
+            {
+              repo: "owner/repo-a",
+              date: "2026-03-31",
+              action: "saved",
+              theme: "AI Agents",
+              recordedAt: "2026-03-31T09:00:00.000Z",
+            },
+          ],
+        },
+        null,
+        2,
+      ),
       "utf8",
     );
 
-    await expect(testGitHubSettings(rootDir)).resolves.toEqual({
-      ok: true,
-      message: "GitHub Token 连通性测试通过。",
-      login: "gitradar-bot",
-      apiBaseUrl,
-    });
-
-    await expect(readEnvironmentFingerprints(rootDir)).resolves.toMatchObject({
-      github: {
-        login: "gitradar-bot",
-        apiBaseUrl,
-      },
-    });
-  });
-});
-
-describe("llm settings", () => {
-  it("returns an unconfigured state when .env does not exist", async () => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-llm-"));
-
-    await expect(readLlmSettings(rootDir)).resolves.toMatchObject({
-      source: "local",
-      readonly: false,
-      configured: false,
-      maskedApiKey: null,
-      baseUrl: null,
-      model: null,
-      envFilePath: path.join(rootDir, ".env"),
-    });
-  });
-
-  it("saves llm settings into .env and returns masked data", async () => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-llm-"));
-
-    const response = await saveLlmSettings(rootDir, {
-      apiKey: "llm-token-sample-value",
-      baseUrl: "https://example.com/v1/",
-      model: "gpt-test",
-    });
-
-    expect(response).toEqual({
-      source: "local",
-      readonly: false,
-      configured: true,
-      maskedApiKey: "llm-***alue",
-      baseUrl: "https://example.com/v1",
-      model: "gpt-test",
-      envFilePath: path.join(rootDir, ".env"),
-    });
-
-    const envFile = await readFile(path.join(rootDir, ".env"), "utf8");
-    expect(envFile).toContain("GR_API_KEY=llm-token-sample-value");
-    expect(envFile).toContain("GR_BASE_URL=https://example.com/v1");
-    expect(envFile).toContain("GR_MODEL=gpt-test");
-  });
-
-  it("keeps the existing api key when only base url and model are updated", async () => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-llm-"));
-
-    await saveLlmSettings(rootDir, {
-      apiKey: "llm-token-sample-value",
-      baseUrl: "https://example.com/v1",
-      model: "gpt-test",
-    });
-
-    await saveLlmSettings(rootDir, {
-      baseUrl: "https://gateway.example.com/v1",
-      model: "gpt-next",
-    });
-
-    const envFile = await readFile(path.join(rootDir, ".env"), "utf8");
-    expect(envFile).toContain("GR_API_KEY=llm-token-sample-value");
-    expect(envFile).toContain("GR_BASE_URL=https://gateway.example.com/v1");
-    expect(envFile).toContain("GR_MODEL=gpt-next");
-  });
-
-  it("rejects an invalid llm base url", async () => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-llm-"));
-
-    await expect(
-      saveLlmSettings(rootDir, {
-        apiKey: "llm-token-sample-value",
-        baseUrl: "not-a-url",
-        model: "gpt-test",
-      }),
-    ).rejects.toThrow(/valid URL/);
-  });
-
-  it("tests the current llm settings with a real http request", async () => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-llm-"));
-    const server = createServer((request, response) => {
-      expect(request.url).toBe("/v1/chat/completions");
-      expect(request.headers.authorization).toBe(
-        "Bearer llm-token-sample-value",
-      );
-      response.writeHead(200, { "content-type": "application/json" });
-      response.end(
-        JSON.stringify({
-          choices: [{ message: { content: "OK" } }],
+    await expect(readRemoteFeedbackState(rootDir)).resolves.toMatchObject({
+      repoStates: {
+        "owner/repo-a": expect.objectContaining({
+          action: "saved",
+          theme: "AI Agents",
         }),
-      );
-    });
-    activeServer = server;
-
-    const address = await new Promise<{ port: number }>((resolve, reject) => {
-      server.listen(0, "127.0.0.1", () => {
-        const value = server.address();
-
-        if (!value || typeof value === "string") {
-          reject(new Error("Failed to bind test server."));
-          return;
-        }
-
-        resolve({ port: value.port });
-      });
-    });
-
-    await saveLlmSettings(rootDir, {
-      apiKey: "llm-token-sample-value",
-      baseUrl: `http://127.0.0.1:${address.port}/v1`,
-      model: "gpt-test",
-    });
-
-    await expect(testLlmSettings(rootDir)).resolves.toEqual({
-      ok: true,
-      message: "LLM 连通性测试通过。",
-      model: "gpt-test",
-      baseUrl: `http://127.0.0.1:${address.port}/v1`,
-    });
-
-    await expect(readEnvironmentFingerprints(rootDir)).resolves.toMatchObject({
-      llm: {
-        model: "gpt-test",
-        baseUrl: `http://127.0.0.1:${address.port}/v1`,
       },
     });
   });
