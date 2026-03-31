@@ -70,8 +70,8 @@
 
   <g>
     <rect x="562" y="438" width="594" height="108" rx="24" fill="#FFF8EE"/>
-    <text x="590" y="476" fill="#6C4F1A" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="22" font-weight="700">v1.2.0 release highlights</text>
-    <text x="590" y="508" fill="#6C4F1A" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="18">configurable rules • standalone validation • replayable archives</text>
-    <text x="590" y="536" fill="#8A6F42" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="18">retries, fallback modes, CI quality gate, and verified WeCom delivery</text>
+    <text x="590" y="476" fill="#6C4F1A" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="22" font-weight="700">v2.0.0 release highlights</text>
+    <text x="590" y="508" fill="#6C4F1A" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="18">feedback loop • preference hints • archive editorial intro</text>
+    <text x="590" y="536" fill="#8A6F42" font-family="'Segoe UI', 'PingFang SC', sans-serif" font-size="18">environment fingerprints, real console screenshots, and productized local UX</text>
   </g>
 </svg>

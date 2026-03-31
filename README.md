@@ -7,51 +7,87 @@
 
 ![GitRadar Symbol](./image.png)
 
-GitRadar 是一个面向个人与小团队的 GitHub 开源项目雷达。它每天从 GitHub 获取候选仓库，经过规则筛选、主题配额、候选池收敛和 LLM 编辑整理，产出一份中文日报，并支持企业微信群机器人发送、本地归档和网页控制台管理。
+GitRadar 是一个面向个人与小团队的开源项目发现雷达。它每天从 GitHub 获取候选仓库，用规则筛选、证据整理和 LLM 编辑把“今天真正值得看什么”收敛成一份中文日报；同时把配置、归档、反馈、偏好学习和环境验证统一收口到本地中文控制台里。
 
-现在的 GitRadar 是一个完整产品，而不是单一脚本。你可以直接跑 CLI，也可以打开本地网页，在同一个界面里管理规则、环境配置、执行流程和历史归档。
+GitRadar 2.0 的重点已经不再是“把日报发出去”，而是把它做成一个可以持续使用、持续判断、持续复盘的个人开源兴趣雷达。
 
-## 当前版本定位
+## 现在长什么样
 
-GitRadar 当前围绕两条主线工作：
+### 首页与环境总览
 
-- 发现与编辑：从 GitHub 候选仓库里挑出当天值得看的项目，并给出中文说明
-- 本地运营台：把规则、LLM、企业微信、调度、执行日志和归档全部收口到本地控制台
+![GitRadar Console Home](./docs/assets/console/console-home.png)
 
-这张 `image.png` 现在作为 GitRadar 的主图与象征图使用，代表产品对外的统一视觉入口。
+### 环境配置与可用性指纹
 
-## 核心能力
+![GitRadar Console Environment](./docs/assets/console/console-environment.png)
 
-- 多来源候选抓取：Trending、最近更新、最近创建
-- 规则化筛选：主题关键词、黑名单、时间阈值、成熟度和分桶规则
-- LLM 编辑整理：从候选池里生成中文日报条目
-- 企业微信发送：支持通过群机器人 webhook 推送日报
-- 本地归档：保存每日结果、反馈记录与分析结果
-- 网页控制台：用中文界面管理配置、执行任务和浏览归档
-- Docker 运行：适合本地长期挂起
-- Windows 双击启动：适合非命令行使用场景
+### 收藏、待看与兴趣轨迹
 
-## 网页控制台
+![GitRadar Console Saved](./docs/assets/console/console-saved.png)
 
-网页控制台是当前版本最直接的使用方式。它把原来分散在 `.env`、配置文件和命令行里的操作集中到了一个本地界面。
+### 归档日报阅读
 
-当前主要包含这些页面：
+![GitRadar Console Archive Reader](./docs/assets/console/console-archive-reader.png)
 
-- 仪表盘：查看配置状态、最近归档和最近命令结果
-- 规则配置：维护主题、黑名单、权重、阈值和配额
-- 环境配置：独立管理 LLM、WeCom、调度三块设置
-- 执行中心：触发校验、生成、发送样例和归档分析
-- 归档浏览：查看日报内容并记录“收藏 / 稍后看 / 跳过”反馈
+## GitRadar 2.0 核心能力
 
-### 环境配置页
+- 证据化发现：不是简单抄热榜，而是从 Trending、最近更新、最近创建三类候选里收敛当天真正值得看的项目
+- 中文编辑日报：每条项目都带“做什么、为什么值得看、为什么是现在、证据、新意、热度”
+- 本地中文控制台：把环境配置、主题偏好、收藏反馈、归档阅读和验证入口放到一个界面
+- 轻反馈闭环：支持对归档项目标记 `收藏 / 稍后看 / 跳过`
+- 轻个性化：根据已有反馈生成兴趣轨迹与偏好学习提示，但不做失控的黑盒推荐
+- 编辑型归档：归档顶部会解释“今天为什么是这几条”，而不是只给项目列表
+- 环境确定感：GitHub / LLM / 企业微信会显示最近一次成功验证的可用性指纹
+- 长期可复盘：本地保留归档、反馈、失败报告和分析结果
+- 多运行方式：CLI、Docker、本地控制台、Windows 双击启动都可用
 
-环境配置页是当前版本的关键变化。它把容易混在一起的运行参数拆成了 3 个独立区域：
+## 它解决的问题
 
-- LLM 配置：`GR_API_KEY`、`GR_BASE_URL`、`GR_MODEL`
-- 企业微信配置：`GITRADAR_WECOM_WEBHOOK_URL`
-- 调度配置：每日发送时间与时区，持久化到 `config/schedule.json`
+GitHub 上每天都有很多项目在涨星，但真正的问题不是“什么热”，而是：
 
-这意味着你不需要再手动翻 `.env` 和脚本去找入口，常用运行配置已经可以直接在网页里维护。
+- 今天到底哪些项目值得点进去看
+- 为什么是这些项目
+- 为什么是今天
+- 我最近到底对哪些方向持续有兴趣
+- 我的 GitRadar 配置现在到底是不是活的
+
+GitRadar 把这些问题拆成一条稳定链路：
+
+1. 抓 GitHub 候选
+2. 用规则做筛选和主题控制
+3. 用模型在受限候选池内完成中文编辑
+4. 把结果保存成可重看的归档
+5. 记录后续反馈，形成轻量个性化
+
+## 控制台现在包含什么
+
+### 环境配置
+
+- GitHub 源配置与连通性测试
+- LLM Base URL / Model / API Key 配置与测试
+- 企业微信 Webhook 配置与测试发送
+- 调度时间与时区设置
+- 最近一次成功验证的账号、模型、发送时间等可用性指纹
+
+### 主题偏好
+
+- 维护关心主题
+- 维护自定义主题词
+- 把“感兴趣的方向”显式写入后续筛选逻辑
+
+### 收藏与待看
+
+- 查看当前仍有效的收藏与待看项目
+- 从反馈里提炼最近真正感兴趣的主题
+- 观察最近连续跳过的主题
+
+### 归档日报
+
+- 逐日查看归档
+- 单条阅读每个项目
+- 记录 `收藏 / 稍后看 / 跳过`
+- 阅读总编前言与偏好学习提示
+- 识别“探索位”项目，偶尔跳出舒适区
 
 ## 快速开始
 
@@ -63,7 +99,7 @@ GitRadar 当前围绕两条主线工作：
 - npm 10+
 - 可用的 GitHub Token
 - 可用的 LLM 网关配置
-- 如果要发群消息，需要企业微信群机器人 webhook
+- 如果要发群消息，需要企业微信群机器人 Webhook
 
 初始化：
 
@@ -95,35 +131,17 @@ npm run dev:web
 - API：`http://127.0.0.1:3210`
 - 前端开发服务：`http://127.0.0.1:4173`
 
-## Windows 双击启动
+### 3. 运行截图脚本
 
-如果你更希望以“本地应用”的方式使用 GitRadar，当前推荐直接用仓库自带脚本。
-
-前提：
-
-- 已安装并启动 Docker Desktop
-- 已准备好 `.env`
-- 仓库已经 clone 到本机
-
-首次准备：
+如果你要更新 README 和展示页里的控制台截图：
 
 ```bash
-cp .env.example .env
+npm run capture:screenshots
 ```
 
-Windows 上可直接双击：
+默认会从运行中的本地控制台抓取截图，输出到：
 
-- `start-gitradar.bat`
-- `stop-gitradar.bat`
-
-`start-gitradar.bat` 会自动完成：
-
-1. 检查 Docker Desktop
-2. 检查 `docker compose`
-3. 检查 `.env`
-4. 构建或启动容器
-5. 等待控制台健康检查通过
-6. 打开 `http://127.0.0.1:3210`
+- `docs/assets/console/`
 
 ## Docker 运行
 
@@ -154,15 +172,45 @@ docker compose down
 - `data/`
 - `.env`
 
-## 常用 CLI
+## Windows 双击启动
 
-GitRadar 依然保留完整 CLI，适合调试、自动化和手工复盘。
+如果你更希望以“本地应用”的方式使用 GitRadar，仓库自带了 Windows 启动脚本。
+
+前提：
+
+- 已安装并启动 Docker Desktop
+- 已准备好 `.env`
+- 仓库已 clone 到本机
+
+首次准备：
+
+```bash
+cp .env.example .env
+```
+
+Windows 上可直接双击：
+
+- `start-gitradar.bat`
+- `stop-gitradar.bat`
+
+`start-gitradar.bat` 会自动完成：
+
+1. 检查 Docker Desktop
+2. 检查 `docker compose`
+3. 检查 `.env`
+4. 构建或启动容器
+5. 等待控制台健康检查通过
+6. 打开 `http://127.0.0.1:3210`
+
+## CLI 仍然完整可用
+
+GitRadar 2.0 不是“只有前端”。当前 CLI 依然是调试、分析和自动化的重要入口。
 
 ```bash
 npm run validate:digest-rules
 npm run generate:digest
 npm run generate:digest -- --send
-npm run analyze:digest -- --date 2026-03-26
+npm run analyze:digest -- --date 2026-03-30
 npm run feedback:list
 npm run migrate:archives
 npm run send:wecom:sample
@@ -174,7 +222,7 @@ npm run send:wecom:sample
 - `generate:digest`：抓取、筛选、编辑并写入日报归档
 - `generate:digest -- --send`：生成日报后发送企业微信
 - `analyze:digest`：分析某天归档结果
-- `feedback:list`：查看用户反馈记录
+- `feedback:list`：查看收藏、稍后看和跳过反馈
 - `migrate:archives`：把旧归档迁移到当前 schema
 - `send:wecom:sample`：验证企业微信群机器人链路
 
@@ -200,54 +248,40 @@ npm run send:wecom:sample
 - `GR_GH_API_URL`
 - `GR_GH_TRENDING_URL`
 
-## 归档与反馈
+## 归档、反馈与轻个性化
 
-GitRadar 不只是发一条消息就结束。它会把日报和后续反馈都保存到本地，便于复盘。
+GitRadar 2.0 的核心价值在于：发完日报之后，系统不会忘记你看过什么、收藏了什么、持续跳过什么。
 
-你可以在归档浏览里：
+它会把这些信息继续沉淀成：
 
-- 阅读历史日报
-- 快速翻页查看不同日期
-- 标记“收藏 / 稍后看 / 跳过”
+- 当前仍有效的收藏与待看列表
+- 最近真正感兴趣的主题
+- 最近被连续跳过的主题
+- 归档页里的偏好学习提示
+- 下一轮日报筛选时的轻量 rerank
 
-也可以通过命令行回看反馈：
+这不是一个重推荐系统，但足够把 GitRadar 从“日报生成器”推进成“个人开源兴趣雷达”。
 
-```bash
-npm run feedback:list
-npm run feedback:list -- --action saved
-npm run feedback:list -- --action later --format json
-```
+## 真实链路与验证口径
 
-## 质量保证
+GitRadar 当前默认区分三件事：
 
-仓库内置了基础质量检查与 CI 流程，覆盖：
+- 代码已改
+- 测试已过
+- 真实终端已验证
 
-- Prettier 格式检查
-- Markdown lint
-- TypeScript typecheck
-- 单元测试
-- GitHub Actions CI
+这意味着按钮点击、配置写入和链路成功不会混在一起表述。对用户可见的交互，GitRadar 会尽量明确区分：
 
-本地常用检查：
+- 已配置
+- 已验证
+- 上次验证失败
+- 最近成功验证的真实指纹
 
-```bash
-npm run format:check
-npm run lint:md
-npm run typecheck
-npm test
-```
+## 关联文档
 
-## 适用场景
-
-GitRadar 适合这些用法：
-
-- 每天快速发现值得跟进的新项目
-- 为团队做固定节奏的技术雷达播报
-- 把 GitHub 信息流整理成中文日报
-- 对某几个主题长期观察，例如 AI Agents、Infra、Runtime、DevTools
-
-它不追求“抓得最多”，而是强调“今天为什么值得看”。
-
-## 许可证
-
-MIT
+- [Changelog](./CHANGELOG.md)
+- [展示页](./docs/showcase.md)
+- [传播文案](./docs/promo-copy.md)
+- [社交传播套件](./docs/social-preview-kit.md)
+- [版本管理说明](./docs/versioning.md)
+- [架构设计与版本路线](./docs/architecture-roadmap.md)

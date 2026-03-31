@@ -7,19 +7,19 @@
 适合填写到 GitHub 仓库 About 描述：
 
 ```text
-A GitHub open-source discovery radar with evidence-based Chinese digests, WeCom delivery, and replayable archives.
+A personal open-source discovery radar with explainable Chinese digests, feedback loops, replayable archives, and a local console.
 ```
 
 中文口径：
 
 ```text
-一个带证据化中文日报、企业微信发送和可复盘归档的 GitHub 开源项目发现雷达。
+一个带证据化中文日报、反馈闭环、可复盘归档和本地控制台的 GitHub 开源项目发现雷达。
 ```
 
-更强调“解释性”的中文版：
+更强调产品方向的一版：
 
 ```text
-一个可解释的 GitHub 开源项目发现雷达，不只告诉你今天什么项目热，还会告诉你为什么今天值得看。
+一个可解释的 GitHub 开源兴趣雷达，不只告诉你今天什么项目热，还会逐渐学会你真正关心什么。
 ```
 
 ## Release 宣发文案
@@ -27,27 +27,31 @@ A GitHub open-source discovery radar with evidence-based Chinese digests, WeCom 
 适合发 Release 说明、群公告或版本介绍：
 
 ```text
-GitRadar v1.2.0 已发布。
+GitRadar v2.0.0 已发布。
 
-这个版本把 GitRadar 从“已经能跑的日报脚本”推进成了“可以稳定展示、复盘和发布的产品内核”。
+这个版本把 GitRadar 从“能稳定生成日报的本地控制台”推进成了“可以长期使用的个人开源兴趣雷达”。
 
 这次的核心升级：
-- digest 规则正式外置到 config/digest-rules.json
-- 新增 validate:digest-rules，可单独校验规则配置
-- 归档支持迁移、分析和重发
-- 主流程对抓取失败和模型失败具备重试、降级和失败留痕
-- 企业微信群机器人链路已完成真实终端发送和人工收件确认
+- 收藏 / 稍后看 / 跳过 形成了轻反馈闭环
+- 控制台会给出最近真正感兴趣的主题与最近连续跳过的主题
+- 归档页新增总编前言，解释今天为什么是这几条
+- 环境配置页新增可用性指纹，能直接看到 GitHub、LLM、企业微信最近一次成功验证结果
+- README、展示页和发布素材全部升级为当前产品状态，并加入真实控制台截图
 
-GitRadar 不只是告诉你今天什么项目热，还会回答：
-- 为什么是它
+GitRadar 现在不只回答：
+- 今天什么项目热
+
+也会继续回答：
+- 为什么是这些项目
 - 为什么是今天
-- 为什么另一些项目没有入选
+- 我最近到底在持续关注什么
+- 当前这套系统是不是活的
 
 仓库地址：
 https://github.com/Noreply1018/GitRadar
 
 Release：
-https://github.com/Noreply1018/GitRadar/releases/tag/v1.2.0
+https://github.com/Noreply1018/GitRadar/releases/tag/v2.0.0
 ```
 
 ## 发群短介绍
@@ -55,11 +59,14 @@ https://github.com/Noreply1018/GitRadar/releases/tag/v1.2.0
 适合发微信群、技术群或小范围同步：
 
 ```text
-我把 GitRadar 做到 v1.2.0 了。
+我把 GitRadar 做到 v2.0.0 了。
 
-它现在是一个可解释的 GitHub 开源发现雷达：每天从 Trending、最近更新、最近创建里筛项目，生成带“为什么今天值得看”的中文日报，还能发企业微信、保留归档、分析和重发。
+它现在不只是一个 GitHub 日报生成器，而是一个个人开源兴趣雷达：每天从 GitHub 候选里筛项目，生成带证据的中文日报，还会保留归档、记录收藏/跳过反馈，并给出很轻的偏好学习提示。
 
-这版最关键的是把规则彻底配置化了，还加了单独的规则校验命令，主流程失败也会重试和降级，不再只是一个热榜脚本。
+这版最关键的是产品味开始出来了：
+- 归档顶部会解释为什么今天是这几条
+- 收藏页能看到最近真正感兴趣的主题
+- 环境页能直接看到系统最近一次成功验证的指纹
 
 仓库：
 https://github.com/Noreply1018/GitRadar
@@ -70,11 +77,11 @@ https://github.com/Noreply1018/GitRadar
 适合偏产品展示、个人项目进展分享：
 
 ```text
-最近把一个自己在用的 GitHub 项目发现工具整理成正式版本了，叫 GitRadar。
+最近把 GitRadar 推到了 v2.0.0。
 
-它做的事情不是简单抄 GitHub 热榜，而是每天从多类信号里筛出值得看的开源项目，生成带证据的中文日报，并支持企业微信发送和历史归档复盘。
+它原来更像一个“GitHub 日报引擎”，现在开始更像一个“个人开源兴趣雷达”了：不仅每天筛项目、生成中文日报，还能把收藏/跳过变成轻反馈，逐步反映你最近真正感兴趣的主题。
 
-刚发了 v1.2.0，这版把规则配置化、归档迁移、规则校验和失败降级都补齐了，产品形态终于比较完整。
+这次我把本地控制台、归档阅读、反馈闭环、环境验证和 README 展示都收口成了完整产品形态。
 
 如果你也经常想知道“今天 GitHub 上到底有什么值得看”，可以看看：
 https://github.com/Noreply1018/GitRadar
@@ -85,17 +92,18 @@ https://github.com/Noreply1018/GitRadar
 适合更短、更直接的英文介绍：
 
 ```text
-Released GitRadar v1.2.0.
+Released GitRadar v2.0.0.
 
-It is an explainable GitHub open-source discovery radar:
-- collects repos from Trending + recently updated + recently created
-- scores them with configurable rules
-- generates evidence-based Chinese digests
-- delivers to WeCom
-- keeps replayable archives for analysis
+It is now more than a GitHub digest generator:
+- explainable Chinese digests
+- replayable archives
+- local console
+- lightweight feedback loop
+- preference hints
+- environment fingerprints
 
 Repo: https://github.com/Noreply1018/GitRadar
-Release: https://github.com/Noreply1018/GitRadar/releases/tag/v1.2.0
+Release: https://github.com/Noreply1018/GitRadar/releases/tag/v2.0.0
 ```
 
 ## 一句话电梯稿
@@ -103,7 +111,7 @@ Release: https://github.com/Noreply1018/GitRadar/releases/tag/v1.2.0
 适合口头介绍或放到演示首页：
 
 ```text
-GitRadar 是一个可解释的 GitHub 开源项目发现雷达，它不只告诉你今天什么项目热，还会告诉你为什么今天值得看。
+GitRadar 是一个可解释的 GitHub 开源兴趣雷达，它不只告诉你今天什么项目值得看，还会把后续反馈沉淀成长期判断。
 ```
 
 ## GitHub Profile Pinned 说明文案
@@ -111,11 +119,11 @@ GitRadar 是一个可解释的 GitHub 开源项目发现雷达，它不只告诉
 适合配合 GitHub Profile 置顶仓库截图或 pinned preview 图一起使用：
 
 ```text
-一个可解释的 GitHub 开源项目发现雷达，不只告诉你今天什么项目热，还会告诉你为什么今天值得看。
+一个可解释的 GitHub 开源兴趣雷达，不只告诉你今天什么项目热，还会逐渐学会你真正关心什么。
 ```
 
 更偏工程能力的一版：
 
 ```text
-一个带证据化中文日报、企业微信发送和可复盘归档的 GitHub 开源项目发现雷达。
+一个带证据化中文日报、反馈闭环、环境指纹和可复盘归档的 GitHub 开源项目发现雷达。
 ```
