@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { DailyDigestArchive } from "../../src/core/archive";
 import type {
-  ArchiveReaderContext,
   ArchiveSummary,
+  ArchiveReaderContext,
   EnvironmentFingerprints,
   FeedbackAction,
   FeedbackInsights,
@@ -42,23 +42,26 @@ import {
   testGitHubSettings,
   testLlmSettings,
 } from "./api";
-import {
-  ArchiveWorkspace,
-  LibraryWorkspace,
-  OverviewWorkspace,
-  RuntimeWorkspace,
-  type HealthState,
-  type ValidationStatus,
-  type WorkspaceId,
-} from "./workspaces";
 
+type ViewId = "environment" | "preferences" | "saved" | "archives";
 type SavedViewFilter = "saved" | "later";
+type ValidationState = "idle" | "passed" | "failed";
 
-const WORKSPACES: Array<{ id: WorkspaceId; label: string; eyebrow: string }> = [
-  { id: "overview", label: "概览", eyebrow: "Overview" },
-  { id: "archives", label: "归档", eyebrow: "Archive" },
-  { id: "runtime", label: "运行配置", eyebrow: "Runtime" },
-  { id: "library", label: "偏好与收藏", eyebrow: "Library" },
+interface ValidationStatus {
+  state: ValidationState;
+  detail: string;
+}
+
+interface EnvironmentValidationResult {
+  label: string;
+  validation: ValidationStatus;
+}
+
+const VIEWS: Array<{ id: ViewId; label: string }> = [
+  { id: "environment", label: "环境配置" },
+  { id: "preferences", label: "主题偏好" },
+  { id: "saved", label: "收藏与待看" },
+  { id: "archives", label: "归档日报" },
 ];
 
 const EMPTY_PREFERENCES: UserPreferences = {
@@ -128,10 +131,20 @@ const IDLE_VALIDATION: ValidationStatus = {
 };
 
 export default function App() {
-  const [activeWorkspace, setActiveWorkspace] =
-    useState<WorkspaceId>("overview");
+  const [activeView, setActiveView] = useState<ViewId>("environment");
   const [runtimeSource, setRuntimeSource] = useState<RuntimeSource>("github");
-  const [health, setHealth] = useState<HealthState | null>(null);
+  const [health, setHealth] = useState<{
+    status: string;
+    app: string;
+    version: string;
+    mode: string;
+    source: RuntimeSource;
+    note?: string;
+    lastRunAt?: string | null;
+    lastRunStatus?: "success" | "failure" | "unknown";
+    lastArchiveDate?: string | null;
+    runUrl?: string | null;
+  } | null>(null);
   const [scheduleDraft, setScheduleDraft] = useState<ScheduleSettings | null>(
     null,
   );
@@ -202,7 +215,7 @@ export default function App() {
   }, [runtimeSource]);
 
   useEffect(() => {
-    if (activeWorkspace !== "archives" || !archiveDetail) {
+    if (activeView !== "archives" || !archiveDetail) {
       return;
     }
 
@@ -220,7 +233,7 @@ export default function App() {
 
     window.addEventListener("keydown", handleKeydown);
     return () => window.removeEventListener("keydown", handleKeydown);
-  }, [activeWorkspace, archiveDetail]);
+  }, [activeView, archiveDetail]);
 
   const selectedArchiveSummary = useMemo(
     () =>
@@ -233,7 +246,38 @@ export default function App() {
   const currentFeedback = currentDigestItem
     ? feedbackState.repoStates[currentDigestItem.repo]
     : null;
+  const feedbackItems = savedViewFilter === "saved" ? savedItems : laterItems;
   const isGitHubMode = runtimeSource === "github";
+  const isEnvironmentReadonly =
+    githubSettings.readonly || llmSettings.readonly || wecomSettings.readonly;
+
+  const environmentCards = [
+    buildEnvironmentCard(
+      "GitHub 源",
+      githubSettings.configured,
+      githubValidation,
+      environmentFingerprints.github
+        ? `已验证账号 ${environmentFingerprints.github.login}`
+        : undefined,
+    ),
+    buildEnvironmentCard(
+      "LLM 模型",
+      llmSettings.configured,
+      llmValidation,
+      environmentFingerprints.llm
+        ? `${environmentFingerprints.llm.model} · ${environmentFingerprints.llm.baseUrl}`
+        : undefined,
+    ),
+    buildEnvironmentCard(
+      "企业微信",
+      wecomSettings.configured,
+      wecomValidation,
+      environmentFingerprints.wecom
+        ? `最近发送 ${formatDateTime(environmentFingerprints.wecom.lastValidatedAt)}`
+        : undefined,
+    ),
+    buildScheduleCard(scheduleDraft, timezoneOptions),
+  ];
 
   async function hydrate(source: RuntimeSource = runtimeSource): Promise<void> {
     setBusyAction("hydrate");
@@ -304,8 +348,8 @@ export default function App() {
 
       setStatusMessage(
         source === "github"
-          ? "当前查看的是 GitHub Actions 运行源。远端归档、调度和只读配置已经同步。"
-          : "当前查看的是本地运行源。配置、测试和本地归档都可直接操作。",
+          ? "GitRadar 已同步到 GitHub Actions 远端状态、远端归档与本地偏好。"
+          : "GitRadar 已同步到本地配置、反馈与本地归档状态。",
       );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
@@ -339,7 +383,7 @@ export default function App() {
       const response = await saveScheduleSettings(scheduleDraft);
       setScheduleDraft(response.settings);
       setTimezoneOptions(response.availableTimezones);
-      setStatusMessage("本地调度已写入配置文件，重启本地运行源后生效。");
+      setStatusMessage("调度设置已写入配置文件，重启 GitRadar 后生效。");
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -355,7 +399,7 @@ export default function App() {
       const response = await savePreferences(preferencesDraft);
       setPreferencesDraft(response.preferences);
       setAvailableThemes(response.availableThemes);
-      setStatusMessage("偏好与自定义主题词已保存，后续筛选会继续使用。");
+      setStatusMessage("关心主题已保存，后续日报会按偏好增加权重。");
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -378,11 +422,13 @@ export default function App() {
       setGitHubSettings(response);
       setGitHubTokenInput("");
       setGitHubValidation(IDLE_VALIDATION);
-      setStatusMessage("本地 GitHub Token 已保存，但尚未验证可用性。");
+      setStatusMessage("GitHub Token 已写入 .env，尚未验证可用性。");
     } catch (error) {
-      const message = getErrorMessage(error);
-      setErrorMessage(message);
-      setGitHubValidation({ state: "failed", detail: message });
+      setErrorMessage(getErrorMessage(error));
+      setGitHubValidation({
+        state: "failed",
+        detail: getErrorMessage(error),
+      });
     } finally {
       setBusyAction("");
     }
@@ -426,11 +472,13 @@ export default function App() {
       setLlmBaseUrlInput(response.baseUrl ?? "");
       setLlmModelInput(response.model ?? "");
       setLlmValidation(IDLE_VALIDATION);
-      setStatusMessage("本地 LLM 配置已保存，但尚未验证连通性。");
+      setStatusMessage("LLM 配置已写入 .env，尚未验证连通性。");
     } catch (error) {
-      const message = getErrorMessage(error);
-      setLlmValidation({ state: "failed", detail: message });
-      setErrorMessage(message);
+      setLlmValidation({
+        state: "failed",
+        detail: getErrorMessage(error),
+      });
+      setErrorMessage(getErrorMessage(error));
     } finally {
       setBusyAction("");
     }
@@ -479,11 +527,13 @@ export default function App() {
       setWecomSettings(response);
       setWecomWebhookInput("");
       setWecomValidation(IDLE_VALIDATION);
-      setStatusMessage("本地企业微信 Webhook 已保存，但尚未测试发送。");
+      setStatusMessage("企业微信 Webhook 已写入 .env，尚未验证发送。");
     } catch (error) {
-      const message = getErrorMessage(error);
-      setWecomValidation({ state: "failed", detail: message });
-      setErrorMessage(message);
+      setWecomValidation({
+        state: "failed",
+        detail: getErrorMessage(error),
+      });
+      setErrorMessage(getErrorMessage(error));
     } finally {
       setBusyAction("");
     }
@@ -511,7 +561,7 @@ export default function App() {
   async function handleValidateEnvironment(): Promise<void> {
     if (isGitHubMode) {
       setStatusMessage(
-        "GitHub 运行源只展示远端结果与 workflow 配置，不提供本地写入与即时测试。",
+        "GitHub 模式下展示的是远端运行结果与 workflow 配置，不执行本地写入或连通性测试。",
       );
       return;
     }
@@ -520,7 +570,7 @@ export default function App() {
     setErrorMessage("");
 
     try {
-      const results = [
+      const results: EnvironmentValidationResult[] = [
         { label: "GitHub", validation: await runGitHubValidation() },
         { label: "LLM", validation: await runLlmValidation() },
         { label: "企业微信", validation: await runWecomValidation() },
@@ -532,7 +582,6 @@ export default function App() {
           ),
         },
       ];
-
       const failedResults = results.filter(
         (result) => result.validation.state === "failed",
       );
@@ -547,12 +596,14 @@ export default function App() {
             .join("；"),
         );
         setStatusMessage(
-          `环境验证完成：${passedResults.length} 项通过，${failedResults.length} 项需要处理。`,
+          `环境验证完成：${passedResults.length} 项通过，${failedResults.length} 项需处理。调度仅做本地配置检查。`,
         );
         return;
       }
 
-      setStatusMessage("环境验证完成：GitHub、LLM、企业微信与调度均通过。");
+      setStatusMessage(
+        "环境验证完成：GitHub、LLM、企业微信通过，调度配置有效。调度仅做本地配置检查。",
+      );
     } finally {
       setBusyAction("");
     }
@@ -638,7 +689,7 @@ export default function App() {
       const detailResponse = await fetchArchiveDetail(date, runtimeSource);
       setArchiveDetail(detailResponse.archive);
       setArchiveReaderContext(detailResponse.readerContext);
-      setStatusMessage(`已切换到 ${date} 的归档。`);
+      setStatusMessage("已切换到新的归档日报。");
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     }
@@ -648,7 +699,7 @@ export default function App() {
     date: string,
     repo: string,
   ): Promise<void> {
-    setActiveWorkspace("archives");
+    setActiveView("archives");
     setSelectedArchiveDate(date);
     setCurrentItemIndex(0);
     setErrorMessage("");
@@ -664,7 +715,7 @@ export default function App() {
 
       if (matchedIndex >= 0) {
         setCurrentItemIndex(matchedIndex);
-        setStatusMessage(`已打开 ${date} 的归档，并定位到 ${repo}。`);
+        setStatusMessage(`已跳转到 ${date} 的归档，并定位到 ${repo}。`);
         return;
       }
 
@@ -693,7 +744,7 @@ export default function App() {
       });
       setFeedbackState(response.state);
       await refreshFeedbackCollections();
-      setStatusMessage("这条归档反馈已记录，偏好与收藏区已同步更新。");
+      setStatusMessage("反馈已记录，收藏与待看列表已同步更新。");
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -720,7 +771,9 @@ export default function App() {
           skippedThemes: response.insights.skippedThemes,
         },
       }));
-      setStatusMessage(`已把 ${theme} 加入关心主题。`);
+      setStatusMessage(
+        `已把 ${theme} 加入关心主题，后续日报会更主动保留这类项目。`,
+      );
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -772,233 +825,1066 @@ export default function App() {
   }
 
   return (
-    <div className="console-shell">
-      <div className="console-halo" aria-hidden="true" />
+    <div className="page-shell">
+      <div className="page-texture" aria-hidden="true" />
 
-      <header className="hero-band">
-        <div className="hero-copy">
-          <p className="hero-kicker">Open Source Daily Editing Desk</p>
+      <header className="masthead">
+        <div className="masthead-copy">
+          <p className="eyebrow">Open Source Daily Digest</p>
           <h1>GitRadar</h1>
-          <p className="hero-summary">
-            把运行源、归档阅读、配置链路和个人偏好放回各自的位置。
-          </p>
-          <p className="hero-note">
-            {health?.note ??
-              "先确定当前运行源，再进入归档、运行配置或个人偏好工作区。"}
-          </p>
+          <p className="masthead-subtitle">每日开源雷达与归档阅读</p>
         </div>
 
-        <div className="hero-controls">
-          <div className="source-switch" role="tablist" aria-label="运行源">
-            <button
-              className={
-                runtimeSource === "github"
-                  ? "source-chip active"
-                  : "source-chip"
-              }
-              disabled={busyAction === "hydrate"}
-              onClick={() => setRuntimeSource("github")}
-              type="button"
-            >
-              GitHub 运行源
-            </button>
-            <button
-              className={
-                runtimeSource === "local" ? "source-chip active" : "source-chip"
-              }
-              disabled={busyAction === "hydrate"}
-              onClick={() => setRuntimeSource("local")}
-              type="button"
-            >
-              Local 运行源
-            </button>
-          </div>
-
-          <button
-            className="refresh-button"
-            disabled={busyAction === "hydrate"}
-            onClick={() => void hydrate(runtimeSource)}
-            type="button"
-          >
-            {busyAction === "hydrate" ? "同步中…" : "刷新当前运行源"}
-          </button>
+        <div className="masthead-meta">
+          <MetaPill label="服务状态" value={health?.status ?? "loading"} />
+          <MetaPill
+            label="运行源"
+            value={runtimeSource === "github" ? "GitHub" : "Local"}
+          />
+          <MetaPill
+            label="版本"
+            value={health ? `v${health.version}` : "loading"}
+          />
+          <MetaPill label="今日日期" value={formatCurrentDate()} />
+          <MetaPill
+            label="归档数"
+            value={
+              busyAction === "hydrate" ? "loading" : String(archives.length)
+            }
+          />
         </div>
       </header>
 
-      <div className="console-grid">
-        <aside className="side-rail">
-          <div className="rail-block">
-            <p className="rail-label">Workspace</p>
-            <nav className="workspace-nav" aria-label="工作区">
-              {WORKSPACES.map((workspace) => (
-                <button
-                  key={workspace.id}
-                  className={
-                    workspace.id === activeWorkspace
-                      ? "workspace-link active"
-                      : "workspace-link"
-                  }
-                  onClick={() => setActiveWorkspace(workspace.id)}
-                  type="button"
-                >
-                  <span>{workspace.eyebrow}</span>
-                  <strong>{workspace.label}</strong>
-                </button>
-              ))}
-            </nav>
-          </div>
+      <section className="toolbar">
+        <nav className="view-tabs" aria-label="页面视图">
+          {VIEWS.map((view) => (
+            <button
+              key={view.id}
+              className={
+                view.id === activeView ? "view-tab active" : "view-tab"
+              }
+              onClick={() => setActiveView(view.id)}
+              type="button"
+            >
+              {view.label}
+            </button>
+          ))}
+        </nav>
 
-          <div className="rail-block">
-            <p className="rail-label">Status</p>
-            <div className="status-stack">
-              <div className="status-chip">
-                <span>运行源</span>
+        <div className="action-row dual-actions">
+          <button
+            className={isGitHubMode ? "primary-button" : "ghost-button"}
+            disabled={busyAction === "hydrate"}
+            onClick={() => setRuntimeSource("github")}
+            type="button"
+          >
+            GitHub 模式
+          </button>
+          <button
+            className={!isGitHubMode ? "primary-button" : "ghost-button"}
+            disabled={busyAction === "hydrate"}
+            onClick={() => setRuntimeSource("local")}
+            type="button"
+          >
+            本地模式
+          </button>
+        </div>
+
+        <button
+          className="ghost-button"
+          onClick={() => void hydrate(runtimeSource)}
+          type="button"
+        >
+          刷新
+        </button>
+      </section>
+
+      <section className="feedback-bar">
+        <div className="feedback-main">
+          <strong>{statusMessage}</strong>
+          <span>
+            {health?.note ??
+              "已区分配置写入、测试验证与归档反馈，不把按钮点击当成链路成功。"}
+          </span>
+        </div>
+
+        {errorMessage ? (
+          <div className="feedback-error">
+            <strong>错误</strong>
+            <span>{errorMessage}</span>
+          </div>
+        ) : null}
+      </section>
+
+      {activeView === "environment" ? (
+        <main className="environment-page">
+          <section className="panel environment-summary-panel">
+            <header className="panel-header compact">
+              <div>
+                <p className="eyebrow">Environment</p>
+                <h2>环境摘要</h2>
+              </div>
+              <button
+                className="primary-button"
+                disabled={busyAction !== "" || isGitHubMode}
+                onClick={() => void handleValidateEnvironment()}
+                type="button"
+              >
+                {busyAction === "validate-environment"
+                  ? "验证中…"
+                  : isGitHubMode
+                    ? "GitHub 模式只读"
+                    : "一键验证环境"}
+              </button>
+            </header>
+
+            <div className="environment-card-grid">
+              {environmentCards.map((card) => (
+                <article key={card.label} className="environment-card">
+                  <span>{card.label}</span>
+                  <strong>{card.status}</strong>
+                  <p>{card.detail}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="panel github-panel">
+            <header className="panel-header compact">
+              <div>
+                <p className="eyebrow">GitHub</p>
+                <h2>GitHub 源配置</h2>
+              </div>
+              <StatusBadge
+                configured={githubSettings.configured}
+                validation={githubValidation}
+              />
+            </header>
+
+            <div className="wecom-details">
+              <div className="wecom-row">
+                <span>当前 Token</span>
+                <strong>{githubSettings.maskedToken ?? "尚未配置"}</strong>
+              </div>
+              <div className="wecom-row">
+                <span>已验证账号</span>
                 <strong>
-                  {runtimeSource === "github" ? "GitHub" : "Local"}
+                  {environmentFingerprints.github?.login ?? "尚未验证"}
                 </strong>
               </div>
-              <div className="status-chip">
-                <span>服务状态</span>
-                <strong>{health?.status ?? "loading"}</strong>
+              <div className="wecom-row">
+                <span>API 地址</span>
+                <strong>{githubSettings.apiBaseUrl}</strong>
               </div>
-              <div className="status-chip">
-                <span>版本</span>
-                <strong>{health ? `v${health.version}` : "loading"}</strong>
-              </div>
-              <div className="status-chip">
-                <span>归档数</span>
+              <div className="wecom-row">
+                <span>最近验证</span>
                 <strong>
-                  {busyAction === "hydrate" ? "..." : archives.length}
+                  {environmentFingerprints.github
+                    ? formatDateTime(
+                        environmentFingerprints.github.lastValidatedAt,
+                      )
+                    : "尚无成功记录"}
                 </strong>
+              </div>
+              <div className="wecom-row">
+                <span>Trending 地址</span>
+                <strong>{githubSettings.trendingUrl}</strong>
+              </div>
+              <div className="wecom-row">
+                <span>配置文件</span>
+                <strong>{githubSettings.envFilePath || "--"}</strong>
               </div>
             </div>
-          </div>
 
-          <div className="rail-block rail-message">
-            <p className="rail-label">Session</p>
-            <strong>{statusMessage}</strong>
-            <span>
-              {isGitHubMode
-                ? "当前是远端只读视角，重点看 workflow 与归档是否真正落库。"
-                : "当前是本地可操作视角，配置写入和连通性验证都在这里完成。"}
-            </span>
-          </div>
-        </aside>
+            <label className="field">
+              <span>新的 GitHub Token</span>
+              <input
+                autoComplete="off"
+                disabled={githubSettings.readonly}
+                onChange={(event) => {
+                  setGitHubTokenInput(event.target.value);
+                  setGitHubValidation(IDLE_VALIDATION);
+                }}
+                placeholder={
+                  githubSettings.readonly
+                    ? "GitHub 模式下由 Actions Secrets 管理"
+                    : "留空表示保留当前 Token，不会回显旧值"
+                }
+                type="password"
+                value={githubTokenInput}
+              />
+            </label>
 
-        <main className="workspace-stage">
-          {activeWorkspace === "overview" ? (
-            <OverviewWorkspace
-              archives={archives}
-              environmentFingerprints={environmentFingerprints}
-              githubSettings={githubSettings}
-              health={health}
-              llmSettings={llmSettings}
-              onJumpToWorkspace={setActiveWorkspace}
-              runtimeSource={runtimeSource}
-              scheduleDraft={scheduleDraft}
-              timezoneOptions={timezoneOptions}
-              wecomSettings={wecomSettings}
-            />
-          ) : null}
+            <ValidationHint validation={githubValidation} />
+            {githubSettings.note ? (
+              <div className="environment-inline-note">
+                {githubSettings.note}
+              </div>
+            ) : null}
 
-          {activeWorkspace === "runtime" ? (
-            <RuntimeWorkspace
-              busyAction={busyAction}
-              environmentFingerprints={environmentFingerprints}
-              githubSettings={githubSettings}
-              githubTokenInput={githubTokenInput}
-              githubValidation={githubValidation}
-              isGitHubMode={isGitHubMode}
-              llmApiKeyInput={llmApiKeyInput}
-              llmBaseUrlInput={llmBaseUrlInput}
-              llmModelInput={llmModelInput}
-              llmSettings={llmSettings}
-              llmValidation={llmValidation}
-              onChangeGitHubToken={setGitHubTokenInput}
-              onChangeLlmApiKey={setLlmApiKeyInput}
-              onChangeLlmBaseUrl={setLlmBaseUrlInput}
-              onChangeLlmModel={setLlmModelInput}
-              onChangeSchedule={setScheduleDraft}
-              onChangeWecomWebhook={setWecomWebhookInput}
-              onSaveGitHub={handleSaveGitHubSettings}
-              onSaveLlm={handleSaveLlmSettings}
-              onSaveSchedule={handleSaveSchedule}
-              onSaveWecom={handleSaveWecomSettings}
-              onTestAll={handleValidateEnvironment}
-              onTestGitHub={handleTestGitHubSettings}
-              onTestLlm={handleTestLlmSettings}
-              onTestWecom={handleSendWecomTest}
-              runtimeSource={runtimeSource}
-              scheduleDraft={scheduleDraft}
-              timezoneOptions={timezoneOptions}
-              wecomSettings={wecomSettings}
-              wecomValidation={wecomValidation}
-              wecomWebhookInput={wecomWebhookInput}
-            />
-          ) : null}
+            <div className="action-row dual-actions">
+              <button
+                className="primary-button"
+                disabled={busyAction !== "" || githubSettings.readonly}
+                onClick={() => void handleSaveGitHubSettings()}
+                type="button"
+              >
+                {busyAction === "save-github"
+                  ? "保存中…"
+                  : githubSettings.readonly
+                    ? "GitHub 模式只读"
+                    : "保存 GitHub Token"}
+              </button>
+              <button
+                className="ghost-button"
+                disabled={busyAction !== "" || githubSettings.readonly}
+                onClick={() => void handleTestGitHubSettings()}
+                type="button"
+              >
+                {busyAction === "test-github"
+                  ? "测试中…"
+                  : githubSettings.readonly
+                    ? "远端结果展示"
+                    : "测试 GitHub 连通性"}
+              </button>
+            </div>
+          </section>
 
-          {activeWorkspace === "library" ? (
-            <LibraryWorkspace
-              availableThemes={availableThemes}
-              busyAction={busyAction}
-              customTopicInput={customTopicInput}
-              feedbackInsights={feedbackInsights}
-              laterItems={laterItems}
-              onAddCustomTopic={handleAddCustomTopic}
-              onChangeCustomTopicInput={setCustomTopicInput}
-              onOpenArchive={handleOpenArchiveFromCollection}
-              onRemoveCustomTopic={handleRemoveCustomTopic}
-              onSavePreferences={handleSavePreferences}
-              onToggleTheme={handleToggleTheme}
-              preferencesDraft={preferencesDraft}
-              runtimeSource={runtimeSource}
-              savedItems={savedItems}
-              savedViewFilter={savedViewFilter}
-              setSavedViewFilter={setSavedViewFilter}
-            />
-          ) : null}
+          <section className="panel llm-panel">
+            <header className="panel-header compact">
+              <div>
+                <p className="eyebrow">LLM</p>
+                <h2>模型配置</h2>
+              </div>
+              <StatusBadge
+                configured={llmSettings.configured}
+                validation={llmValidation}
+              />
+            </header>
 
-          {activeWorkspace === "archives" ? (
-            <ArchiveWorkspace
-              archiveDetail={archiveDetail}
-              archiveReaderContext={archiveReaderContext}
-              archives={archives}
-              busyAction={busyAction}
-              currentDigestItem={currentDigestItem}
-              currentFeedback={currentFeedback}
-              currentItemIndex={currentItemIndex}
-              onAcceptPreferenceSuggestion={handleAcceptPreferenceSuggestion}
-              onNextItem={() =>
-                setCurrentItemIndex((current) =>
-                  archiveDetail
-                    ? Math.min(
-                        current + 1,
-                        archiveDetail.digest.items.length - 1,
+            <div className="wecom-details">
+              <div className="wecom-row">
+                <span>当前 API Key</span>
+                <strong>{llmSettings.maskedApiKey ?? "尚未配置"}</strong>
+              </div>
+              <div className="wecom-row">
+                <span>Base URL</span>
+                <strong>{llmSettings.baseUrl ?? "尚未配置"}</strong>
+              </div>
+              <div className="wecom-row">
+                <span>Model</span>
+                <strong>
+                  {environmentFingerprints.llm?.model ??
+                    llmSettings.model ??
+                    "尚未配置"}
+                </strong>
+              </div>
+              <div className="wecom-row">
+                <span>最近验证</span>
+                <strong>
+                  {environmentFingerprints.llm
+                    ? formatDateTime(
+                        environmentFingerprints.llm.lastValidatedAt,
                       )
-                    : current,
-                )
-              }
-              onPreviousItem={() =>
-                setCurrentItemIndex((current) => Math.max(current - 1, 0))
-              }
-              onRecordFeedback={handleRecordFeedback}
-              onSelectArchive={handleSelectArchive}
-              runtimeSource={runtimeSource}
-              selectedArchiveDate={selectedArchiveDate}
-              selectedArchiveSummary={selectedArchiveSummary}
-            />
-          ) : null}
-        </main>
-      </div>
+                    : "尚无成功记录"}
+                </strong>
+              </div>
+              <div className="wecom-row">
+                <span>配置文件</span>
+                <strong>{llmSettings.envFilePath || "--"}</strong>
+              </div>
+            </div>
 
-      {errorMessage ? (
-        <div className="error-strip">
-          <strong>当前错误</strong>
-          <span>{errorMessage}</span>
-        </div>
+            <label className="field">
+              <span>新的 API Key</span>
+              <input
+                autoComplete="off"
+                disabled={llmSettings.readonly}
+                onChange={(event) => {
+                  setLlmApiKeyInput(event.target.value);
+                  setLlmValidation(IDLE_VALIDATION);
+                }}
+                placeholder={
+                  llmSettings.readonly
+                    ? "GitHub 模式下由 Actions Secrets 管理"
+                    : "留空表示保留当前 API Key，不会回显旧值"
+                }
+                type="password"
+                value={llmApiKeyInput}
+              />
+            </label>
+
+            <div className="schedule-grid">
+              <label className="field">
+                <span>Base URL</span>
+                <input
+                  disabled={llmSettings.readonly}
+                  onChange={(event) => {
+                    setLlmBaseUrlInput(event.target.value);
+                    setLlmValidation(IDLE_VALIDATION);
+                  }}
+                  placeholder="例如：https://your-openai-compatible-endpoint/v1"
+                  type="url"
+                  value={llmBaseUrlInput}
+                />
+              </label>
+
+              <label className="field">
+                <span>Model</span>
+                <input
+                  disabled={llmSettings.readonly}
+                  onChange={(event) => {
+                    setLlmModelInput(event.target.value);
+                    setLlmValidation(IDLE_VALIDATION);
+                  }}
+                  placeholder="例如：gpt-4.1-mini"
+                  type="text"
+                  value={llmModelInput}
+                />
+              </label>
+            </div>
+
+            <ValidationHint validation={llmValidation} />
+            <div className="environment-inline-note">
+              {llmSettings.note ??
+                "这里显示的是最近一次手动测试结果，不代表实时自动健康检查。修改配置后会先回到未验证状态。"}
+            </div>
+
+            <div className="action-row dual-actions">
+              <button
+                className="primary-button"
+                disabled={busyAction !== "" || llmSettings.readonly}
+                onClick={() => void handleSaveLlmSettings()}
+                type="button"
+              >
+                {busyAction === "save-llm"
+                  ? "保存中…"
+                  : llmSettings.readonly
+                    ? "GitHub 模式只读"
+                    : "保存 LLM 配置"}
+              </button>
+              <button
+                className="ghost-button"
+                disabled={busyAction !== "" || llmSettings.readonly}
+                onClick={() => void handleTestLlmSettings()}
+                type="button"
+              >
+                {busyAction === "test-llm"
+                  ? "测试中…"
+                  : llmSettings.readonly
+                    ? "远端结果展示"
+                    : "测试连通性"}
+              </button>
+            </div>
+          </section>
+
+          <section className="panel wecom-panel">
+            <header className="panel-header compact">
+              <div>
+                <p className="eyebrow">WeCom</p>
+                <h2>企业微信机器人</h2>
+              </div>
+              <StatusBadge
+                configured={wecomSettings.configured}
+                validation={wecomValidation}
+              />
+            </header>
+
+            <div className="wecom-details">
+              <div className="wecom-row">
+                <span>当前 Webhook</span>
+                <strong>{wecomSettings.maskedWebhookUrl ?? "尚未配置"}</strong>
+              </div>
+              <div className="wecom-row">
+                <span>最近测试发送</span>
+                <strong>
+                  {environmentFingerprints.wecom
+                    ? formatDateTime(
+                        environmentFingerprints.wecom.lastValidatedAt,
+                      )
+                    : "尚无成功记录"}
+                </strong>
+              </div>
+              <div className="wecom-row">
+                <span>配置文件</span>
+                <strong>{wecomSettings.envFilePath || "--"}</strong>
+              </div>
+            </div>
+
+            <label className="field">
+              <span>新的 Webhook 链接</span>
+              <input
+                disabled={wecomSettings.readonly}
+                onChange={(event) => {
+                  setWecomWebhookInput(event.target.value);
+                  setWecomValidation(IDLE_VALIDATION);
+                }}
+                placeholder={
+                  wecomSettings.readonly
+                    ? "GitHub 模式下由 Actions Secrets 管理"
+                    : "输入新的企业微信 Webhook 链接，保存后会覆盖当前配置"
+                }
+                type="url"
+                value={wecomWebhookInput}
+              />
+            </label>
+
+            <ValidationHint validation={wecomValidation} />
+            {wecomSettings.note ? (
+              <div className="environment-inline-note">
+                {wecomSettings.note}
+              </div>
+            ) : null}
+
+            <div className="action-row dual-actions">
+              <button
+                className="primary-button"
+                disabled={busyAction !== "" || wecomSettings.readonly}
+                onClick={() => void handleSaveWecomSettings()}
+                type="button"
+              >
+                {busyAction === "save-wecom"
+                  ? "保存中…"
+                  : wecomSettings.readonly
+                    ? "GitHub 模式只读"
+                    : "保存 Webhook"}
+              </button>
+              <button
+                className="ghost-button"
+                disabled={busyAction !== "" || wecomSettings.readonly}
+                onClick={() => void handleSendWecomTest()}
+                type="button"
+              >
+                {busyAction === "test-wecom"
+                  ? "发送中…"
+                  : wecomSettings.readonly
+                    ? "远端结果展示"
+                    : "发送测试消息"}
+              </button>
+            </div>
+          </section>
+
+          <section className="panel schedule-panel">
+            <header className="panel-header">
+              <div>
+                <p className="eyebrow">Schedule</p>
+                <h2>发送时间</h2>
+              </div>
+              <SchedulePreview
+                schedule={scheduleDraft}
+                timezones={timezoneOptions}
+              />
+            </header>
+
+            <div className="schedule-grid">
+              <label className="field">
+                <span>时间</span>
+                <input
+                  disabled={isEnvironmentReadonly}
+                  onChange={(event) =>
+                    setScheduleDraft((current) =>
+                      current
+                        ? { ...current, dailySendTime: event.target.value }
+                        : current,
+                    )
+                  }
+                  type="time"
+                  value={scheduleDraft?.dailySendTime ?? ""}
+                />
+              </label>
+
+              <label className="field">
+                <span>时区</span>
+                <select
+                  disabled={isEnvironmentReadonly}
+                  onChange={(event) =>
+                    setScheduleDraft((current) =>
+                      current
+                        ? {
+                            ...current,
+                            timezone: event.target
+                              .value as ScheduleSettings["timezone"],
+                          }
+                        : current,
+                    )
+                  }
+                  value={scheduleDraft?.timezone ?? "Asia/Shanghai"}
+                >
+                  {timezoneOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="environment-inline-note">
+              {isGitHubMode
+                ? "当前显示的是 GitHub Actions workflow 调度。归档由远端定时执行并提交回仓库，不依赖本地机器持续开机。"
+                : "调度属于本地运行配置。保存表示已写入，实际生效依赖后续重启或容器重建。"}
+            </div>
+
+            <div className="action-row">
+              <button
+                className="primary-button"
+                disabled={
+                  !scheduleDraft || busyAction !== "" || isEnvironmentReadonly
+                }
+                onClick={() => void handleSaveSchedule()}
+                type="button"
+              >
+                {busyAction === "save-schedule"
+                  ? "保存中…"
+                  : isEnvironmentReadonly
+                    ? "GitHub 模式只读"
+                    : "保存调度设置"}
+              </button>
+            </div>
+          </section>
+        </main>
+      ) : null}
+
+      {activeView === "preferences" ? (
+        <main className="preferences-page">
+          <section className="panel preferences-panel">
+            <header className="panel-header">
+              <div>
+                <p className="eyebrow">Preferences</p>
+                <h2>关心主题</h2>
+              </div>
+            </header>
+
+            <div className="theme-picker">
+              {availableThemes.map((theme) => {
+                const active = preferencesDraft.preferredThemes.includes(theme);
+                return (
+                  <button
+                    key={theme}
+                    className={active ? "theme-chip active" : "theme-chip"}
+                    onClick={() => handleToggleTheme(theme)}
+                    type="button"
+                  >
+                    {theme}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="custom-topic-block">
+              <div className="custom-topic-input">
+                <label className="field">
+                  <span>自定义主题词</span>
+                  <input
+                    onChange={(event) =>
+                      setCustomTopicInput(event.target.value)
+                    }
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        handleAddCustomTopic();
+                      }
+                    }}
+                    placeholder="例如：Fabric, FPGA, agents runtime"
+                    type="text"
+                    value={customTopicInput}
+                  />
+                </label>
+                <button
+                  className="ghost-button"
+                  onClick={handleAddCustomTopic}
+                  type="button"
+                >
+                  添加
+                </button>
+              </div>
+
+              <div className="custom-topic-list">
+                {preferencesDraft.customTopics.map((topic) => (
+                  <button
+                    key={topic}
+                    className="topic-tag"
+                    onClick={() => handleRemoveCustomTopic(topic)}
+                    type="button"
+                  >
+                    {topic}
+                    <span>移除</span>
+                  </button>
+                ))}
+                {preferencesDraft.customTopics.length === 0 ? (
+                  <div className="empty-inline">还没有添加自定义主题词。</div>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="action-row">
+              <button
+                className="primary-button"
+                disabled={busyAction !== ""}
+                onClick={() => void handleSavePreferences()}
+                type="button"
+              >
+                {busyAction === "save-preferences" ? "保存中…" : "保存关心主题"}
+              </button>
+            </div>
+          </section>
+        </main>
+      ) : null}
+
+      {activeView === "saved" ? (
+        <main className="saved-page">
+          <section className="panel saved-panel">
+            <header className="panel-header">
+              <div>
+                <p className="eyebrow">Collection</p>
+                <h2>收藏与待看</h2>
+                <p className="reader-meta-line">
+                  只展示当前仍然生效的状态集合，按最新记录时间倒序排列。
+                </p>
+              </div>
+
+              <div className="collection-summary">
+                <MetaPill label="已收藏" value={String(savedItems.length)} />
+                <MetaPill label="待会看" value={String(laterItems.length)} />
+              </div>
+            </header>
+
+            <div className="insight-grid">
+              <InsightCard
+                title="最近真正感兴趣的主题"
+                items={feedbackInsights.interestedThemes}
+                emptyText="还没形成明显兴趣轨迹。"
+              />
+              <InsightCard
+                title="最近被连续跳过的主题"
+                items={feedbackInsights.skippedThemes}
+                emptyText="目前还没有明显被连续跳过的主题。"
+              />
+            </div>
+
+            <div
+              className="saved-filter-tabs"
+              role="tablist"
+              aria-label="收藏筛选"
+            >
+              <button
+                className={
+                  savedViewFilter === "saved" ? "view-tab active" : "view-tab"
+                }
+                onClick={() => setSavedViewFilter("saved")}
+                type="button"
+              >
+                已收藏
+              </button>
+              <button
+                className={
+                  savedViewFilter === "later" ? "view-tab active" : "view-tab"
+                }
+                onClick={() => setSavedViewFilter("later")}
+                type="button"
+              >
+                待会看
+              </button>
+            </div>
+
+            <div className="saved-list">
+              {feedbackItems.map((item) => (
+                <article
+                  key={`${item.repo}-${item.recordedAt}`}
+                  className="saved-item"
+                >
+                  <div className="saved-item-main">
+                    <div className="saved-item-heading">
+                      <span className="story-theme">
+                        {item.theme ?? "未分类"}
+                      </span>
+                      <h3>{item.repo}</h3>
+                    </div>
+                    <p className="saved-item-meta">
+                      来源日报 {item.date} · 记录于{" "}
+                      {formatDateTime(item.recordedAt)}
+                    </p>
+                  </div>
+
+                  <div className="saved-item-side">
+                    <span className="saved-item-state">
+                      {describeFeedbackAction(item.action)}
+                    </span>
+                    <div className="saved-item-actions">
+                      <a
+                        className="ghost-button link-button"
+                        href={toRepoUrl(item.repo)}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        打开仓库
+                      </a>
+                      <button
+                        className="ghost-button"
+                        onClick={() =>
+                          void handleOpenArchiveFromCollection(
+                            item.date,
+                            item.repo,
+                          )
+                        }
+                        type="button"
+                      >
+                        查看归档
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              ))}
+
+              {feedbackItems.length === 0 ? (
+                <div className="empty-state">
+                  当前还没有{savedViewFilter === "saved" ? "已收藏" : "待会看"}
+                  项目。
+                </div>
+              ) : null}
+            </div>
+          </section>
+        </main>
+      ) : null}
+
+      {activeView === "archives" ? (
+        <main className="archive-page">
+          <aside className="panel archive-index">
+            <header className="panel-header compact">
+              <div>
+                <p className="eyebrow">Archive</p>
+                <h2>归档日期</h2>
+              </div>
+            </header>
+
+            <div className="archive-date-list">
+              {archives.map((archive) => (
+                <button
+                  key={archive.date}
+                  className={
+                    archive.date === selectedArchiveDate
+                      ? "archive-date active"
+                      : "archive-date"
+                  }
+                  onClick={() => void handleSelectArchive(archive.date)}
+                  type="button"
+                >
+                  <strong>{archive.date}</strong>
+                  <span>{archive.digestCount} 条项目</span>
+                </button>
+              ))}
+
+              {archives.length === 0 ? (
+                <div className="empty-inline">当前还没有归档日报。</div>
+              ) : null}
+            </div>
+          </aside>
+
+          <section className="panel archive-reader">
+            {archiveDetail && currentDigestItem && selectedArchiveSummary ? (
+              <>
+                <header className="reader-header">
+                  <div>
+                    <p className="eyebrow">Reader</p>
+                    <h2>{archiveDetail.digest.title}</h2>
+                    <p className="reader-meta-line">
+                      生成于 {formatDateTime(archiveDetail.generatedAt)} ·
+                      规则版本 {selectedArchiveSummary.rulesVersion}
+                    </p>
+                  </div>
+
+                  <div className="reader-counter">
+                    第 {currentItemIndex + 1} 篇 / 共{" "}
+                    {archiveDetail.digest.items.length} 篇
+                  </div>
+                </header>
+
+                <section className="editorial-intro">
+                  <div className="editorial-intro-copy">
+                    <p className="eyebrow">Editorial Intro</p>
+                    <h3>今天为什么是这几条</h3>
+                    {archiveReaderContext.editorialIntro.map((line) => (
+                      <p key={line}>{line}</p>
+                    ))}
+                  </div>
+
+                  {archiveReaderContext.preferenceSuggestion ? (
+                    <div className="preference-suggestion">
+                      <span className="story-theme">
+                        {archiveReaderContext.preferenceSuggestion.theme}
+                      </span>
+                      <strong>偏好学习提示</strong>
+                      <p>{archiveReaderContext.preferenceSuggestion.reason}</p>
+                      <p className="reader-meta-line">
+                        {archiveReaderContext.preferenceSuggestion.sourceWindow}
+                      </p>
+                      <button
+                        className="primary-button"
+                        disabled={busyAction !== ""}
+                        onClick={() =>
+                          void handleAcceptPreferenceSuggestion(
+                            archiveReaderContext.preferenceSuggestion!.theme,
+                          )
+                        }
+                        type="button"
+                      >
+                        {busyAction === "accept-suggestion"
+                          ? "更新中…"
+                          : "加入关心主题"}
+                      </button>
+                    </div>
+                  ) : null}
+                </section>
+
+                <div className="reader-body">
+                  <button
+                    className="pager-button"
+                    disabled={currentItemIndex === 0}
+                    onClick={() =>
+                      setCurrentItemIndex((current) => Math.max(current - 1, 0))
+                    }
+                    type="button"
+                  >
+                    上一篇
+                  </button>
+
+                  <article className="story-sheet">
+                    <div className="story-heading">
+                      <span className="story-theme">
+                        {currentDigestItem.theme}
+                      </span>
+                      {currentDigestItem.readerTag === "exploration" ? (
+                        <span className="story-flag">探索位</span>
+                      ) : null}
+                      <h3>{currentDigestItem.repo}</h3>
+                    </div>
+
+                    {currentDigestItem.readerNote ? (
+                      <p className="story-note">
+                        {currentDigestItem.readerNote}
+                      </p>
+                    ) : null}
+
+                    <div className="feedback-actions">
+                      <button
+                        className={
+                          currentFeedback?.action === "saved"
+                            ? "feedback-button active"
+                            : "feedback-button"
+                        }
+                        disabled={busyAction !== ""}
+                        onClick={() => void handleRecordFeedback("saved")}
+                        type="button"
+                      >
+                        收藏
+                      </button>
+                      <button
+                        className={
+                          currentFeedback?.action === "later"
+                            ? "feedback-button active"
+                            : "feedback-button"
+                        }
+                        disabled={busyAction !== ""}
+                        onClick={() => void handleRecordFeedback("later")}
+                        type="button"
+                      >
+                        稍后看
+                      </button>
+                      <button
+                        className={
+                          currentFeedback?.action === "skipped"
+                            ? "feedback-button active"
+                            : "feedback-button"
+                        }
+                        disabled={busyAction !== ""}
+                        onClick={() => void handleRecordFeedback("skipped")}
+                        type="button"
+                      >
+                        跳过
+                      </button>
+                      <a
+                        className="ghost-button link-button inline-action-link"
+                        href={currentDigestItem.url}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        打开仓库
+                      </a>
+                    </div>
+
+                    <p className="story-lead">{currentDigestItem.summary}</p>
+
+                    <div className="story-columns">
+                      <section>
+                        <h4>为什么值得看</h4>
+                        <p>{currentDigestItem.whyItMatters}</p>
+                      </section>
+                      <section>
+                        <h4>为什么是现在</h4>
+                        <p>{currentDigestItem.whyNow}</p>
+                      </section>
+                      <section className="evidence-section">
+                        <h4>证据</h4>
+                        <ul>
+                          {currentDigestItem.evidence.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                      </section>
+                    </div>
+                  </article>
+
+                  <button
+                    className="pager-button"
+                    disabled={
+                      currentItemIndex >= archiveDetail.digest.items.length - 1
+                    }
+                    onClick={() =>
+                      setCurrentItemIndex((current) =>
+                        Math.min(
+                          current + 1,
+                          archiveDetail.digest.items.length - 1,
+                        ),
+                      )
+                    }
+                    type="button"
+                  >
+                    下一篇
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="empty-state">请选择一条归档日报开始阅读。</div>
+            )}
+          </section>
+        </main>
       ) : null}
     </div>
   );
+}
+
+function MetaPill(props: { label: string; value: string }) {
+  return (
+    <div className="meta-pill">
+      <span>{props.label}</span>
+      <strong>{props.value}</strong>
+    </div>
+  );
+}
+
+function InsightCard(props: {
+  title: string;
+  items: Array<{
+    theme: string;
+    reason: string;
+  }>;
+  emptyText: string;
+}) {
+  return (
+    <section className="insight-card">
+      <h3>{props.title}</h3>
+      {props.items.length > 0 ? (
+        <div className="insight-list">
+          {props.items.map((item) => (
+            <article key={item.theme} className="insight-item">
+              <strong>{item.theme}</strong>
+              <p>{item.reason}</p>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="empty-inline">{props.emptyText}</div>
+      )}
+    </section>
+  );
+}
+
+function StatusBadge(props: {
+  configured: boolean;
+  validation: ValidationStatus;
+}) {
+  return (
+    <div className="wecom-status">
+      {buildStatusLabel(props.configured, props.validation)}
+    </div>
+  );
+}
+
+function ValidationHint(props: { validation: ValidationStatus }) {
+  const className =
+    props.validation.state === "failed"
+      ? "validation-hint failed"
+      : "validation-hint";
+
+  const detail =
+    props.validation.state === "failed"
+      ? `上次验证失败：${props.validation.detail}`
+      : props.validation.detail;
+
+  return <div className={className}>{detail}</div>;
+}
+
+function SchedulePreview(props: {
+  schedule: ScheduleSettings | null;
+  timezones: TimezoneOption[];
+}) {
+  const label =
+    props.timezones.find((option) => option.value === props.schedule?.timezone)
+      ?.label ?? "上海";
+
+  return (
+    <div className="schedule-preview">
+      <strong>{props.schedule?.dailySendTime ?? "--:--"}</strong>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+function buildEnvironmentCard(
+  label: string,
+  configured: boolean,
+  validation: ValidationStatus,
+  fingerprintDetail?: string,
+) {
+  return {
+    label,
+    configured,
+    status: buildStatusLabel(configured, validation),
+    detail: fingerprintDetail ?? validation.detail,
+  };
+}
+
+function buildScheduleCard(
+  schedule: ScheduleSettings | null,
+  options: TimezoneOption[],
+) {
+  const validation = validateScheduleConfiguration(schedule, options);
+
+  return {
+    label: "调度",
+    configured: validation.state === "passed",
+    status: validation.state === "passed" ? "已配置" : "待配置",
+    detail: validation.detail,
+  };
+}
+
+function buildStatusLabel(
+  configured: boolean,
+  validation: ValidationStatus,
+): string {
+  if (!configured) {
+    return "未配置";
+  }
+
+  if (validation.state === "passed") {
+    return "已验证";
+  }
+
+  if (validation.state === "failed") {
+    return "上次验证失败";
+  }
+
+  return "已配置未验证";
 }
 
 function validateScheduleConfiguration(
@@ -1017,7 +1903,7 @@ function validateScheduleConfiguration(
     detail: `${schedule.dailySendTime} · ${describeTimezone(
       schedule.timezone,
       options,
-    )}`,
+    )} · 需重启后生效`,
   };
 }
 
@@ -1028,6 +1914,36 @@ function describeTimezone(
   return options.find((option) => option.value === timezone)?.label ?? timezone;
 }
 
+function formatDateTime(value: string): string {
+  return new Date(value).toLocaleString("zh-CN", {
+    hour12: false,
+  });
+}
+
+function formatCurrentDate(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function describeFeedbackAction(action: FeedbackAction): string {
+  if (action === "saved") {
+    return "已收藏";
+  }
+
+  if (action === "skipped") {
+    return "已跳过";
+  }
+
+  return "稍后看";
+}
+
+function toRepoUrl(repo: string): string {
+  return `https://github.com/${repo}`;
 }
