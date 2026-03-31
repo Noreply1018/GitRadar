@@ -10,6 +10,18 @@ import {
   getArchiveDetail,
   listArchiveSummaries,
 } from "./services/archive-service";
+import {
+  getGitHubArchiveDetail,
+  listGitHubArchiveSummaries,
+  readGitHubExecutionState,
+  readGitHubModeEnvironmentFingerprints,
+  readGitHubModeGitHubSettings,
+  readGitHubModeHealth,
+  readGitHubModeLlmSettings,
+  readGitHubModeSchedule,
+  readGitHubModeSettingsOverview,
+  readGitHubModeWecomSettings,
+} from "./services/github-runtime-service";
 import { buildFeedbackInsights } from "../feedback/insights";
 import { CommandRunner } from "./services/command-runner";
 import {
@@ -49,6 +61,10 @@ import {
 } from "./services/wecom-settings-service";
 import { readEnvironmentFingerprints } from "./services/environment-fingerprint-service";
 import type { HealthResponse } from "./types/api";
+import {
+  isLocalRuntimeSource,
+  normalizeRuntimeSource,
+} from "./services/runtime-source-service";
 
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 3210;
@@ -86,14 +102,24 @@ async function handleRequest(
   try {
     const url = new URL(request.url ?? "/", "http://localhost");
     const pathname = url.pathname;
+    const source = normalizeRuntimeSource(url.searchParams.get("source"));
 
     if (request.method === "GET" && pathname === "/api/health") {
-      return sendJson<HealthResponse>(response, 200, {
-        status: "ok",
-        app: "GitRadar",
-        version: packageVersion,
-        mode: (await hasBuiltConsole()) ? "full-console" : "api-only",
-      });
+      if (isLocalRuntimeSource(source)) {
+        return sendJson<HealthResponse>(response, 200, {
+          status: "ok",
+          app: "GitRadar",
+          version: packageVersion,
+          mode: (await hasBuiltConsole()) ? "full-console" : "api-only",
+          source: "local",
+        });
+      }
+
+      return sendJson<HealthResponse>(
+        response,
+        200,
+        await readGitHubModeHealth(ROOT_DIR, packageVersion),
+      );
     }
 
     if (request.method === "GET" && pathname === "/api/config/digest-rules") {
@@ -101,7 +127,11 @@ async function handleRequest(
     }
 
     if (request.method === "GET" && pathname === "/api/settings/schedule") {
-      return sendJson(response, 200, await readScheduleSettings(ROOT_DIR));
+      if (isLocalRuntimeSource(source)) {
+        return sendJson(response, 200, await readScheduleSettings(ROOT_DIR));
+      }
+
+      return sendJson(response, 200, await readGitHubModeSchedule(ROOT_DIR));
     }
 
     if (request.method === "GET" && pathname === "/api/settings/preferences") {
@@ -109,25 +139,61 @@ async function handleRequest(
     }
 
     if (request.method === "GET" && pathname === "/api/settings/github") {
-      return sendJson(response, 200, await readGitHubSettings(ROOT_DIR));
+      if (isLocalRuntimeSource(source)) {
+        return sendJson(response, 200, await readGitHubSettings(ROOT_DIR));
+      }
+
+      return sendJson(
+        response,
+        200,
+        await readGitHubModeGitHubSettings(ROOT_DIR),
+      );
     }
 
     if (request.method === "GET" && pathname === "/api/settings/llm") {
-      return sendJson(response, 200, await readLlmSettings(ROOT_DIR));
+      if (isLocalRuntimeSource(source)) {
+        return sendJson(response, 200, await readLlmSettings(ROOT_DIR));
+      }
+
+      return sendJson(response, 200, await readGitHubModeLlmSettings(ROOT_DIR));
     }
 
     if (request.method === "GET" && pathname === "/api/settings/wecom") {
-      return sendJson(response, 200, await readWecomSettings(ROOT_DIR));
+      if (isLocalRuntimeSource(source)) {
+        return sendJson(response, 200, await readWecomSettings(ROOT_DIR));
+      }
+
+      return sendJson(
+        response,
+        200,
+        await readGitHubModeWecomSettings(ROOT_DIR),
+      );
     }
 
     if (
       request.method === "GET" &&
       pathname === "/api/environment/fingerprints"
     ) {
+      if (isLocalRuntimeSource(source)) {
+        return sendJson(
+          response,
+          200,
+          await readEnvironmentFingerprints(ROOT_DIR),
+        );
+      }
+
       return sendJson(
         response,
         200,
-        await readEnvironmentFingerprints(ROOT_DIR),
+        await readGitHubModeEnvironmentFingerprints(ROOT_DIR),
+      );
+    }
+
+    if (request.method === "GET" && pathname === "/api/runtime/github") {
+      return sendJson(
+        response,
+        200,
+        await readGitHubModeSettingsOverview(ROOT_DIR),
       );
     }
 
@@ -379,12 +445,28 @@ async function handleRequest(
     }
 
     if (request.method === "GET" && pathname === "/api/archives") {
-      return sendJson(response, 200, await listArchiveSummaries(ROOT_DIR));
+      if (isLocalRuntimeSource(source)) {
+        return sendJson(response, 200, await listArchiveSummaries(ROOT_DIR));
+      }
+
+      return sendJson(
+        response,
+        200,
+        await listGitHubArchiveSummaries(ROOT_DIR),
+      );
     }
 
     if (request.method === "GET" && pathname.startsWith("/api/archives/")) {
       const date = pathname.replace("/api/archives/", "");
-      return sendJson(response, 200, await getArchiveDetail(ROOT_DIR, date));
+      if (isLocalRuntimeSource(source)) {
+        return sendJson(response, 200, await getArchiveDetail(ROOT_DIR, date));
+      }
+
+      return sendJson(
+        response,
+        200,
+        await getGitHubArchiveDetail(ROOT_DIR, date),
+      );
     }
 
     if (!pathname.startsWith("/api/")) {

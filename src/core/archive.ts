@@ -59,14 +59,7 @@ export async function readDailyDigestArchive(
 ): Promise<DailyDigestArchive> {
   const archivePath = getDailyDigestArchivePath(rootDir, date);
   const parsed = await readArchiveJson(archivePath, date);
-
-  if (!isCurrentDailyDigestArchive(parsed)) {
-    throw new Error(
-      `Daily digest archive is not supported for ${date}: ${archivePath}. Only schemaVersion ${CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION} archives are supported.`,
-    );
-  }
-
-  return cloneCurrentDailyDigestArchive(parsed);
+  return parseDailyDigestArchive(parsed, archivePath);
 }
 
 export function getDailyDigestArchivePath(
@@ -74,6 +67,19 @@ export function getDailyDigestArchivePath(
   date: string,
 ): string {
   return path.join(getHistoryDir(rootDir), `${date}.json`);
+}
+
+export function parseDailyDigestArchive(
+  value: unknown,
+  sourceLabel: string,
+): DailyDigestArchive {
+  if (!isCurrentDailyDigestArchive(value)) {
+    throw new Error(
+      `Daily digest archive is not supported for ${sourceLabel}. Only schemaVersion ${CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION} archives are supported.`,
+    );
+  }
+
+  return cloneCurrentDailyDigestArchive(value);
 }
 
 function getHistoryDir(rootDir: string): string {

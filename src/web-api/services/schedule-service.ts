@@ -31,6 +31,8 @@ export async function readScheduleSettings(
   try {
     const raw = await readFile(filePath, "utf8");
     return {
+      source: "local",
+      readonly: false,
       path: filePath,
       settings: parseScheduleSettings(JSON.parse(raw)),
       availableTimezones: [...SCHEDULE_TIMEZONE_OPTIONS],
@@ -38,6 +40,8 @@ export async function readScheduleSettings(
   } catch (error) {
     if (isMissingFileError(error)) {
       return {
+        source: "local",
+        readonly: false,
         path: filePath,
         settings: { ...DEFAULT_SCHEDULE_SETTINGS },
         availableTimezones: [...SCHEDULE_TIMEZONE_OPTIONS],
@@ -59,6 +63,8 @@ export async function saveScheduleSettings(
   await writeFile(filePath, stringifyScheduleSettings(settings), "utf8");
 
   return {
+    source: "local",
+    readonly: false,
     path: filePath,
     settings,
     availableTimezones: [...SCHEDULE_TIMEZONE_OPTIONS],

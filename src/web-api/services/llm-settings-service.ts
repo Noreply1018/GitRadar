@@ -35,6 +35,8 @@ export async function readLlmSettings(
   const model = env[LLM_MODEL_KEY]?.trim() ?? null;
 
   return {
+    source: "local",
+    readonly: false,
     configured: Boolean(apiKey && baseUrl && model),
     maskedApiKey: apiKey ? maskApiKey(apiKey) : null,
     baseUrl,
@@ -72,6 +74,8 @@ export async function saveLlmSettings(
   await upsertManagedEnvValue(rootDir, LLM_MODEL_KEY, validated.model);
 
   return {
+    source: "local",
+    readonly: false,
     configured: true,
     maskedApiKey: maskApiKey(validated.apiKey),
     baseUrl: validated.baseUrl,

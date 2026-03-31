@@ -29,6 +29,8 @@ export async function readGitHubSettings(
   const config = getGitHubConfigPreview(env);
 
   return {
+    source: "local",
+    readonly: false,
     configured: Boolean(token),
     maskedToken: token ? maskApiKey(token) : null,
     apiBaseUrl: config.apiBaseUrl,
@@ -61,6 +63,8 @@ export async function saveGitHubSettings(
   await upsertManagedEnvValue(rootDir, GITHUB_TOKEN_KEY, config.token);
 
   return {
+    source: "local",
+    readonly: false,
     configured: true,
     maskedToken: maskApiKey(config.token),
     apiBaseUrl: config.apiBaseUrl,

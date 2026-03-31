@@ -175,6 +175,8 @@ describe("schedule settings", () => {
     const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-schedule-"));
 
     await expect(readScheduleSettings(rootDir)).resolves.toMatchObject({
+      source: "local",
+      readonly: false,
       settings: {
         timezone: "Asia/Shanghai",
         dailySendTime: "08:17",
@@ -415,6 +417,8 @@ describe("wecom settings", () => {
     const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-wecom-"));
 
     await expect(readWecomSettings(rootDir)).resolves.toMatchObject({
+      source: "local",
+      readonly: false,
       configured: false,
       maskedWebhookUrl: null,
       envFilePath: path.join(rootDir, ".env"),
@@ -430,6 +434,8 @@ describe("wecom settings", () => {
     });
 
     expect(response).toEqual({
+      source: "local",
+      readonly: false,
       configured: true,
       maskedWebhookUrl: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?***",
       envFilePath: path.join(rootDir, ".env"),
@@ -455,6 +461,8 @@ describe("github settings", () => {
     const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-github-"));
 
     await expect(readGitHubSettings(rootDir)).resolves.toMatchObject({
+      source: "local",
+      readonly: false,
       configured: false,
       maskedToken: null,
       apiBaseUrl: "https://api.github.com",
@@ -471,6 +479,8 @@ describe("github settings", () => {
     });
 
     expect(response).toEqual({
+      source: "local",
+      readonly: false,
       configured: true,
       maskedToken: "gith***alue",
       apiBaseUrl: "https://api.github.com",
@@ -540,6 +550,8 @@ describe("llm settings", () => {
     const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-llm-"));
 
     await expect(readLlmSettings(rootDir)).resolves.toMatchObject({
+      source: "local",
+      readonly: false,
       configured: false,
       maskedApiKey: null,
       baseUrl: null,
@@ -558,6 +570,8 @@ describe("llm settings", () => {
     });
 
     expect(response).toEqual({
+      source: "local",
+      readonly: false,
       configured: true,
       maskedApiKey: "llm-***alue",
       baseUrl: "https://example.com/v1",

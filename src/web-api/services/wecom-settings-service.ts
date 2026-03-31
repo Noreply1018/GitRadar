@@ -19,6 +19,8 @@ export async function readWecomSettings(
   const rawWebhookUrl = env[WECOM_WEBHOOK_KEY]?.trim();
 
   return {
+    source: "local",
+    readonly: false,
     configured: Boolean(rawWebhookUrl),
     maskedWebhookUrl: rawWebhookUrl ? maskWebhookUrl(rawWebhookUrl) : null,
     envFilePath: getManagedEnvPath(rootDir),
@@ -52,6 +54,8 @@ export async function saveWecomSettings(
   );
 
   return {
+    source: "local",
+    readonly: false,
     configured: true,
     maskedWebhookUrl: maskWebhookUrl(webhookUrl),
     envFilePath: envPath,

@@ -9,10 +9,16 @@ import type {
 } from "../../feedback/model";
 
 export interface HealthResponse {
-  status: "ok";
+  status: "ok" | "degraded" | "unknown";
   app: "GitRadar";
   version: string;
-  mode: "api-only" | "full-console";
+  mode: "api-only" | "full-console" | "github-actions";
+  source: "github" | "local";
+  note?: string;
+  lastRunAt?: string | null;
+  lastRunStatus?: "success" | "failure" | "unknown";
+  lastArchiveDate?: string | null;
+  runUrl?: string | null;
 }
 
 export interface DigestRulesIssue {
@@ -31,6 +37,7 @@ export interface DigestRulesValidationResponse {
 }
 
 export type ScheduleTimezone =
+  | "UTC"
   | "Asia/Shanghai"
   | "Asia/Tokyo"
   | "Europe/Berlin"
@@ -49,9 +56,15 @@ export interface ScheduleSettings {
 }
 
 export interface ScheduleSettingsResponse {
+  source: "github" | "local";
+  readonly: boolean;
   path: string;
   settings: ScheduleSettings;
   availableTimezones: TimezoneOption[];
+  note?: string;
+  cronExpression?: string;
+  lastRunAt?: string | null;
+  lastRunStatus?: "success" | "failure" | "unknown";
 }
 
 export interface UserPreferencesResponse {
@@ -153,25 +166,43 @@ export interface CommandStartResponse {
 }
 
 export interface WecomSettingsResponse {
+  source: "github" | "local";
+  readonly: boolean;
   configured: boolean;
   maskedWebhookUrl: string | null;
   envFilePath: string;
+  note?: string;
+  mappedKeys?: string[];
+  lastRunAt?: string | null;
+  lastRunStatus?: "success" | "failure" | "unknown";
 }
 
 export interface GitHubSettingsResponse {
+  source: "github" | "local";
+  readonly: boolean;
   configured: boolean;
   maskedToken: string | null;
   apiBaseUrl: string;
   trendingUrl: string;
   envFilePath: string;
+  note?: string;
+  mappedKeys?: string[];
+  lastRunAt?: string | null;
+  lastRunStatus?: "success" | "failure" | "unknown";
 }
 
 export interface LlmSettingsResponse {
+  source: "github" | "local";
+  readonly: boolean;
   configured: boolean;
   maskedApiKey: string | null;
   baseUrl: string | null;
   model: string | null;
   envFilePath: string;
+  note?: string;
+  mappedKeys?: string[];
+  lastRunAt?: string | null;
+  lastRunStatus?: "success" | "failure" | "unknown";
 }
 
 export interface GitHubFingerprint {
@@ -195,6 +226,30 @@ export interface EnvironmentFingerprintResponse {
   github: GitHubFingerprint | null;
   llm: LlmFingerprint | null;
   wecom: WecomFingerprint | null;
+}
+
+export interface GitHubExecutionState {
+  source: "github";
+  workflowName: string;
+  trigger: string | null;
+  lastRunAt: string | null;
+  lastRunStatus: "success" | "failure" | "unknown";
+  lastArchiveDate: string | null;
+  runUrl: string | null;
+  ref: string;
+}
+
+export interface GitHubModeSettingsResponse {
+  source: "github";
+  workflowName: string;
+  trigger: string | null;
+  lastRunAt: string | null;
+  lastRunStatus: "success" | "failure" | "unknown";
+  lastArchiveDate: string | null;
+  runUrl: string | null;
+  cronExpression: string;
+  timezone: ScheduleTimezone;
+  mappedSecrets: string[];
 }
 
 export interface LlmTestResponse {

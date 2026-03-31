@@ -6,7 +6,7 @@ on:
     - cron: "17 0 * * *"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: daily-digest
@@ -25,6 +25,7 @@ jobs:
       WORKFLOW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       GITRADAR_TRIGGER: ${{ github.event_name }}
       GITRADAR_WORKFLOW_NAME: ${{ github.workflow }}
+      GITRADAR_REF_NAME: ${{ github.ref_name }}
 
     steps:
       - name: Check out repository
@@ -82,3 +83,50 @@ jobs:
             );
           }
           EOF
+
+      - name: Persist GitHub runtime state
+        if: always()
+        run: |
+          mkdir -p data/runtime
+          node --input-type=module <<'EOF'
+          import { readdir, writeFile } from "node:fs/promises";
+
+          const files = await readdir("data/history").catch(() => []);
+          const latestArchiveDate = files
+            .filter((file) => /^\d{4}-\d{2}-\d{2}\.json$/.test(file))
+            .map((file) => file.replace(/\.json$/, ""))
+            .sort()
+            .at(-1) ?? null;
+
+          const payload = {
+            source: "github",
+            workflowName: process.env.GITRADAR_WORKFLOW_NAME ?? "Daily Digest",
+            trigger: process.env.GITRADAR_TRIGGER ?? null,
+            lastRunAt: new Date().toISOString(),
+            lastRunStatus: process.env.GITRADAR_JOB_STATUS === "success" ? "success" : "failure",
+            lastArchiveDate: latestArchiveDate,
+            runUrl: process.env.WORKFLOW_RUN_URL ?? null,
+            ref: process.env.GITRADAR_REF_NAME ?? "main",
+          };
+
+          await writeFile(
+            "data/runtime/github-runtime.json",
+            `${JSON.stringify(payload, null, 2)}\n`,
+            "utf8",
+          );
+          EOF
+        env:
+          GITRADAR_JOB_STATUS: ${{ job.status }}
+
+      - name: Commit generated archives and runtime state
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/history/*.json data/runtime/github-runtime.json
+          if git diff --cached --quiet; then
+            echo "No archive or runtime changes to commit."
+            exit 0
+          fi
+          git commit -m "chore: persist daily digest artifacts"
+          git push origin HEAD:main

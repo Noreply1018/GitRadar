@@ -1,12 +1,15 @@
 import type { DailyDigestArchive } from "../../src/core/archive";
 
 export type ScheduleTimezone =
+  | "UTC"
   | "Asia/Shanghai"
   | "Asia/Tokyo"
   | "Europe/Berlin"
   | "Europe/London"
   | "America/New_York"
   | "America/Los_Angeles";
+
+export type RuntimeSource = "github" | "local";
 
 export interface TimezoneOption {
   value: ScheduleTimezone;
@@ -24,11 +27,17 @@ export interface UserPreferences {
 }
 
 export interface GitHubSettings {
+  source: RuntimeSource;
+  readonly: boolean;
   configured: boolean;
   maskedToken: string | null;
   apiBaseUrl: string;
   trendingUrl: string;
   envFilePath: string;
+  note?: string;
+  mappedKeys?: string[];
+  lastRunAt?: string | null;
+  lastRunStatus?: "success" | "failure" | "unknown";
 }
 
 export type FeedbackAction = "saved" | "skipped" | "later";
@@ -97,17 +106,29 @@ export interface ArchiveSummary {
 }
 
 export interface WecomSettings {
+  source: RuntimeSource;
+  readonly: boolean;
   configured: boolean;
   maskedWebhookUrl: string | null;
   envFilePath: string;
+  note?: string;
+  mappedKeys?: string[];
+  lastRunAt?: string | null;
+  lastRunStatus?: "success" | "failure" | "unknown";
 }
 
 export interface LlmSettings {
+  source: RuntimeSource;
+  readonly: boolean;
   configured: boolean;
   maskedApiKey: string | null;
   baseUrl: string | null;
   model: string | null;
   envFilePath: string;
+  note?: string;
+  mappedKeys?: string[];
+  lastRunAt?: string | null;
+  lastRunStatus?: "success" | "failure" | "unknown";
 }
 
 export interface WecomTestResult {
@@ -157,27 +178,47 @@ export interface ArchiveReaderContext {
   explorationRepo: string | null;
 }
 
-export async function fetchHealth(): Promise<{
+export async function fetchHealth(source: RuntimeSource): Promise<{
   status: string;
   app: string;
   version: string;
   mode: string;
+  source: RuntimeSource;
+  note?: string;
+  lastRunAt?: string | null;
+  lastRunStatus?: "success" | "failure" | "unknown";
+  lastArchiveDate?: string | null;
+  runUrl?: string | null;
 }> {
-  return fetchJson("/api/health");
+  return fetchJson(`/api/health?source=${encodeURIComponent(source)}`);
 }
 
-export async function fetchScheduleSettings(): Promise<{
+export async function fetchScheduleSettings(source: RuntimeSource): Promise<{
+  source: RuntimeSource;
+  readonly: boolean;
   path: string;
   settings: ScheduleSettings;
   availableTimezones: TimezoneOption[];
+  note?: string;
+  cronExpression?: string;
+  lastRunAt?: string | null;
+  lastRunStatus?: "success" | "failure" | "unknown";
 }> {
-  return fetchJson("/api/settings/schedule");
+  return fetchJson(
+    `/api/settings/schedule?source=${encodeURIComponent(source)}`,
+  );
 }
 
 export async function saveScheduleSettings(draft: ScheduleSettings): Promise<{
+  source: RuntimeSource;
+  readonly: boolean;
   path: string;
   settings: ScheduleSettings;
   availableTimezones: TimezoneOption[];
+  note?: string;
+  cronExpression?: string;
+  lastRunAt?: string | null;
+  lastRunStatus?: "success" | "failure" | "unknown";
 }> {
   return fetchJson("/api/settings/schedule", {
     method: "PUT",
@@ -193,8 +234,10 @@ export async function fetchPreferences(): Promise<{
   return fetchJson("/api/settings/preferences");
 }
 
-export async function fetchGitHubSettings(): Promise<GitHubSettings> {
-  return fetchJson("/api/settings/github");
+export async function fetchGitHubSettings(
+  source: RuntimeSource,
+): Promise<GitHubSettings> {
+  return fetchJson(`/api/settings/github?source=${encodeURIComponent(source)}`);
 }
 
 export async function saveGitHubSettings(input: {
@@ -249,10 +292,6 @@ export async function recordFeedback(input: {
   });
 }
 
-export async function fetchArchives(): Promise<{ archives: ArchiveSummary[] }> {
-  return fetchJson("/api/archives");
-}
-
 export async function acceptPreferenceSuggestion(theme: string): Promise<{
   preferences: UserPreferences;
   availableThemes: string[];
@@ -266,16 +305,24 @@ export async function acceptPreferenceSuggestion(theme: string): Promise<{
   );
 }
 
-export async function fetchWecomSettings(): Promise<WecomSettings> {
-  return fetchJson("/api/settings/wecom");
+export async function fetchWecomSettings(
+  source: RuntimeSource,
+): Promise<WecomSettings> {
+  return fetchJson(`/api/settings/wecom?source=${encodeURIComponent(source)}`);
 }
 
-export async function fetchLlmSettings(): Promise<LlmSettings> {
-  return fetchJson("/api/settings/llm");
+export async function fetchLlmSettings(
+  source: RuntimeSource,
+): Promise<LlmSettings> {
+  return fetchJson(`/api/settings/llm?source=${encodeURIComponent(source)}`);
 }
 
-export async function fetchEnvironmentFingerprints(): Promise<EnvironmentFingerprints> {
-  return fetchJson("/api/environment/fingerprints");
+export async function fetchEnvironmentFingerprints(
+  source: RuntimeSource,
+): Promise<EnvironmentFingerprints> {
+  return fetchJson(
+    `/api/environment/fingerprints?source=${encodeURIComponent(source)}`,
+  );
 }
 
 export async function saveLlmSettings(input: {
@@ -310,12 +357,23 @@ export async function sendWecomTest(): Promise<WecomTestResult> {
   });
 }
 
-export async function fetchArchiveDetail(date: string): Promise<{
+export async function fetchArchiveDetail(
+  date: string,
+  source: RuntimeSource,
+): Promise<{
   archive: DailyDigestArchive;
   summary: ArchiveSummary;
   readerContext: ArchiveReaderContext;
 }> {
-  return fetchJson(`/api/archives/${date}`);
+  return fetchJson(
+    `/api/archives/${date}?source=${encodeURIComponent(source)}`,
+  );
+}
+
+export async function fetchArchives(
+  source: RuntimeSource,
+): Promise<{ archives: ArchiveSummary[] }> {
+  return fetchJson(`/api/archives?source=${encodeURIComponent(source)}`);
 }
 
 async function fetchJson<T>(input: string, init?: RequestInit): Promise<T> {
