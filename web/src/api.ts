@@ -3,25 +3,18 @@ import type {
   EnvironmentCheckStatus,
   EnvironmentReport,
 } from "../../src/core/environment-report";
+import {
+  SCHEDULE_TIMEZONE_OPTIONS,
+  type ScheduleSettings,
+  type ScheduleTimezone,
+  type TimezoneOption,
+} from "../../src/core/schedule";
 
-export type ScheduleTimezone =
-  | "UTC"
-  | "Asia/Shanghai"
-  | "Asia/Tokyo"
-  | "Europe/Berlin"
-  | "Europe/London"
-  | "America/New_York"
-  | "America/Los_Angeles";
-
-export interface TimezoneOption {
-  value: ScheduleTimezone;
-  label: string;
-}
-
-export interface ScheduleSettings {
-  timezone: ScheduleTimezone;
-  dailySendTime: string;
-}
+export type {
+  ScheduleSettings,
+  ScheduleTimezone,
+  TimezoneOption,
+} from "../../src/core/schedule";
 
 export interface UserPreferences {
   preferredThemes: string[];
@@ -911,11 +904,4 @@ function toCron(time: string): string {
   return `${Number(minute)} ${Number(hour)} * * *`;
 }
 
-const TIMEZONE_OPTIONS: TimezoneOption[] = [
-  { value: "Asia/Shanghai", label: "上海" },
-  { value: "Asia/Tokyo", label: "东京" },
-  { value: "Europe/Berlin", label: "柏林" },
-  { value: "Europe/London", label: "伦敦" },
-  { value: "America/New_York", label: "纽约" },
-  { value: "America/Los_Angeles", label: "洛杉矶" },
-];
+const TIMEZONE_OPTIONS: TimezoneOption[] = [...SCHEDULE_TIMEZONE_OPTIONS];

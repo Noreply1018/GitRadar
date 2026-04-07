@@ -1,10 +1,27 @@
-import type {
-  FeedbackInsights,
-  PreferenceSuggestion,
-  ThemeInsight,
-} from "../web-api/types/api";
 import type { UserPreferencesConfig } from "../config/user-preferences";
 import type { FeedbackEvent, FeedbackState } from "./model";
+
+export interface ThemeInsight {
+  theme: string;
+  savedCount: number;
+  skippedCount: number;
+  netScore: number;
+  reason: string;
+}
+
+export interface PreferenceSuggestion {
+  theme: string;
+  suggestedAction: "prefer";
+  confidence: "medium" | "high";
+  reason: string;
+  sourceWindow: string;
+}
+
+export interface FeedbackInsights {
+  interestedThemes: ThemeInsight[];
+  skippedThemes: ThemeInsight[];
+  preferenceSuggestion: PreferenceSuggestion | null;
+}
 
 const THEME_LIMIT = 3;
 const SUGGESTION_MIN_SAVED = 2;

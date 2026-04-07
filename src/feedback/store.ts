@@ -2,11 +2,6 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { getIsoTimestamp } from "../core/date";
-import type { FeedbackRecordResponse } from "../web-api/types/api";
-import {
-  commitAndPushRepoFiles,
-  readRemoteRepoJson,
-} from "../web-api/services/repo-sync-service";
 import {
   EMPTY_FEEDBACK_STATE,
   isFeedbackAction,
@@ -42,6 +37,11 @@ export interface FeedbackListItem {
   action: FeedbackAction;
   theme?: string;
   recordedAt: string;
+}
+
+export interface FeedbackRecordResult {
+  event: FeedbackEvent;
+  state: FeedbackState;
 }
 
 export function getFeedbackEventsPath(rootDir: string): string {
@@ -80,7 +80,7 @@ export async function readStoredFeedbackState(
 export async function recordFeedback(
   rootDir: string,
   submission: FeedbackSubmission,
-): Promise<FeedbackRecordResponse> {
+): Promise<FeedbackRecordResult> {
   const event = parseFeedbackSubmission(submission);
   const eventsPath = getFeedbackEventsPath(rootDir);
   const statePath = getFeedbackStatePath(rootDir);
@@ -93,27 +93,11 @@ export async function recordFeedback(
 
   await writeFile(eventsPath, stringifyEvents(nextEvents), "utf8");
   await writeFile(statePath, stringifyFeedbackState(nextState), "utf8");
-  const sync = await commitAndPushRepoFiles(
-    rootDir,
-    [getFeedbackEventsRepoPath(), getFeedbackStateRepoPath()],
-    `chore: record GitRadar feedback`,
-  );
 
   return {
     event,
     state: nextState,
-    ...sync,
   };
-}
-
-export async function readRemoteFeedbackState(
-  rootDir: string,
-): Promise<FeedbackState> {
-  return parseFeedbackState(
-    await readRemoteRepoJson(rootDir, getFeedbackStateRepoPath(), {
-      ...EMPTY_FEEDBACK_STATE,
-    }),
-  );
 }
 
 export async function readFeedbackEvents(
@@ -151,40 +135,7 @@ export async function listStoredFeedbackItems(
 ): Promise<FeedbackListItem[]> {
   const state = await readStoredFeedbackState(rootDir);
 
-  return Object.values(state.repoStates)
-    .filter((item) => !query.action || item.action === query.action)
-    .filter((item) => !query.theme || item.theme === query.theme)
-    .filter((item) => !query.repo || item.repo === query.repo)
-    .sort((left, right) => right.recordedAt.localeCompare(left.recordedAt))
-    .slice(0, normalizeLimit(query.limit) ?? Number.MAX_SAFE_INTEGER)
-    .map((item) => ({
-      repo: item.repo,
-      date: item.date,
-      action: item.action,
-      theme: item.theme,
-      recordedAt: item.recordedAt,
-    }));
-}
-
-export async function listRemoteFeedbackItems(
-  rootDir: string,
-  query: FeedbackQuery = {},
-): Promise<FeedbackListItem[]> {
-  const state = await readRemoteFeedbackState(rootDir);
-
-  return Object.values(state.repoStates)
-    .filter((item) => !query.action || item.action === query.action)
-    .filter((item) => !query.theme || item.theme === query.theme)
-    .filter((item) => !query.repo || item.repo === query.repo)
-    .sort((left, right) => right.recordedAt.localeCompare(left.recordedAt))
-    .slice(0, normalizeLimit(query.limit) ?? Number.MAX_SAFE_INTEGER)
-    .map((item) => ({
-      repo: item.repo,
-      date: item.date,
-      action: item.action,
-      theme: item.theme,
-      recordedAt: item.recordedAt,
-    }));
+  return toFeedbackListItems(state, query);
 }
 
 export function stringifyEvents(events: FeedbackEvent[]): string {
@@ -369,6 +320,25 @@ function normalizeLimit(value: number | undefined): number | undefined {
   }
 
   return value;
+}
+
+function toFeedbackListItems(
+  state: FeedbackState,
+  query: FeedbackQuery,
+): FeedbackListItem[] {
+  return Object.values(state.repoStates)
+    .filter((item) => !query.action || item.action === query.action)
+    .filter((item) => !query.theme || item.theme === query.theme)
+    .filter((item) => !query.repo || item.repo === query.repo)
+    .sort((left, right) => right.recordedAt.localeCompare(left.recordedAt))
+    .slice(0, normalizeLimit(query.limit) ?? Number.MAX_SAFE_INTEGER)
+    .map((item) => ({
+      repo: item.repo,
+      date: item.date,
+      action: item.action,
+      theme: item.theme,
+      recordedAt: item.recordedAt,
+    }));
 }
 
 function requireNonEmptyString(value: unknown, source: string): string {

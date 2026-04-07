@@ -23,6 +23,45 @@ export interface GitHubRepositoryMetadata {
   private: boolean;
 }
 
+export interface GitHubReference {
+  ref: string;
+  object: {
+    sha: string;
+    type: string;
+  };
+}
+
+export interface GitHubCommit {
+  sha: string;
+  tree: {
+    sha: string;
+  };
+}
+
+export interface GitHubBlob {
+  sha: string;
+}
+
+export interface GitHubTree {
+  sha: string;
+}
+
+export interface GitHubTreeEntryInput {
+  path: string;
+  mode: "100644";
+  type: "blob";
+  sha: string;
+}
+
+export interface GitHubCreatedCommit {
+  sha: string;
+}
+
+export interface GitHubPullRequest {
+  html_url: string;
+  number: number;
+}
+
 export interface GitHubViewer {
   login: string;
 }
@@ -79,8 +118,167 @@ export class GitHubPlatformClient {
     );
   }
 
+  async getReference(
+    owner: string,
+    repo: string,
+    ref: string,
+  ): Promise<GitHubReference> {
+    const normalizedRef = trimLeadingSlash(ref).replace(/^refs\//, "");
+    return this.requestJson<GitHubReference>(
+      "GET",
+      `/repos/${owner}/${repo}/git/ref/${normalizedRef}`,
+    );
+  }
+
+  async createReference(
+    owner: string,
+    repo: string,
+    ref: string,
+    sha: string,
+  ): Promise<GitHubReference> {
+    return this.requestJson<GitHubReference>(
+      "POST",
+      `/repos/${owner}/${repo}/git/refs`,
+      {},
+      {
+        body: JSON.stringify({
+          ref: normalizeRefPath(ref),
+          sha,
+        }),
+      },
+    );
+  }
+
+  async updateReference(
+    owner: string,
+    repo: string,
+    ref: string,
+    sha: string,
+    force = false,
+  ): Promise<GitHubReference> {
+    const normalizedRef = trimLeadingSlash(ref).replace(/^refs\//, "");
+    return this.requestJson<GitHubReference>(
+      "PATCH",
+      `/repos/${owner}/${repo}/git/refs/${normalizedRef}`,
+      {},
+      {
+        body: JSON.stringify({ sha, force }),
+      },
+    );
+  }
+
+  async getCommit(
+    owner: string,
+    repo: string,
+    sha: string,
+  ): Promise<GitHubCommit> {
+    return this.requestJson<GitHubCommit>(
+      "GET",
+      `/repos/${owner}/${repo}/git/commits/${sha}`,
+    );
+  }
+
+  async createBlob(
+    owner: string,
+    repo: string,
+    contentBase64: string,
+  ): Promise<GitHubBlob> {
+    return this.requestJson<GitHubBlob>(
+      "POST",
+      `/repos/${owner}/${repo}/git/blobs`,
+      {},
+      {
+        body: JSON.stringify({
+          content: contentBase64,
+          encoding: "base64",
+        }),
+      },
+    );
+  }
+
+  async createTree(
+    owner: string,
+    repo: string,
+    baseTree: string,
+    tree: GitHubTreeEntryInput[],
+  ): Promise<GitHubTree> {
+    return this.requestJson<GitHubTree>(
+      "POST",
+      `/repos/${owner}/${repo}/git/trees`,
+      {},
+      {
+        body: JSON.stringify({
+          base_tree: baseTree,
+          tree,
+        }),
+      },
+    );
+  }
+
+  async createCommit(
+    owner: string,
+    repo: string,
+    message: string,
+    treeSha: string,
+    parents: string[],
+  ): Promise<GitHubCreatedCommit> {
+    return this.requestJson<GitHubCreatedCommit>(
+      "POST",
+      `/repos/${owner}/${repo}/git/commits`,
+      {},
+      {
+        body: JSON.stringify({
+          message,
+          tree: treeSha,
+          parents,
+        }),
+      },
+    );
+  }
+
+  async createPullRequest(
+    owner: string,
+    repo: string,
+    input: {
+      title: string;
+      head: string;
+      base: string;
+      body: string;
+    },
+  ): Promise<GitHubPullRequest> {
+    return this.requestJson<GitHubPullRequest>(
+      "POST",
+      `/repos/${owner}/${repo}/pulls`,
+      {},
+      {
+        body: JSON.stringify(input),
+      },
+    );
+  }
+
+  async findOpenPullRequest(
+    owner: string,
+    repo: string,
+    input: {
+      head: string;
+      base: string;
+    },
+  ): Promise<GitHubPullRequest | null> {
+    const matches = await this.requestJson<GitHubPullRequest[]>(
+      "GET",
+      `/repos/${owner}/${repo}/pulls`,
+      {
+        state: "open",
+        head: `${owner}:${input.head}`,
+        base: input.base,
+      },
+    );
+
+    return matches[0] ?? null;
+  }
+
   private async requestJson<T>(
-    method: "GET" | "POST",
+    method: "GET" | "POST" | "PATCH",
     pathname: string,
     query: Record<string, string | undefined> = {},
     init: { body?: string } = {},
@@ -93,7 +291,7 @@ export class GitHubPlatformClient {
   }
 
   private async request(
-    method: "GET" | "POST",
+    method: "GET" | "POST" | "PATCH",
     pathname: string,
     init: {
       query?: Record<string, string | undefined>;
@@ -139,4 +337,9 @@ function trimLeadingSlash(value: string): string {
 function normalizeApiBaseUrl(value?: string): string {
   const apiBaseUrl = value?.trim() || "https://api.github.com";
   return apiBaseUrl.replace(/\/$/, "");
+}
+
+function normalizeRefPath(value: string): string {
+  const normalized = trimLeadingSlash(value);
+  return normalized.startsWith("refs/") ? normalized : `refs/${normalized}`;
 }

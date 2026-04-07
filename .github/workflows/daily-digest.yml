@@ -143,15 +143,18 @@ jobs:
         env:
           GITRADAR_JOB_STATUS: ${{ job.status }}
 
-      - name: Commit generated archives and runtime state
+      - name: Persist generated archives and runtime state
         if: always() && steps.schedule_slot.outputs.should_run == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITRADAR_PERSIST_MODE: direct
+          GITRADAR_BASE_BRANCH: ${{ github.event.repository.default_branch }}
+          GITRADAR_COMMIT_MESSAGE: "chore: persist daily digest artifacts"
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f -- data/history/*.json data/runtime/github-runtime.json
-          if git diff --cached --quiet; then
-            echo "No archive or runtime changes to commit."
-            exit 0
+          FILES=$(find data/history -maxdepth 1 -type f -name '*.json' | sort)
+          if [ -n "$FILES" ]; then
+            export GITRADAR_FILE_PATHS="${FILES}"$'\n'"data/runtime/github-runtime.json"
+          else
+            export GITRADAR_FILE_PATHS="data/runtime/github-runtime.json"
           fi
-          git commit -m "chore: persist daily digest artifacts"
-          git push origin HEAD:main
+          npm run persist:github

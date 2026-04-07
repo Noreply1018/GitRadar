@@ -21,7 +21,7 @@ import { type FeedbackEvent } from "../feedback/model";
 import {
   parseScheduleSettings,
   stringifyScheduleSettings,
-} from "../web-api/services/schedule-service";
+} from "../core/schedule";
 
 type WritebackOperation =
   | "update_digest_rules"

@@ -1,8 +1,6 @@
 import { mkdir, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import type { GitHubExecutionState } from "../web-api/types/api";
-
 const DEFAULT_BRANCH = "main";
 const DEFAULT_WORKFLOW_NAME = "Daily Digest";
 const GITHUB_RUNTIME_REPO_PATH = path.join(
@@ -10,6 +8,17 @@ const GITHUB_RUNTIME_REPO_PATH = path.join(
   "runtime",
   "github-runtime.json",
 );
+
+export interface GitHubExecutionState {
+  source: "github";
+  workflowName: string;
+  trigger: string | null;
+  lastRunAt: string | null;
+  lastRunStatus: "success" | "failure" | "unknown";
+  lastArchiveDate: string | null;
+  runUrl: string | null;
+  ref: string;
+}
 
 export interface GitHubExecutionStateInput {
   workflowName?: string | null;

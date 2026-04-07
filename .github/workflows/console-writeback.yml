@@ -59,29 +59,24 @@ jobs:
         env:
           BRANCH_NAME: console-writeback/${{ github.event.inputs.operation }}/${{ github.event.inputs.request_id }}
           REQUESTED_BY: ${{ github.event.inputs.requested_by }}
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
           OPERATION: ${{ github.event.inputs.operation }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH_NAME"
-          git add config/*.json data/feedback/*.jsonl data/feedback/*.json
-          if git diff --cached --quiet; then
-            echo "No repository changes were produced by writeback."
-            exit 0
-          fi
-          git commit -m "chore: apply GitRadar ${OPERATION} request"
-          git push origin "$BRANCH_NAME"
-          cat > /tmp/gitradar-pr-body.txt <<EOF
-          Requested by: ${REQUESTED_BY:-unknown}
+          GITRADAR_PERSIST_MODE: pull_request
+          GITRADAR_BASE_BRANCH: ${{ github.event.repository.default_branch }}
+          GITRADAR_BRANCH_NAME: console-writeback/${{ github.event.inputs.operation }}/${{ github.event.inputs.request_id }}
+          GITRADAR_FILE_PATHS: |
+            config/digest-rules.json
+            config/schedule.json
+            config/user-preferences.json
+            data/feedback/feedback-events.jsonl
+            data/feedback/feedback-state.json
+          GITRADAR_COMMIT_MESSAGE: "chore: apply GitRadar ${{ github.event.inputs.operation }} request"
+          GITRADAR_PR_TITLE: "chore: apply GitRadar ${{ github.event.inputs.operation }} request"
+          GITRADAR_PR_BODY: |
+            Requested by: ${{ github.event.inputs.requested_by || 'unknown' }}
 
-          Client request id: ${{ github.event.inputs.request_id }}
-          Operation: ${OPERATION}
+            Client request id: ${{ github.event.inputs.request_id }}
+            Operation: ${{ github.event.inputs.operation }}
 
-          This PR was created by the GitRadar console writeback workflow.
-          EOF
-          gh pr create \
-            --base "${{ github.event.repository.default_branch }}" \
-            --head "$BRANCH_NAME" \
-            --title "chore: apply GitRadar ${OPERATION} request" \
-            --body-file /tmp/gitradar-pr-body.txt
+            This PR was created by the GitRadar console writeback workflow.
+        run: npm run persist:github
