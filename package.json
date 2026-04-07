@@ -15,7 +15,6 @@
     "validate:digest-rules": "tsx src/commands/validate-digest-rules.ts",
     "send:wecom:sample": "tsx src/commands/send-wecom-sample.ts",
     "dev:web": "vite --config web/vite.config.ts",
-    "dev:console-api": "tsx src/web-api/server.ts",
     "build:web": "vite build --config web/vite.config.ts",
     "format:check": "prettier --check .",
     "lint:md": "markdownlint README.md SECURITY.md SUPPORT.md CONTRIBUTING.md .github/**/*.md docs/**/*.md config/**/*.md data/**/*.md src/**/*.md",

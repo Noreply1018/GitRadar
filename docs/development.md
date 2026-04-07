@@ -12,7 +12,6 @@ GitRadar 3.0.0 的开发重点是把 GitHub-native 正式链路做实：
 ## 目录约定
 
 - `src/`：核心逻辑与命令入口
-- `src/web-api/`：本地开发调试用的控制台 API 与状态聚合层
 - `tests/`：单元与集成测试
 - `web/`：GitHub-first 控制台前端
 - `config/`：正式仓库配置文件
@@ -73,10 +72,11 @@ GitRadar 继续保持这些边界：
 
 - `npm run build:web`
 
-如果涉及本地调试 API，还应额外验证：
+本地前端调试直接使用：
 
-- `npm run dev:console-api`
-- `curl http://127.0.0.1:3210/api/health`
+- `npm run dev:web`
+
+控制台的正式读取与正式写入请求都应围绕 GitHub API、GitHub Pages 和 GitHub Actions 展开，而不是再引入本地 API server。
 
 如果涉及 GitHub 正式链路，还应检查：
 

@@ -99,23 +99,21 @@ Secrets 只在 GitHub Actions 运行时注入，不进入仓库历史。
 
 GitHub Pages 读取仓库中的正式归档与运行状态。需要写入配置或记录反馈时，控制台会要求提供细粒度 PAT，并通过 workflow dispatch 把请求交给 GitHub Actions。
 
-本地 `src/web-api/server.ts` 不再属于正式使用路径，只保留为开发调试工具。
+本地开发只保留静态前端调试，不再提供第二套本地正式控制面。
 
 本地开发调试：
 
 ```bash
 npm install
-npm run build:web
-npm run dev:console-api
+npm run dev:web
 ```
 
-默认地址：`http://127.0.0.1:3210`
+默认地址：`http://127.0.0.1:4173`
 
-开发模式：
+如果需要确认生产构建结果，可额外执行：
 
 ```bash
-npm run dev:console-api
-npm run dev:web
+npm run build:web
 ```
 
 ## 开发与验证命令
