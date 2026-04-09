@@ -1,0 +1,9 @@
+{
+  "session_id": "omx-1775552318751-gub7u7",
+  "started_at": "2026-04-07T08:58:38.770Z",
+  "cwd": "/root/projects/GitRadar",
+  "pid": 369718,
+  "platform": "linux",
+  "pid_start_ticks": 490968,
+  "pid_cmdline": "node /usr/bin/omx --madmax --high"
+}
