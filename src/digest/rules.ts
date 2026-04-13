@@ -5,11 +5,6 @@ import {
   DIGEST_RULES_CONFIG,
   DIGEST_TOPIC_BLACKLIST,
 } from "../config/digest-rules";
-import {
-  DEFAULT_USER_PREFERENCES,
-  type UserPreferencesConfig,
-} from "../config/user-preferences";
-import { EMPTY_FEEDBACK_STATE, type FeedbackState } from "../feedback/model";
 import type {
   CandidateScoreBreakdown,
   GitHubCandidateRepo,
@@ -28,18 +23,10 @@ interface CandidateSelectionResult {
   }>;
 }
 
-interface SelectionOptions {
-  userPreferences?: UserPreferencesConfig;
-  feedbackState?: FeedbackState;
-}
-
 export function selectCandidatesForDigest(
   candidates: GitHubCandidateRepo[],
   limit = 20,
-  options: SelectionOptions = {},
 ): GitHubCandidateRepo[] {
-  const userPreferences = options.userPreferences ?? DEFAULT_USER_PREFERENCES;
-  const feedbackState = options.feedbackState ?? EMPTY_FEEDBACK_STATE;
   const annotated = candidates
     .filter((candidate) => candidate.description)
     .filter(
@@ -56,9 +43,7 @@ export function selectCandidatesForDigest(
     )
     .filter((candidate) => !hasBlacklistedTopic(candidate.topics))
     .filter((candidate) => !hasBlacklistedReadme(candidate.readmeExcerpt))
-    .map((candidate) =>
-      annotateCandidate(candidate, userPreferences, feedbackState),
-    )
+    .map((candidate) => annotateCandidate(candidate))
     .sort(compareCandidates);
 
   return applyDiversity(annotated, limit, {
@@ -80,18 +65,9 @@ export function getRulesVersion(): string {
   return DIGEST_RULES_CONFIG.version;
 }
 
-function annotateCandidate(
-  candidate: GitHubCandidateRepo,
-  userPreferences: UserPreferencesConfig,
-  feedbackState: FeedbackState,
-): GitHubCandidateRepo {
+function annotateCandidate(candidate: GitHubCandidateRepo): GitHubCandidateRepo {
   const theme = inferTheme(candidate);
-  const scoreBreakdown = scoreCandidate(
-    candidate,
-    theme,
-    userPreferences,
-    feedbackState,
-  );
+  const scoreBreakdown = scoreCandidate(candidate);
   const selectionHints = buildSelectionHints(candidate, scoreBreakdown);
 
   return {
@@ -103,12 +79,7 @@ function annotateCandidate(
   };
 }
 
-function scoreCandidate(
-  candidate: GitHubCandidateRepo,
-  theme: string,
-  userPreferences: UserPreferencesConfig = DEFAULT_USER_PREFERENCES,
-  feedbackState: FeedbackState = EMPTY_FEEDBACK_STATE,
-): CandidateScoreBreakdown {
+function scoreCandidate(candidate: GitHubCandidateRepo): CandidateScoreBreakdown {
   const sourceCount = candidate.sources.length;
   const pushedDays = getDaysSince(candidate.pushedAt);
   const createdDays = getDaysSince(candidate.createdAt);
@@ -125,8 +96,6 @@ function scoreCandidate(
   let novelty = 0;
   let maturity = 0;
   let coverage = 0;
-  let preference = 0;
-  let feedback = 0;
   let penalties = 0;
 
   if (candidate.sources.includes("trending")) {
@@ -205,25 +174,13 @@ function scoreCandidate(
     coverage += weights.coverage.language;
   }
 
-  preference += calculatePreferenceBonus(candidate, theme, userPreferences);
-  feedback += calculateFeedbackBonus(candidate, theme, feedbackState);
-
   return {
     momentum,
     novelty,
     maturity,
     coverage,
-    preference,
-    feedback,
     penalties,
-    total:
-      momentum +
-      novelty +
-      maturity +
-      coverage +
-      preference +
-      feedback +
-      penalties,
+    total: momentum + novelty + maturity + coverage + penalties,
   };
 }
 
@@ -301,7 +258,6 @@ function buildSelectionHints(
     matureMomentum,
     sourceSummary: describeSources(candidate.sources),
     selectionReason: buildSelectionReason(
-      candidate,
       sourceCount,
       matureMomentum,
       scoreBreakdown,
@@ -378,29 +334,12 @@ function buildWhyNow(
 }
 
 function buildSelectionReason(
-  candidate: GitHubCandidateRepo,
   sourceCount: number,
   matureMomentum: boolean,
   scoreBreakdown: CandidateScoreBreakdown,
 ): string {
   if (matureMomentum) {
     return "保留一条成熟但重新升温的项目位。";
-  }
-
-  if (scoreBreakdown.preference > 0 && sourceCount >= 2) {
-    return "命中关心主题，且多来源信号同时靠前。";
-  }
-
-  if (scoreBreakdown.feedback > 0) {
-    return "命中过往收藏反馈，值得继续跟踪。";
-  }
-
-  if (scoreBreakdown.feedback < 0) {
-    return "虽然近期有信号，但历史反馈相关性较弱。";
-  }
-
-  if (scoreBreakdown.preference > 0) {
-    return "命中关心主题，且综合评分更均衡。";
   }
 
   if (sourceCount >= 2) {
@@ -414,58 +353,6 @@ function buildSelectionReason(
   return "主题代表性和近期活跃度更均衡。";
 }
 
-function calculatePreferenceBonus(
-  candidate: GitHubCandidateRepo,
-  theme: string,
-  userPreferences: UserPreferencesConfig,
-): number {
-  const haystack = [
-    candidate.repo,
-    candidate.description,
-    candidate.readmeExcerpt ?? "",
-    candidate.language ?? "",
-    ...candidate.topics,
-  ]
-    .join(" ")
-    .toLowerCase();
-
-  let bonus = 0;
-
-  if (userPreferences.preferredThemes.includes(theme)) {
-    bonus += 8;
-  }
-
-  const customMatches = userPreferences.customTopics.reduce((count, topic) => {
-    return haystack.includes(topic.toLowerCase()) ? count + 1 : count;
-  }, 0);
-
-  bonus += Math.min(customMatches, 2) * 3;
-  return bonus;
-}
-
-function calculateFeedbackBonus(
-  candidate: GitHubCandidateRepo,
-  theme: string,
-  feedbackState: FeedbackState,
-): number {
-  let bonus = 0;
-  const repoFeedback = feedbackState.repoStates[candidate.repo];
-
-  if (repoFeedback?.action === "saved") {
-    bonus += 10;
-  } else if (repoFeedback?.action === "skipped") {
-    bonus -= 18;
-  }
-
-  const themeStats = feedbackState.themeStats[theme];
-
-  if (themeStats) {
-    const themeNet = themeStats.saved - themeStats.skipped;
-    bonus += Math.max(-4, Math.min(6, themeNet * 2));
-  }
-
-  return bonus;
-}
 function applyDiversity(
   candidates: GitHubCandidateRepo[],
   limit: number,
@@ -530,61 +417,53 @@ function ensureMatureMomentum(
     return;
   }
 
-  const replaceIndex = [...selected]
-    .reverse()
-    .findIndex((candidate) => !candidate.selectionHints?.matureMomentum);
+  let replacementIndex = -1;
+  for (let index = selected.length - 1; index >= 0; index -= 1) {
+    if (!selected[index]?.selectionHints?.matureMomentum) {
+      replacementIndex = index;
+      break;
+    }
+  }
 
-  if (replaceIndex === -1) {
+  if (replacementIndex === -1) {
     return;
   }
 
-  const index = selected.length - 1 - replaceIndex;
-  const removed = selected[index];
+  const removed = selected[replacementIndex];
   const removedTheme = removed.theme ?? "General OSS";
-  const matureTheme = matureCandidate.theme ?? "General OSS";
-
   themeCounts.set(
     removedTheme,
     Math.max((themeCounts.get(removedTheme) ?? 1) - 1, 0),
   );
-  themeCounts.set(matureTheme, (themeCounts.get(matureTheme) ?? 0) + 1);
-  selected[index] = matureCandidate;
-  const rejectedIndex = rejected.findIndex(
-    (entry) => entry.candidate.repo === matureCandidate.repo,
-  );
-
-  if (rejectedIndex !== -1) {
-    rejected.splice(rejectedIndex, 1);
-  }
-
-  rejected.unshift({
+  rejected.push({
     candidate: removed,
-    reason: "为保留一条成熟但持续升温的项目位而被替换。",
+    reason: "为保留成熟但重新升温的项目位而让出名额。",
   });
+
+  selected[replacementIndex] = matureCandidate;
+  const matureTheme = matureCandidate.theme ?? "General OSS";
+  themeCounts.set(matureTheme, (themeCounts.get(matureTheme) ?? 0) + 1);
 }
 
 function describeSources(sources: GitHubCandidateRepo["sources"]): string {
-  if (sources.length >= 3) {
-    return "Trending + 最近更新 + 最近创建";
-  }
-
   return sources
     .map((source) => {
-      switch (source) {
-        case "trending":
-          return "Trending";
-        case "search_recently_updated":
-          return "最近更新";
-        case "search_recently_created":
-          return "最近创建";
+      if (source === "trending") {
+        return "Trending";
       }
+
+      if (source === "search_recently_updated") {
+        return "最近更新";
+      }
+
+      return "最近创建";
     })
     .join(" + ");
 }
 
 function formatCompactNumber(value: number): string {
-  if (value >= 10000) {
-    return `${(value / 1000).toFixed(1).replace(/\.0$/, "")}k`;
+  if (value >= 1000) {
+    return `${(value / 1000).toFixed(value >= 10000 ? 0 : 1)}k`;
   }
 
   return String(value);
@@ -594,7 +473,11 @@ function getBucketScore(
   days: number,
   buckets: ReadonlyArray<{ maxDays: number; score: number }>,
 ): number {
-  const matchedBucket = buckets.find((bucket) => days <= bucket.maxDays);
+  for (const bucket of buckets) {
+    if (days <= bucket.maxDays) {
+      return bucket.score;
+    }
+  }
 
-  return matchedBucket?.score ?? 0;
+  return 0;
 }

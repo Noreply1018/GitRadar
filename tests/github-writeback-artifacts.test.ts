@@ -80,7 +80,7 @@ describe("GitHub writeback artifact helpers", () => {
 
     const changed = await collectChangedWritebackFiles(
       rootDir,
-      ["config/schedule.json", "data/feedback/feedback-state.json"],
+      ["config/schedule.json", "data/runtime/github-runtime.json"],
       async () => null,
     );
 

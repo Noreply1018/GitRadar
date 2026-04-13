@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 用户约束
+
+- 使用中文回复用户
+- 大量改动代码后记得git commit
+
+
 ## What is GitRadar
 
 Single-user GitHub-native daily digest tool. Discovers trending open-source projects, generates Chinese summaries via LLM, pushes to WeChat Work (企业微信). Runs entirely on GitHub Actions — no local runtime required in production.

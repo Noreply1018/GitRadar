@@ -11,20 +11,10 @@ import {
   writeStoredScheduleSettings,
 } from "../src/config/schedule";
 import {
+  getGitHubExecutionStatePath,
   normalizeExecutionState,
   writeGitHubExecutionState,
-  getGitHubExecutionStatePath,
 } from "../src/core/github-execution-state";
-import { buildFeedbackInsights } from "../src/feedback/insights";
-import {
-  listStoredFeedbackItems,
-  readStoredFeedbackState,
-  recordFeedback,
-} from "../src/feedback/store";
-import {
-  parseUserPreferencesConfig,
-  readStoredUserPreferencesConfig,
-} from "../src/config/user-preferences";
 
 describe("schedule config", () => {
   it("falls back to the default schedule when no file exists", async () => {
@@ -123,148 +113,6 @@ describe("GitHub runtime state", () => {
       lastArchiveDate: null,
       runUrl: null,
       ref: "main",
-    });
-  });
-});
-
-describe("user preferences config", () => {
-  it("falls back to empty preferences when no file exists", async () => {
-    const rootDir = await mkdtemp(
-      path.join(os.tmpdir(), "gitradar-preferences-"),
-    );
-
-    expect(readStoredUserPreferencesConfig(rootDir)).toEqual({
-      preferredThemes: [],
-      customTopics: [],
-    });
-  });
-
-  it("rejects unknown preferred themes", () => {
-    expect(() =>
-      parseUserPreferencesConfig(
-        {
-          preferredThemes: ["Unknown Theme"],
-          customTopics: [],
-        },
-        "test",
-      ),
-    ).toThrow(/unknown theme/i);
-  });
-});
-
-describe("feedback store", () => {
-  it("falls back to an empty feedback state when no file exists", async () => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-feedback-"));
-
-    await expect(readStoredFeedbackState(rootDir)).resolves.toEqual({
-      repoStates: {},
-      themeStats: {},
-      recent: [],
-    });
-  });
-
-  it("records feedback locally and keeps the latest repo state", async () => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-feedback-"));
-
-    await recordFeedback(rootDir, {
-      repo: "owner/repo-a",
-      date: "2026-03-30",
-      action: "saved",
-      theme: "Frontend & Design",
-    });
-
-    const result = await recordFeedback(rootDir, {
-      repo: "owner/repo-a",
-      date: "2026-03-31",
-      action: "skipped",
-      theme: "Frontend & Design",
-    });
-
-    expect(result.state.repoStates["owner/repo-a"]).toMatchObject({
-      action: "skipped",
-      date: "2026-03-31",
-      theme: "Frontend & Design",
-    });
-    expect(result.state.themeStats["Frontend & Design"]).toEqual({
-      saved: 0,
-      skipped: 1,
-    });
-  });
-
-  it("lists current saved and later items from the latest repo state", async () => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-feedback-"));
-
-    await recordFeedback(rootDir, {
-      repo: "owner/repo-a",
-      date: "2026-03-30",
-      action: "saved",
-      theme: "AI Agents",
-    });
-    await recordFeedback(rootDir, {
-      repo: "owner/repo-b",
-      date: "2026-03-30",
-      action: "later",
-      theme: "Frontend & Design",
-    });
-    await recordFeedback(rootDir, {
-      repo: "owner/repo-a",
-      date: "2026-03-31",
-      action: "skipped",
-      theme: "AI Agents",
-    });
-
-    const savedItems = await listStoredFeedbackItems(rootDir, {
-      action: "saved",
-    });
-    const laterItems = await listStoredFeedbackItems(rootDir, {
-      action: "later",
-    });
-
-    expect(savedItems).toEqual([]);
-    expect(laterItems).toHaveLength(1);
-    expect(laterItems[0]).toMatchObject({
-      repo: "owner/repo-b",
-      action: "later",
-    });
-  });
-
-  it("derives interest insights and preference suggestions from recent saves", async () => {
-    const rootDir = await mkdtemp(path.join(os.tmpdir(), "gitradar-feedback-"));
-
-    await recordFeedback(rootDir, {
-      repo: "owner/repo-a",
-      date: "2026-03-30",
-      action: "saved",
-      theme: "Infra & Runtime",
-    });
-    await recordFeedback(rootDir, {
-      repo: "owner/repo-b",
-      date: "2026-03-31",
-      action: "saved",
-      theme: "Infra & Runtime",
-    });
-    await recordFeedback(rootDir, {
-      repo: "owner/repo-c",
-      date: "2026-03-31",
-      action: "skipped",
-      theme: "Frontend & Design",
-    });
-
-    const state = await readStoredFeedbackState(rootDir);
-    const insights = buildFeedbackInsights(state, {
-      preferredThemes: [],
-      customTopics: [],
-    });
-
-    expect(insights.interestedThemes[0]).toMatchObject({
-      theme: "Infra & Runtime",
-    });
-    expect(insights.skippedThemes[0]).toMatchObject({
-      theme: "Frontend & Design",
-    });
-    expect(insights.preferenceSuggestion).toMatchObject({
-      theme: "Infra & Runtime",
-      suggestedAction: "prefer",
     });
   });
 });

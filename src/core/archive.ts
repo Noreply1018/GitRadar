@@ -4,7 +4,7 @@ import path from "node:path";
 import type { DailyDigest } from "./digest";
 import type { CandidateSource, GitHubCandidateRepo } from "../github/types";
 
-export const CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION = 3;
+export const CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION = 4;
 const DEFAULT_THEME = "General OSS";
 
 export interface ArchiveSelectionEntry {
@@ -24,7 +24,6 @@ export interface DailyDigestGenerationMeta {
   sourceCounts: Record<CandidateSource, number>;
   llmCandidateCount: number;
   rulesVersion: string;
-  editorialMode?: "llm" | "template_fallback";
   warnings?: string[];
 }
 
@@ -201,9 +200,6 @@ function isValidGenerationMeta(value: unknown): boolean {
     typeof meta.llmCandidateCount === "number" &&
     typeof meta.rulesVersion === "string" &&
     isValidSourceCounts(meta.sourceCounts) &&
-    (meta.editorialMode === undefined ||
-      meta.editorialMode === "llm" ||
-      meta.editorialMode === "template_fallback") &&
     (meta.warnings === undefined ||
       (Array.isArray(meta.warnings) &&
         meta.warnings.every((entry) => typeof entry === "string")))
@@ -262,7 +258,6 @@ function cloneCurrentDailyDigestArchive(
       },
       llmCandidateCount: archive.generationMeta.llmCandidateCount,
       rulesVersion: archive.generationMeta.rulesVersion,
-      editorialMode: archive.generationMeta.editorialMode,
       warnings: archive.generationMeta.warnings
         ? [...archive.generationMeta.warnings]
         : undefined,

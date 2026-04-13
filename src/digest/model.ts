@@ -29,6 +29,10 @@ interface ModelDigestResponse {
   items?: ModelDigestItem[];
 }
 
+export interface GenerateDigestWithResilienceOptions {
+  logger?: WorkflowLogger;
+}
+
 const MIN_DIGEST_ITEMS = 6;
 const MAX_DIGEST_ITEMS = 8;
 const GENERIC_SUMMARY_PATTERNS = [
@@ -39,16 +43,6 @@ const GENERIC_SUMMARY_PATTERNS = [
 ];
 const SUMMARY_DETAIL_MARKERS =
   /用于|面向|帮助|支持|提供|把|将|让|连接|整合|统一|自动化|监控|检索|搜索|生成|编排|运行|分析|推理|可视化|知识图谱|研究代理|平台|工具|框架|终端|告警|查询|仪表盘|工作流|运行栈|桥接层|观测|校验|审计|托管/;
-
-export interface GenerateDigestWithResilienceResult {
-  digest: DailyDigest;
-  mode: "llm" | "template_fallback";
-}
-
-export interface GenerateDigestWithResilienceOptions {
-  logger?: WorkflowLogger;
-  onModelFailure?: (error: unknown) => Promise<void> | void;
-}
 
 export async function generateDigestWithModel(
   candidates: GitHubCandidateRepo[],
@@ -143,54 +137,32 @@ export async function generateDigestWithResilience(
   date: string,
   llmConfig: LlmConfig,
   options: GenerateDigestWithResilienceOptions = {},
-): Promise<GenerateDigestWithResilienceResult> {
-  try {
-    const digest = await retryAsync(
-      async (attempt) => {
-        options.logger?.info("editorial_model_attempt_started", {
-          attempt,
-          candidateCount: candidates.length,
+): Promise<DailyDigest> {
+  return retryAsync(
+    async (attempt) => {
+      options.logger?.info("editorial_model_attempt_started", {
+        attempt,
+        candidateCount: candidates.length,
+      });
+
+      const result = await generateDigestWithModel(candidates, date, llmConfig);
+      options.logger?.info("editorial_model_attempt_succeeded", {
+        attempt,
+        itemCount: result.items.length,
+      });
+      return result;
+    },
+    {
+      attempts: 3,
+      delayMs: 200,
+      onRetry: (error, nextAttempt) => {
+        options.logger?.warn("editorial_model_retry_scheduled", {
+          nextAttempt,
+          message: getErrorMessage(error),
         });
-
-        const result = await generateDigestWithModel(
-          candidates,
-          date,
-          llmConfig,
-        );
-        options.logger?.info("editorial_model_attempt_succeeded", {
-          attempt,
-          itemCount: result.items.length,
-        });
-        return result;
       },
-      {
-        attempts: 3,
-        delayMs: 200,
-        onRetry: (error, nextAttempt) => {
-          options.logger?.warn("editorial_model_retry_scheduled", {
-            nextAttempt,
-            message: getErrorMessage(error),
-          });
-        },
-      },
-    );
-
-    return {
-      digest,
-      mode: "llm",
-    };
-  } catch (error) {
-    options.logger?.warn("editorial_model_fallback_activated", {
-      message: getErrorMessage(error),
-      candidateCount: candidates.length,
-    });
-    await options.onModelFailure?.(error);
-
-    return {
-      digest: generateDigestWithTemplate(candidates, date),
-      mode: "template_fallback",
-    };
-  }
+    },
+  );
 }
 
 function buildPrompt(candidates: GitHubCandidateRepo[], date: string): string {
@@ -227,30 +199,6 @@ function buildPrompt(candidates: GitHubCandidateRepo[], date: string): string {
     "summary / whyItMatters / whyNow / novelty / trend 都用简洁中文，每个字段控制在一两句话内。",
     JSON.stringify(payload),
   ].join("\n");
-}
-
-function generateDigestWithTemplate(
-  candidates: GitHubCandidateRepo[],
-  date: string,
-): DailyDigest {
-  const limit = Math.min(MAX_DIGEST_ITEMS, candidates.length);
-  const items = candidates.slice(0, limit).map((candidate) => ({
-    repo: candidate.repo,
-    url: candidate.url,
-    theme: candidate.theme ?? "General OSS",
-    summary: buildTemplateSummary(candidate),
-    whyItMatters: buildTemplateWhyItMatters(candidate),
-    whyNow: candidate.selectionHints?.whyNow ?? buildFallbackWhyNow(candidate),
-    evidence: buildFallbackEvidence(candidate),
-    novelty: buildTemplateNovelty(candidate),
-    trend: buildTemplateTrend(candidate),
-  }));
-
-  return {
-    date,
-    title: `GitRadar · ${date}（模板降级）`,
-    items,
-  };
 }
 
 function parseModelResponse(content: string): ModelDigestResponse {
@@ -334,197 +282,6 @@ function isActionableSummary(summary: string): boolean {
   }
 
   return SUMMARY_DETAIL_MARKERS.test(trimmed);
-}
-
-function buildTemplateSummary(candidate: GitHubCandidateRepo): string {
-  const themeLabel = formatThemeLabel(candidate.theme);
-
-  if (candidate.selectionHints?.matureMomentum) {
-    return `一个聚焦${themeLabel}的成熟开源项目，近期活跃度重新上升。`;
-  }
-
-  if (candidate.sources.includes("search_recently_created")) {
-    return `一个聚焦${themeLabel}的新项目，最近仍在持续迭代。`;
-  }
-
-  if (candidate.sources.includes("trending")) {
-    return `一个聚焦${themeLabel}的开源项目，今天在 GitHub 热榜信号中表现突出。`;
-  }
-
-  return `一个聚焦${themeLabel}的开源项目，近期保持稳定活跃。`;
-}
-
-function buildTemplateWhyItMatters(candidate: GitHubCandidateRepo): string {
-  return (
-    candidate.selectionHints?.selectionReason ??
-    `${formatThemeLabel(candidate.theme)}方向近期值得持续观察。`
-  );
-}
-
-function buildTemplateNovelty(candidate: GitHubCandidateRepo): string {
-  const themeLabel = formatThemeLabel(candidate.theme);
-
-  if (candidate.sources.includes("search_recently_created")) {
-    return `它在${themeLabel}方向切入明确，当前仍处在快速成形阶段。`;
-  }
-
-  if (candidate.selectionHints?.matureMomentum) {
-    return `它在${themeLabel}方向已经形成一定积累，最近又出现了新的活跃信号。`;
-  }
-
-  return `它在${themeLabel}方向具备清晰定位，适合作为近期样本持续跟踪。`;
-}
-
-function buildTemplateTrend(candidate: GitHubCandidateRepo): string {
-  if (candidate.selectionHints?.sourceSummary) {
-    return `当前信号：${localizeSourceSummary(candidate.selectionHints.sourceSummary)}。`;
-  }
-
-  return `当前信号：${formatSources(candidate.sources)}。`;
-}
-
-function buildFallbackWhyNow(candidate: GitHubCandidateRepo): string {
-  return `当前主要依据 ${formatSources(candidate.sources)} 等结构化信号入选。`;
-}
-
-function buildFallbackEvidence(candidate: GitHubCandidateRepo): string[] {
-  const evidence = candidate.selectionHints?.evidence
-    ?.map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
-
-  if (evidence && evidence.length > 0) {
-    return Array.from(new Set(evidence)).slice(0, 3);
-  }
-
-  return candidate.sources
-    .map((source) => mapSourceToEvidence(source))
-    .slice(0, 3);
-}
-
-function extractReadableLine(input?: string | null): string | null {
-  if (!input?.trim()) {
-    return null;
-  }
-
-  const lines = input
-    .replace(/\r\n/g, "\n")
-    .replace(/<!--[\s\S]*?-->/g, "\n")
-    .split("\n");
-
-  for (const line of lines) {
-    const cleaned = sanitizeReadmeLine(line);
-    if (isReadableReadmeLine(line, cleaned)) {
-      return cleaned.slice(0, 90);
-    }
-  }
-
-  const fallback = sanitizeReadmeLine(input);
-  if (!isReadableReadmeLine(input, fallback)) {
-    return null;
-  }
-
-  return fallback.slice(0, 90);
-}
-
-function sanitizeReadmeLine(input: string): string {
-  return decodeHtmlEntities(
-    input
-      .replace(/!\[[^\]]*]\([^)]*\)/g, " ")
-      .replace(/\[([^\]]+)]\([^)]*\)/g, "$1")
-      .replace(/<\/?[^>\n]+>/g, " ")
-      .replace(/https?:\/\/\S+/gi, " ")
-      .replace(/^\s{0,3}(?:#{1,6}\s+|[-*+]\s+|\d+\.\s+)/, "")
-      .replace(/[`*_~]/g, " ")
-      .replace(/\s+/g, " ")
-      .trim(),
-  );
-}
-
-function isReadableReadmeLine(rawLine: string, cleanedLine: string): boolean {
-  if (!cleanedLine) {
-    return false;
-  }
-
-  const normalizedRawLine = rawLine.trim();
-  if (
-    /^\s*</.test(normalizedRawLine) ||
-    /^\s*!\[/.test(normalizedRawLine) ||
-    /(?:href=|src=|align=|width=|height=|readme[-_\s]?top|shields\.io|badge|utm[_-])/i.test(
-      normalizedRawLine,
-    )
-  ) {
-    return false;
-  }
-
-  if (!/[A-Za-z\u4e00-\u9fff]/.test(cleanedLine)) {
-    return false;
-  }
-
-  if (
-    cleanedLine.length < 20 &&
-    cleanedLine.split(/\s+/).filter(Boolean).length < 4
-  ) {
-    return false;
-  }
-
-  return true;
-}
-
-function decodeHtmlEntities(input: string): string {
-  return input
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'");
-}
-
-function formatSources(sources: GitHubCandidateRepo["sources"]): string {
-  return sources.map((source) => mapSourceToEvidence(source)).join("、");
-}
-
-function formatThemeLabel(theme?: string): string {
-  switch (theme) {
-    case "AI Agents":
-      return "智能体";
-    case "AI Research":
-      return "人工智能研究";
-    case "Infra & Runtime":
-      return "基础设施与运行时";
-    case "Developer Tools":
-      return "开发者工具";
-    case "Data & Search":
-      return "数据与搜索";
-    case "Observability & Security":
-      return "可观测性与安全";
-    case "Frontend & Design":
-      return "前端与设计";
-    case "General OSS":
-    case undefined:
-      return "通用开源";
-    default:
-      return theme;
-  }
-}
-
-function localizeSourceSummary(summary: string): string {
-  return summary.replace(/Trending/g, "GitHub 热榜").replace(/\s+\+\s+/g, "、");
-}
-
-function mapSourceToEvidence(
-  source: GitHubCandidateRepo["sources"][number],
-): string {
-  switch (source) {
-    case "trending":
-      return "GitHub Trending";
-    case "search_recently_updated":
-      return "最近更新搜索";
-    case "search_recently_created":
-      return "最近创建搜索";
-    default:
-      return source;
-  }
 }
 
 function getErrorMessage(error: unknown): string {

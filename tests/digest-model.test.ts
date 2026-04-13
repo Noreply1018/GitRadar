@@ -258,7 +258,7 @@ describe("generateDigestWithModel", () => {
     );
   });
 
-  it("sanitizes README-heavy fallback copy when the model keeps failing", async () => {
+  it("throws after retrying when the model keeps failing", async () => {
     responseBody = JSON.stringify({ error: "temporary llm failure" });
     llmServer.removeAllListeners("request");
     llmServer.on("request", (_, response) => {
@@ -266,7 +266,8 @@ describe("generateDigestWithModel", () => {
       response.end(responseBody);
     });
 
-    const result = await generateDigestWithResilience(
+    await expect(
+      generateDigestWithResilience(
       [
         createCandidate({
           theme: "Data & Search",
@@ -290,16 +291,8 @@ describe("generateDigestWithModel", () => {
       ],
       "2026-03-29",
       getLlmConfig(llmServer),
-    );
-
-    expect(result.mode).toBe("template_fallback");
-    expect(result.digest.items[0]?.novelty).toBe(
-      "它在数据与搜索方向已经形成一定积累，最近又出现了新的活跃信号。",
-    );
-    expect(result.digest.items[0]?.summary).toBe(
-      "一个聚焦数据与搜索的成熟开源项目，近期活跃度重新上升。",
-    );
-    expect(result.digest.items[0]?.trend).toBe("当前信号：GitHub 热榜。");
+      ),
+    ).rejects.toThrow("LLM request failed with status 500.");
   });
 });
 
@@ -327,8 +320,6 @@ function createCandidate(
       novelty: 16,
       maturity: 18,
       coverage: 12,
-      preference: 0,
-      feedback: 0,
       penalties: 0,
       total: 86,
     },

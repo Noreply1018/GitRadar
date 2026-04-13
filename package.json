@@ -8,38 +8,22 @@
     "generate:digest": "tsx src/commands/generate-daily-digest.ts",
     "generate:digest:send": "tsx src/commands/generate-daily-digest.ts --send",
     "runtime:github": "tsx src/commands/write-github-runtime.ts",
-    "analyze:digest": "tsx src/commands/analyze-digest.ts",
-    "feedback:list": "tsx src/commands/list-feedback.ts",
-    "dispatch:writeback": "tsx src/commands/process-writeback-request.ts",
     "persist:github": "tsx src/commands/persist-github-files.ts",
-    "diagnose:environment": "tsx src/commands/write-environment-report.ts",
     "validate:digest-rules": "tsx src/commands/validate-digest-rules.ts",
-    "send:wecom:sample": "tsx src/commands/send-wecom-sample.ts",
-    "dev:web": "vite --config web/vite.config.ts",
-    "build:web": "vite build --config web/vite.config.ts",
     "format:check": "prettier --check .",
-    "lint:md": "markdownlint README.md docs/**/*.md config/**/*.md data/**/*.md src/**/*.md SPEC/**/*.md",
+    "lint:md": "markdownlint README.md config/**/*.md data/**/*.md",
     "lint:yaml": "prettier --check \"**/*.{yml,yaml}\"",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit && npm run typecheck:web",
-    "typecheck:web": "tsc -p web/tsconfig.json --noEmit"
-  },
-  "dependencies": {
-    "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "24.5.2",
-    "@types/react": "19.2.2",
-    "@types/react-dom": "19.2.2",
-    "@vitejs/plugin-react": "5.1.0",
     "dotenv": "17.2.2",
     "markdownlint-cli": "0.48.0",
     "prettier": "3.6.2",
     "tsx": "4.20.5",
     "typescript": "5.9.2",
     "undici": "7.24.5",
-    "vite": "7.1.7",
     "vitest": "3.2.4"
   }
 }

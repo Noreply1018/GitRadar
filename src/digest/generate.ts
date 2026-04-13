@@ -5,19 +5,9 @@ import {
   CURRENT_DAILY_DIGEST_ARCHIVE_SCHEMA_VERSION,
   writeDailyDigestArchive,
 } from "../core/archive";
-import {
-  toErrorPayload,
-  writeDailyDigestFailureReport,
-} from "../core/failure-report";
 import { getCurrentDigestDate, getIsoTimestamp } from "../core/date";
 import { createWorkflowLogger } from "../core/log";
-import {
-  getUserPreferencesConfigPath,
-  readStoredUserPreferencesConfig,
-} from "../config/user-preferences";
 import type { GitHubConfig, LlmConfig, WecomRobotConfig } from "../config/env";
-import { buildFeedbackInsights } from "../feedback/insights";
-import { readStoredFeedbackState } from "../feedback/store";
 import {
   enrichCandidatesWithReadmes,
   fetchGitHubCandidates,
@@ -76,20 +66,10 @@ export async function generateDailyDigest(
     const fetched = await fetchGitHubCandidates({
       ...options.github,
       logger,
-      onTrendingFailure: async (error) => {
-        const failurePath = await writeDailyDigestFailureReport(rootDir, {
-          workflow: "generate_daily_digest",
-          stage: "source_trending",
-          fallbackUsed: true,
-          error: toErrorPayload(error),
-          context: {
-            trendingUrl: options.github.trendingUrl,
-          },
-          digestDate: date,
-        });
-
-        logger.warn("source_trending_failure_recorded", {
-          failurePath,
+      onTrendingFailure: (error) => {
+        logger.warn("source_trending_failed", {
+          message: getErrorMessage(error),
+          trendingUrl: options.github.trendingUrl,
         });
       },
     });
@@ -107,12 +87,7 @@ export async function generateDailyDigest(
       candidates,
       options.github,
     );
-    const preferences = readStoredUserPreferencesConfig(rootDir);
-    const feedbackState = await readStoredFeedbackState(rootDir);
-    shortlisted = selectCandidatesForDigest(enrichedCandidates, 20, {
-      userPreferences: preferences,
-      feedbackState,
-    });
+    shortlisted = selectCandidatesForDigest(enrichedCandidates, 20);
     llmPool = buildDigestCandidatePool(shortlisted, DEFAULT_LLM_POOL_SIZE);
 
     logger.info("candidate_pool_built", {
@@ -121,39 +96,11 @@ export async function generateDailyDigest(
       rejectedCount: llmPool.rejected.length,
     });
 
-    const editorialResult = await generateDigestWithResilience(
+    const digest = await generateDigestWithResilience(
       llmPool.selected,
       date,
       options.llm,
-      {
-        logger,
-        onModelFailure: async (error) => {
-          const failurePath = await writeDailyDigestFailureReport(rootDir, {
-            workflow: "generate_daily_digest",
-            stage: "editorial_model",
-            fallbackUsed: true,
-            error: toErrorPayload(error),
-            context: {
-              llmCandidateRepos: llmPool.selected.map(
-                (candidate) => candidate.repo,
-              ),
-              llmCandidates: llmPool.selected,
-              rulesVersion: getRulesVersion(),
-              model: options.llm.model,
-            },
-            digestDate: date,
-          });
-
-          logger.warn("editorial_model_failure_recorded", {
-            failurePath,
-          });
-        },
-      },
-    );
-    const digest = await markExplorationItem(
-      editorialResult.digest,
-      llmPool.selected,
-      rootDir,
+      { logger },
     );
 
     const archive: DailyDigestArchive = {
@@ -184,7 +131,6 @@ export async function generateDailyDigest(
         sourceCounts,
         llmCandidateCount: llmPool.selected.length,
         rulesVersion: getRulesVersion(),
-        editorialMode: editorialResult.mode,
         warnings: candidateWarnings.length > 0 ? candidateWarnings : undefined,
       },
       digest,
@@ -193,7 +139,6 @@ export async function generateDailyDigest(
 
     logger.info("archive_written", {
       archivePath: path.resolve(archivePath),
-      editorialMode: editorialResult.mode,
     });
 
     if (options.send) {
@@ -208,21 +153,9 @@ export async function generateDailyDigest(
           itemCount: digest.items.length,
         });
       } catch (error) {
-        const failurePath = await writeDailyDigestFailureReport(rootDir, {
-          workflow: "generate_daily_digest",
-          stage: "delivery_wecom",
-          fallbackUsed: false,
-          error: toErrorPayload(error),
-          context: {
-            archivePath: path.resolve(archivePath),
-            digestTitle: digest.title,
-            digestItemRepos: digest.items.map((item) => item.repo),
-          },
-          digestDate: date,
-        });
         logger.error("delivery_wecom_failed", {
-          failurePath,
           message: getErrorMessage(error),
+          archivePath: path.resolve(archivePath),
         });
         throw error;
       }
@@ -233,7 +166,6 @@ export async function generateDailyDigest(
       candidateCount: candidates.length,
       shortlistedCount: shortlisted.length,
       llmCandidateCount: llmPool.selected.length,
-      editorialMode: editorialResult.mode,
     });
 
     return {
@@ -242,83 +174,17 @@ export async function generateDailyDigest(
       sourceCounts,
     };
   } catch (error) {
-    const failurePath = await writeDailyDigestFailureReport(rootDir, {
-      workflow: "generate_daily_digest",
-      stage: "generate_daily_digest",
-      fallbackUsed: false,
-      error: toErrorPayload(error),
-      context: {
-        send: Boolean(options.send),
-        sourceCounts,
-        candidateWarnings,
-        candidateRepos: candidates.map((candidate) => candidate.repo),
-        shortlistedRepos: shortlisted.map((candidate) => candidate.repo),
-        llmCandidateRepos: llmPool.selected.map((candidate) => candidate.repo),
-      },
-      digestDate: date,
-    });
-
     logger.error("daily_digest_failed", {
-      failurePath,
       message: getErrorMessage(error),
+      send: Boolean(options.send),
+      sourceCounts,
+      candidateWarnings,
+      candidateRepos: candidates.map((candidate) => candidate.repo),
+      shortlistedRepos: shortlisted.map((candidate) => candidate.repo),
+      llmCandidateRepos: llmPool.selected.map((candidate) => candidate.repo),
     });
     throw error;
   }
-}
-
-async function markExplorationItem(
-  digest: DailyDigestArchive["digest"],
-  candidates: DailyDigestArchive["shortlisted"],
-  rootDir: string,
-): Promise<DailyDigestArchive["digest"]> {
-  const preferences = readStoredUserPreferencesConfig(rootDir);
-  const feedbackState = await readStoredFeedbackState(rootDir);
-  const insights = buildFeedbackInsights(feedbackState, preferences);
-  const preferredThemes = new Set(preferences.preferredThemes);
-  const interestedThemes = new Set(
-    insights.interestedThemes.map((item) => item.theme),
-  );
-  const skippedThemes = new Set(
-    insights.skippedThemes.map((item) => item.theme),
-  );
-  const candidateByRepo = new Map(
-    candidates.map((candidate) => [candidate.repo, candidate]),
-  );
-
-  const exploration = digest.items.find((item) => {
-    if (preferredThemes.has(item.theme) || interestedThemes.has(item.theme)) {
-      return false;
-    }
-
-    if (skippedThemes.has(item.theme)) {
-      return false;
-    }
-
-    const candidate = candidateByRepo.get(item.repo);
-    return Boolean(
-      candidate &&
-        (candidate.sources.length >= 2 ||
-          candidate.selectionHints?.matureMomentum),
-    );
-  });
-
-  if (!exploration) {
-    return digest;
-  }
-
-  return {
-    ...digest,
-    items: digest.items.map((item) =>
-      item.repo === exploration.repo
-        ? {
-            ...item,
-            readerTag: "exploration",
-            readerNote:
-              "这条是今天刻意保留的探索位：主题和你最近高频兴趣重合不高，但信号够硬，适合偶尔跳出舒适区。",
-          }
-        : item,
-    ),
-  };
 }
 
 function emptySourceCounts() {

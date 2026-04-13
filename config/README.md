@@ -11,13 +11,11 @@ GitRadar 3.0.0 的正式配置分成两层：
 
 - `config/schedule.json`
 - `config/digest-rules.json`
-- `config/user-preferences.json`
 
 职责分别是：
 
 - `schedule.json`：发送时间与时区
 - `digest-rules.json`：候选筛选规则、主题、阈值和权重
-- `user-preferences.json`：主题偏好与自定义主题词
 
 其中 `schedule.json` 是 `Daily Digest` 工作流的正式调度输入。工作流每 5 分钟轮询一次，命中目标时间槽后执行日报。
 
@@ -31,7 +29,7 @@ GitRadar 3.0.0 的正式配置分成两层：
 - `GR_MODEL`
 - `GITRADAR_WECOM_WEBHOOK_URL`
 
-这些值不会入库，控制台也不会直接编辑它们；控制台只展示映射位置和最近一次远端运行反映出的状态。
+这些值不会入库。
 
 ## 配置原则
 
@@ -41,6 +39,6 @@ GitRadar 3.0.0 的正式配置分成两层：
 
 ## 开发调试模板
 
-如果需要在本地开发命令或控制台时注入环境变量，请参考 [`docs/examples/development.env.example`](../docs/examples/development.env.example)。
+如果需要在本地运行命令时注入环境变量，请参考 [`docs/examples/development.env.example`](../docs/examples/development.env.example)。
 
-这个模板只用于开发调试，不参与 GitRadar 的正式远端运行。
+这个模板只用于本地调试，不参与 GitRadar 的正式远端运行。

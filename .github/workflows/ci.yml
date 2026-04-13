@@ -66,14 +66,6 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
-      - name: Build web console
-        env:
-          VITE_GITRADAR_BASE: /GitRadar/
-          VITE_GITRADAR_REPO_OWNER: Noreply1018
-          VITE_GITRADAR_REPO_NAME: GitRadar
-          VITE_GITRADAR_REPO_BRANCH: main
-        run: npm run build:web
-
       - name: Run tests
         run: npm run test
 
