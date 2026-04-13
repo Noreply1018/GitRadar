@@ -47,3 +47,4 @@ data/runtime/*
 # IDE
 .idea/
 .vscode/
+.omx/
