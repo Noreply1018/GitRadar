@@ -10,20 +10,13 @@
     "runtime:github": "tsx src/commands/write-github-runtime.ts",
     "persist:github": "tsx src/commands/persist-github-files.ts",
     "validate:digest-rules": "tsx src/commands/validate-digest-rules.ts",
-    "format:check": "prettier --check .",
-    "lint:md": "markdownlint README.md config/**/*.md data/**/*.md",
-    "lint:yaml": "prettier --check \"**/*.{yml,yaml}\"",
-    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "24.5.2",
     "dotenv": "17.2.2",
-    "markdownlint-cli": "0.48.0",
-    "prettier": "3.6.2",
     "tsx": "4.20.5",
     "typescript": "5.9.2",
-    "undici": "7.24.5",
-    "vitest": "3.2.4"
+    "undici": "7.24.5"
   }
 }

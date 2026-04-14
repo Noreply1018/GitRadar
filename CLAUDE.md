@@ -1,98 +1,144 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+本文件为 Claude Code 在本仓库中工作时提供约束与背景说明。
 
 ## 用户约束
 
-- 使用中文回复用户
-- 大量改动代码后记得git commit
+- 使用中文回复用户。
+- 大量改动代码后记得 `git commit`。
 
+## GitRadar 是什么
 
-## What is GitRadar
+GitRadar 是一个单用户、GitHub-native 的开源项目日报工具。
 
-Single-user GitHub-native daily digest tool. Discovers trending open-source projects, generates Chinese summaries via LLM, pushes to WeChat Work (企业微信). Runs entirely on GitHub Actions — no local runtime required in production.
+它只做一条最小主链路：
 
-Current status: rebuilding as v1. See `SPEC/v1/` for the full spec, `SPEC/v1/audit.md` for scope boundaries.
+1. 从 GitHub 抓取候选项目
+2. 进行规则筛选与排序
+3. 调用 LLM 生成中文日报
+4. 推送到企业微信
+5. 将归档和运行状态写回仓库
 
-## Commands
+生产环境完全运行在 GitHub Actions 上，本地只用于调试和验证。
+
+## 当前状态
+
+仓库已经做过一次大清扫，当前只保留最小日报主链路。
+
+这些内容已经不再属于当前仓库：
+
+- Web 控制台
+- 反馈系统
+- 配置回写工作流
+- 环境诊断侧链
+- `SPEC/v1/`、`SPEC/v2/`
+- 自动化测试目录
+
+不要再按旧的多子系统结构扩展本仓库。
+
+## 常用命令
 
 ```bash
-# Quality gates (run all before committing)
-npm run format:check    # Prettier
-npm run lint:md         # markdownlint
-npm run lint:yaml       # YAML lint via Prettier
-npm run typecheck       # TypeScript (both src/ and web/)
-npm run test            # Vitest
+# 依赖安装
+npm install
 
-# Run a single test file
-npx vitest run tests/digest-model.test.ts
+# 类型检查
+npm run typecheck
 
-# Core pipeline (local dev/debug only — production runs on GitHub Actions)
-npm run generate:digest              # Generate digest locally
-npm run generate:digest -- --send    # Generate and send to WeChat
-
-# Validation
+# 校验日报规则配置
 npm run validate:digest-rules -- --format json
 
-# Web console (not v1 core — Phase B / v2)
-npm run dev:web         # Dev server on port 4173
-npm run build:web       # Production build
+# 本地生成日报
+npm run generate:digest
+
+# 本地生成并发送到企业微信
+npm run generate:digest -- --send
+
+# 写入 GitHub runtime 状态
+npm run runtime:github
+
+# 将归档与 runtime 文件通过 GitHub API 写回仓库
+npm run persist:github
 ```
 
-## Architecture
+## 架构
 
-Six-layer pipeline with strict boundaries between layers:
+当前主链路可分为五层：
 
-1. **Source** (`src/github/candidates.ts`, `src/github/trending.ts`) — Fetches candidates from GitHub Trending + Search API
-2. **Scoring** (`src/digest/rules.ts`) — Theme inference (9 themes), multi-factor scoring, diversity control, blacklist filtering
-3. **Editorial** (`src/digest/model.ts`) — LLM call via OpenAI-compatible API, JSON response parsing, quality validation
-4. **Archive** (`src/core/archive.ts`) — JSON archive to `data/history/YYYY-MM-DD.json`
-5. **Delivery** (`src/notifiers/wecom-robot.ts`) — WeChat Work markdown with 4096-byte pagination
-6. **Feedback** (`src/feedback/`) — Not v1 core, frozen until v2
+1. **数据来源**：`src/github/candidates.ts`、`src/github/trending.ts`
+   - 从 GitHub Trending 和 Search API 获取候选仓库
+2. **规则筛选**：`src/digest/rules.ts`
+   - 主题推断、评分、黑名单过滤、主题多样性控制
+3. **成稿**：`src/digest/model.ts`
+   - 调用 OpenAI 兼容接口，解析 JSON，校验成稿质量
+4. **归档**：`src/core/archive.ts`
+   - 写入 `data/history/YYYY-MM-DD.json`
+5. **投递**：`src/notifiers/wecom-robot.ts`
+   - 渲染企业微信 Markdown，并按字节限制分页
 
-Orchestration: `src/digest/generate.ts` → called by `src/commands/generate-daily-digest.ts`
+编排入口：
 
-GitHub API abstraction: `src/github/platform-client.ts` (all repo read/write via GitHub REST API, no git CLI)
+- `src/digest/generate.ts`
+- `src/commands/generate-daily-digest.ts`
 
-## Key Design Decisions
+GitHub 仓库读写统一通过：
 
-- **LLM must succeed** — no template fallback. 3 retries, then throw. Template code in model.ts is being deleted per `SPEC/v1/deletion-plan.md`
-- **Non-matching time slots exit 0** — cron runs every 5 min, only the matching slot executes the pipeline, all others must exit 0 silently
-- **LLM failure = exit 1** — no archive generated, runtime failure written, WeChat failure notification sent
-- **Node 20** — all workflows must use Node 20 LTS (being unified from mixed 20/24)
+- `src/github/platform-client.ts`
 
-## Project Layout
+不要引入 git CLI 作为正式写回手段。
 
+## 关键约束
+
+- **LLM 必须成功**
+  - 不允许模板降级
+  - 失败时重试 3 次，之后直接抛错
+- **非命中时间槽必须安静退出**
+  - 定时工作流每 5 分钟触发一次
+  - 只有命中配置时间的那次才真正执行主链路
+- **LLM 失败就是失败**
+  - 不生成正式日报归档
+  - 工作流应失败退出
+  - 可发送企业微信失败通知
+- **Node 版本统一**
+  - 当前工作流统一使用 Node 24
+
+## 目录说明
+
+```text
+src/commands/   命令入口
+src/core/       核心模型、日期工具、日志、归档 schema
+src/digest/     主链路编排、LLM 成稿、规则筛选
+src/github/     GitHub API 获取与写回
+src/config/     环境变量、规则配置、调度配置
+src/notifiers/  企业微信机器人
+src/utils/      通用异步工具
+config/         仓库内配置文件
+data/runtime/   运行状态
+.github/workflows/
+                GitHub Actions 工作流
 ```
-src/commands/     CLI entry points (tsx)
-src/core/         Domain models, date utils, logging, archive schema
-src/digest/       Pipeline: generate.ts (orchestrator), model.ts (LLM), rules.ts (scoring)
-src/github/       GitHub API: platform-client.ts, candidates.ts, trending.ts
-src/config/       Config loading: env.ts, digest-rules.ts, schedule.ts, user-preferences.ts
-src/notifiers/    WeChat Work robot
-src/feedback/     Feedback system (v2, frozen)
-web/src/          React SPA on GitHub Pages (v1 Phase B: read-only, v2: full)
-config/           Repository config JSON files (schedule, rules, preferences)
-data/history/     Daily digest archives (gitignored, written by workflow)
-data/runtime/     Execution state (gitignored, written by workflow)
-tests/            Vitest tests — mocks use node:http createServer, not mocking libraries
-SPEC/v1/          v1 spec, audit, deletion plan, rebuild plan
-SPEC/v2/          v2 scope (Web config, feedback, writeback)
-```
 
-## Testing Patterns
+## 配置文件
 
-- Framework: Vitest with globals enabled
-- HTTP mocking: real `node:http` servers, not mock libraries
-- Tests validate business rules (evidence authenticity, summary quality detection via regex, WeChat byte limits)
-- Error paths get equal coverage to happy paths
+- `config/schedule.json`
+  - 发送时间与时区
+- `config/digest-rules.json`
+  - 主题、黑名单、阈值、评分权重
 
-## Config Files
+敏感信息不入库，只通过 GitHub Secrets 或本地环境变量提供：
 
-- `config/schedule.json` — send time + timezone (Asia/Shanghai, 08:17 default)
-- `config/digest-rules.json` — themes, scoring weights, blacklists, thresholds (schema versioned)
-- `config/user-preferences.json` — preferred themes, custom topics
+- `GITRADAR_GITHUB_TOKEN`
+- `GR_API_KEY`
+- `GR_BASE_URL`
+- `GR_MODEL`
+- `GITRADAR_WECOM_WEBHOOK_URL`
 
-## v1 Scope
+本地环境变量模板见：
 
-v1 does exactly 7 things: GitHub Actions scheduled run → candidate discovery → scoring → LLM generation → WeChat push → archive → runtime state writeback. Everything else (Web config editing, feedback, writeback workflow, environment diagnostics) is v2.
+- `docs/examples/development.env.example`
+
+## 工作方式
+
+- 优先保持仓库简单，不要为了“以后可能用到”重新引入已删除系统。
+- 修改主链路时，优先维护现有最小结构，而不是补回历史功能。
+- 如果需要新增能力，先判断它是否属于“日报主链路”；不属于时应谨慎，默认不加。

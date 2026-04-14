@@ -13,7 +13,6 @@ GitRadar 现在只保留一条最小主链路：每天从 GitHub 抓取候选项
 ## 当前目录
 
 - `src/`：日报主链路代码
-- `tests/`：主链路测试
 - `config/`：规则与调度配置
 - `data/`：归档与运行状态
 - `.github/workflows/`：日报 workflow 与 CI
@@ -39,7 +38,6 @@ npm run validate:digest-rules -- --format json
 npm run generate:digest
 npm run generate:digest -- --send
 npm run runtime:github
-npm run test
 npm run typecheck
 ```
 

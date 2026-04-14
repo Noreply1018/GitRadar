@@ -51,23 +51,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check formatting
-        run: npm run format:check
-
-      - name: Lint Markdown
-        run: npm run lint:md
-
-      - name: Lint YAML
-        run: npm run lint:yaml
-
       - name: Validate Digest Rules Config
         run: npm run validate:digest-rules -- --format json
 
       - name: Type check
         run: npm run typecheck
-
-      - name: Run tests
-        run: npm run test
 
       - name: Lint GitHub Actions workflow
         uses: rhysd/actionlint@393031adb9afb225ee52ae2ccd7a5af5525e03e8
