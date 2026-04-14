@@ -134,13 +134,14 @@ SPA 不持有任何后端，所有数据读写通过 GitHub REST API。
 
 ```
 GitHubClient
-├── readFile(path)            → GET /repos/{owner}/{repo}/contents/{path}
-├── writeFile(path, content)  → PUT /repos/{owner}/{repo}/contents/{path}
-├── listDirectory(path)       → GET /repos/{owner}/{repo}/contents/{path}
-├── triggerWorkflow(id)       → POST /repos/{owner}/{repo}/actions/workflows/{id}/dispatches
-├── listWorkflowRuns(id)      → GET /repos/{owner}/{repo}/actions/workflows/{id}/runs
-└── getWorkflowRunLogs(runId) → GET /repos/{owner}/{repo}/actions/runs/{runId}/logs
+├── readFile(path)           → GET /repos/{owner}/{repo}/contents/{path}
+├── writeFile(path, content) → PUT /repos/{owner}/{repo}/contents/{path}
+├── listDirectory(path)      → GET /repos/{owner}/{repo}/contents/{path}
+├── triggerWorkflow(id)      → POST /repos/{owner}/{repo}/actions/workflows/{id}/dispatches
+└── listWorkflowRuns(id)     → GET /repos/{owner}/{repo}/actions/workflows/{id}/runs
 ```
+
+注：不封装 getWorkflowRunLogs，GitHub Actions 日志 API 返回 zip 压缩包，纯前端解压展示复杂度高且价值低。详细日志通过跳转 GitHub Actions 页面查看。
 
 ### 各页面数据流
 
