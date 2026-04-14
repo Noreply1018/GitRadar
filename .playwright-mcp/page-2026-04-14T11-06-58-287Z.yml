@@ -1,0 +1,17 @@
+- generic [ref=e4]:
+  - heading "GitRadar Console 设置" [level=1] [ref=e5]
+  - paragraph [ref=e6]:
+    - text: 输入 GitHub PAT（需要
+    - code [ref=e7]: repo
+    - text: scope）和仓库信息。
+  - generic [ref=e8]:
+    - text: GitHub Token
+    - textbox "GitHub Token" [ref=e9]:
+      - /placeholder: ghp_...
+  - generic [ref=e10]:
+    - text: Owner（用户名或组织名）
+    - textbox "Owner（用户名或组织名）" [ref=e11]
+  - generic [ref=e12]:
+    - text: Repo
+    - textbox "Repo" [ref=e13]: GitRadar
+  - button "连接" [ref=e14]
