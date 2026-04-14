@@ -39,6 +39,8 @@ jobs:
 
       - name: Build
         working-directory: web
+        env:
+          VITE_WORKER_URL: ${{ vars.WORKER_URL }}
         run: npm run build
 
       - name: Upload artifact
