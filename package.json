@@ -13,6 +13,7 @@
     "runtime:github": "tsx src/commands/write-github-runtime.ts",
     "persist:github": "tsx src/commands/persist-github-files.ts",
     "validate:digest-rules": "tsx src/commands/validate-digest-rules.ts",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
@@ -20,6 +21,7 @@
     "dotenv": "17.2.2",
     "tsx": "4.20.5",
     "typescript": "5.9.2",
-    "undici": "7.24.5"
+    "undici": "7.24.5",
+    "vitest": "^4.1.4"
   }
 }
