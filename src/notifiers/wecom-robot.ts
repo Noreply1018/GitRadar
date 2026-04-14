@@ -1,7 +1,6 @@
 import { request } from "undici";
 
 import type { DailyDigest, DigestItem } from "../core/digest";
-import { maskWebhookUrl } from "../config/mask";
 import type { Notifier } from "./notifier";
 
 const WECOM_MARKDOWN_LIMIT_BYTES = 4096;
@@ -18,14 +17,6 @@ interface WecomResponse {
   errmsg?: string;
 }
 
-export interface WecomWorkflowFailureAlert {
-  workflowName: string;
-  trigger: string;
-  failedAt: string;
-  runUrl: string;
-  details?: string;
-}
-
 export class WecomRobotNotifier implements Notifier {
   constructor(private readonly webhookUrl: string) {}
 
@@ -33,16 +24,6 @@ export class WecomRobotNotifier implements Notifier {
     for (const payload of renderWecomMarkdownPayloads(digest)) {
       await this.sendPayload(payload);
     }
-  }
-
-  async sendWorkflowFailureAlert(
-    alert: WecomWorkflowFailureAlert,
-  ): Promise<void> {
-    await this.sendPayload(renderWecomWorkflowFailurePayload(alert));
-  }
-
-  getMaskedWebhook(): string {
-    return maskWebhookUrl(this.webhookUrl);
   }
 
   private async sendPayload(payload: WecomRobotPayload): Promise<void> {
@@ -166,37 +147,6 @@ export function renderWecomMarkdownPages(digest: DailyDigest): string[] {
   }
 
   return pages;
-}
-
-export function renderWecomWorkflowFailurePayload(
-  alert: WecomWorkflowFailureAlert,
-): WecomRobotPayload {
-  return {
-    msgtype: "markdown",
-    markdown: {
-      content: renderWecomWorkflowFailureMarkdown(alert),
-    },
-  };
-}
-
-export function renderWecomWorkflowFailureMarkdown(
-  alert: WecomWorkflowFailureAlert,
-): string {
-  const lines = [
-    "# GitRadar 任务失败",
-    "",
-    `工作流：${normalizeLine(alert.workflowName)}`,
-    `触发方式：${normalizeLine(alert.trigger)}`,
-    `失败时间：${normalizeLine(alert.failedAt)}`,
-  ];
-
-  if (alert.details?.trim()) {
-    lines.push(`详情：${normalizeLine(alert.details)}`);
-  }
-
-  lines.push(`查看日志：[GitHub Actions](${alert.runUrl})`);
-
-  return lines.join("\n");
 }
 
 function renderItem(index: number, item: DigestItem): string {

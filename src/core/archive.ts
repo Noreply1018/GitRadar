@@ -150,9 +150,7 @@ function isValidDigestItem(value: unknown): boolean {
     Array.isArray(item.evidence) &&
     item.evidence.every((entry) => typeof entry === "string") &&
     typeof item.novelty === "string" &&
-    typeof item.trend === "string" &&
-    (item.readerTag === undefined || item.readerTag === "exploration") &&
-    (item.readerNote === undefined || typeof item.readerNote === "string")
+    typeof item.trend === "string"
   );
 }
 

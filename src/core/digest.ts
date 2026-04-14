@@ -8,8 +8,6 @@ export interface DigestItem {
   evidence: string[];
   novelty: string;
   trend: string;
-  readerTag?: "exploration";
-  readerNote?: string;
 }
 
 export interface DailyDigest {
