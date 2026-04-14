@@ -1,27 +1,50 @@
 import { useCallback, useSyncExternalStore } from "react";
 
 interface AuthState {
-  token: string;
+  session: string;
   owner: string;
   repo: string;
 }
 
-const STORAGE_KEYS = {
-  token: "gitradar_pat",
-  owner: "gitradar_owner",
-  repo: "gitradar_repo",
-} as const;
+const STORAGE_KEY = "gitradar_session";
+
+// Legacy keys to clean up
+const LEGACY_KEYS = ["gitradar_pat", "gitradar_owner", "gitradar_repo"];
+
+function cleanLegacyStorage(): void {
+  for (const key of LEGACY_KEYS) {
+    localStorage.removeItem(key);
+  }
+}
+
+function decodeJwtPayload(token: string): { owner: string; repo: string; exp: number } | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1]));
+    return payload;
+  } catch {
+    return null;
+  }
+}
 
 function getSnapshot(): AuthState | null {
-  const token = localStorage.getItem(STORAGE_KEYS.token);
-  const owner = localStorage.getItem(STORAGE_KEYS.owner);
-  const repo = localStorage.getItem(STORAGE_KEYS.repo);
+  const session = localStorage.getItem(STORAGE_KEY);
+  if (!session) return null;
 
-  if (!token || !owner || !repo) {
+  const payload = decodeJwtPayload(session);
+  if (!payload) {
+    localStorage.removeItem(STORAGE_KEY);
     return null;
   }
 
-  return { token, owner, repo };
+  // Check expiration
+  if (payload.exp * 1000 < Date.now()) {
+    localStorage.removeItem(STORAGE_KEY);
+    return null;
+  }
+
+  return { session, owner: payload.owner, repo: payload.repo };
 }
 
 function subscribe(callback: () => void): () => void {
@@ -32,20 +55,14 @@ function subscribe(callback: () => void): () => void {
 export function useAuth() {
   const auth = useSyncExternalStore(subscribe, getSnapshot, () => null);
 
-  const login = useCallback(
-    (token: string, owner: string, repo: string) => {
-      localStorage.setItem(STORAGE_KEYS.token, token);
-      localStorage.setItem(STORAGE_KEYS.owner, owner);
-      localStorage.setItem(STORAGE_KEYS.repo, repo);
-      window.dispatchEvent(new Event("storage"));
-    },
-    [],
-  );
+  const login = useCallback((session: string) => {
+    cleanLegacyStorage();
+    localStorage.setItem(STORAGE_KEY, session);
+    window.dispatchEvent(new Event("storage"));
+  }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEYS.token);
-    localStorage.removeItem(STORAGE_KEYS.owner);
-    localStorage.removeItem(STORAGE_KEYS.repo);
+    localStorage.removeItem(STORAGE_KEY);
     window.dispatchEvent(new Event("storage"));
   }, []);
 

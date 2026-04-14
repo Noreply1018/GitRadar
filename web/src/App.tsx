@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import { useAuth } from "./hooks/useAuth";
 import Layout from "./components/Layout";
 import SetupPage from "./pages/SetupPage";
+import CallbackPage from "./pages/CallbackPage";
 import DashboardPage from "./pages/DashboardPage";
 import HistoryPage from "./pages/HistoryPage";
 import ConfigPage from "./pages/ConfigPage";
@@ -23,6 +24,7 @@ export default function App() {
     <BrowserRouter basename="/GitRadar">
       <Routes>
         <Route path="/setup" element={<SetupPage />} />
+        <Route path="/setup/callback" element={<CallbackPage />} />
         <Route
           element={
             <AuthGuard>

@@ -4,19 +4,18 @@ import type {
   GitHubWorkflowRun,
   GitHubWorkflowRunsResponse,
 } from "./types";
+import { WORKER_URL } from "../config";
 
 export class GitHubClient {
-  private readonly baseUrl = "https://api.github.com";
+  private readonly baseUrl: string;
 
-  constructor(
-    private readonly token: string,
-    private readonly owner: string,
-    private readonly repo: string,
-  ) {}
+  constructor(private readonly session: string) {
+    this.baseUrl = `${WORKER_URL}/api/github`;
+  }
 
   async readFile(path: string): Promise<{ content: string; sha: string }> {
     const res = await this.request<GitHubFileResponse>(
-      `/repos/${this.owner}/${this.repo}/contents/${path}`,
+      `/repos/contents/${path}`,
     );
 
     if (res.type !== "file" || !res.content) {
@@ -42,7 +41,7 @@ export class GitHubClient {
       body.sha = sha;
     }
 
-    await this.request(`/repos/${this.owner}/${this.repo}/contents/${path}`, {
+    await this.request(`/repos/contents/${path}`, {
       method: "PUT",
       body: JSON.stringify(body),
     });
@@ -50,13 +49,13 @@ export class GitHubClient {
 
   async listDirectory(path: string): Promise<GitHubDirectoryEntry[]> {
     return this.request<GitHubDirectoryEntry[]>(
-      `/repos/${this.owner}/${this.repo}/contents/${path}`,
+      `/repos/contents/${path}`,
     );
   }
 
   async triggerWorkflow(workflowId: string, ref = "main"): Promise<void> {
     await this.request(
-      `/repos/${this.owner}/${this.repo}/actions/workflows/${workflowId}/dispatches`,
+      `/repos/actions/workflows/${workflowId}/dispatches`,
       {
         method: "POST",
         body: JSON.stringify({ ref }),
@@ -69,15 +68,15 @@ export class GitHubClient {
     perPage = 20,
   ): Promise<GitHubWorkflowRun[]> {
     const res = await this.request<GitHubWorkflowRunsResponse>(
-      `/repos/${this.owner}/${this.repo}/actions/workflows/${workflowId}/runs?per_page=${perPage}`,
+      `/repos/actions/workflows/${workflowId}/runs?per_page=${perPage}`,
     );
 
     return res.workflow_runs;
   }
 
-  async validateToken(): Promise<boolean> {
+  async validateConnection(): Promise<boolean> {
     try {
-      await this.request(`/repos/${this.owner}/${this.repo}`);
+      await this.request("/repos");
       return true;
     } catch {
       return false;
@@ -89,15 +88,14 @@ export class GitHubClient {
     const res = await fetch(url, {
       ...init,
       headers: {
-        authorization: `token ${this.token}`,
-        accept: "application/vnd.github.v3+json",
+        authorization: `Bearer ${this.session}`,
         "content-type": "application/json",
         ...init?.headers,
       },
     });
 
     if (res.status === 401) {
-      throw new AuthError("Token is invalid or expired.");
+      throw new AuthError("Session is invalid or expired.");
     }
 
     if (res.status === 404) {
@@ -105,11 +103,13 @@ export class GitHubClient {
     }
 
     if (res.status === 409) {
-      throw new ConflictError("File was modified by another process. Please refresh and try again.");
+      throw new ConflictError(
+        "File was modified by another process. Please refresh and try again.",
+      );
     }
 
     if (!res.ok) {
-      throw new Error(`GitHub API error: ${res.status} ${res.statusText}`);
+      throw new Error(`API error: ${res.status} ${res.statusText}`);
     }
 
     if (res.status === 204) {

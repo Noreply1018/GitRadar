@@ -7,6 +7,6 @@ export function useGitHub(): GitHubClient | null {
 
   return useMemo(() => {
     if (!auth) return null;
-    return new GitHubClient(auth.token, auth.owner, auth.repo);
+    return new GitHubClient(auth.session);
   }, [auth]);
 }
