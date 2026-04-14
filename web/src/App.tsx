@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import { useAuth } from "./hooks/useAuth";
+import Layout from "./components/Layout";
 import SetupPage from "./pages/SetupPage";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -13,7 +14,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 }
 
 function PlaceholderPage({ title }: { title: string }) {
-  return <div className="p-8 text-lg">{title}</div>;
+  return <h2 className="text-xl font-semibold">{title}</h2>;
 }
 
 export default function App() {
@@ -22,19 +23,18 @@ export default function App() {
       <Routes>
         <Route path="/setup" element={<SetupPage />} />
         <Route
-          path="/*"
           element={
             <AuthGuard>
-              <Routes>
-                <Route path="/" element={<PlaceholderPage title="Dashboard" />} />
-                <Route path="/history" element={<PlaceholderPage title="History" />} />
-                <Route path="/config" element={<PlaceholderPage title="Config" />} />
-                <Route path="/feedback" element={<PlaceholderPage title="Feedback" />} />
-                <Route path="/logs" element={<PlaceholderPage title="Logs" />} />
-              </Routes>
+              <Layout />
             </AuthGuard>
           }
-        />
+        >
+          <Route path="/" element={<PlaceholderPage title="Dashboard" />} />
+          <Route path="/history" element={<PlaceholderPage title="History" />} />
+          <Route path="/config" element={<PlaceholderPage title="Config" />} />
+          <Route path="/feedback" element={<PlaceholderPage title="Feedback" />} />
+          <Route path="/logs" element={<PlaceholderPage title="Logs" />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );
