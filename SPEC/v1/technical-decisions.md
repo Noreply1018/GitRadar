@@ -39,13 +39,13 @@
 
 ---
 
-## ADR-004: 统一 Node 版本为 20
+## ADR-004: 统一 Node 版本为 24
 
-**决策：** 所有 workflow 统一 Node 20 LTS。`package.json` 添加 `"engines": { "node": ">=20" }`。
+**决策：** 所有 workflow 统一 Node 24。`package.json` 添加 `"engines": { "node": ">=24" }`。
 
 **理由：**
-- 当前 daily-digest.yml 用 Node 20，console-writeback.yml / pages-deploy.yml 用 Node 24
-- Node 20 是 LTS，更稳定
+- Node 24 已在所有 workflow 中使用
+- 最初计划使用 Node 20 LTS，但实践中选择了 Node 24 以利用最新特性
 - 消除版本不一致导致的微妙行为差异
 
 ---

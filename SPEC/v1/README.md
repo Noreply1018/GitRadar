@@ -1,40 +1,35 @@
-# GitRadar v1 Spec
+# GitRadar v1 规格说明
 
-本目录包含 GitRadar v1 的产品设计、删除计划、重建计划和审计结论。
+v1 的目标是跑通最小主链路：GitHub 候选抓取 → 规则筛选 → LLM 成稿 → 企微推送 → 归档回写。
 
-## 阅读顺序
+## v1 只做 7 件事
 
-1. **[audit.md](./audit.md)** — 审计结论（对初版 spec 的审计，定义了 v1 的真正边界）
-2. **[product-design.md](./product-design.md)** — 产品设计（审计后修订版）
-3. **[deletion-plan.md](./deletion-plan.md)** — 删除计划（目录级 + 代码级）
-4. **[rebuild-plan.md](./rebuild-plan.md)** — 重建计划（Phase A / Phase B 两段式）
-5. **[technical-decisions.md](./technical-decisions.md)** — 技术决策记录（11 条 ADR）
+1. 定时从 GitHub Trending 和 Search API 抓取候选项目
+2. 对候选项目进行规则评分和主题归类
+3. 调用 LLM 从候选池中生成中文日报
+4. 推送到企业微信
+5. 将日报归档到 `data/history/`
+6. 将运行状态写入 `data/runtime/github-runtime.json`
+7. 通过 GitHub API 将归档和状态回写到仓库
 
-## v1 边界
+## 文档
 
-v1 只做 7 件事：
-
-1. GitHub Actions 定时运行
-2. GitHub Trending / Search API 抓候选
-3. 评分筛选
-4. LLM 生成日报
-5. 企业微信推送
-6. 归档到 `data/history/`
-7. 回写 `data/runtime/github-runtime.json`
-
-**Web 只读浏览**是 Phase B 可选增强。
-**Web 配置修改、反馈系统、反馈闭环**推到 v2。
-
-## Phase 结构
-
-| Phase | 内容 | 完成定义 |
-|-------|------|---------|
-| **Phase A** | 最小日报主链路 | 连续 3 天收到企微日报，cron 不发垃圾邮件 |
-| **Phase B** | Web 只读浏览 + 文档收敛 | Pages 站点可访问，版本号 1.0.0 |
+| 文档 | 内容 |
+|------|------|
+| [audit.md](./audit.md) | 对原始 v1 规划的审计，确定真正的最小边界 |
+| [product-design.md](./product-design.md) | 产品设计：五层架构、主链路、配置模型 |
+| [technical-decisions.md](./technical-decisions.md) | 11 条技术决策记录（ADR） |
 
 ## 关键技术决策
 
-- LLM 失败 → 不生成归档 + 写 runtime failure + 企微发失败通知 + exit 1
-- 非命中时间槽 → exit 0（不触发 GitHub 通知）
-- Node 版本统一为 20
-- 删除 LLM fallback 模板代码
+- ADR-001: LLM 失败不降级，直接抛错
+- ADR-002: 失败时不生成归档，写 runtime failure，发企微通知，exit 1
+- ADR-003: 非命中时间槽必须 exit 0
+- ADR-004: 统一 Node 24
+- ADR-005: 纯 GitHub-native 执行
+- ADR-006: v1 只有 Phase A（主链路）
+- ADR-007: v1/v2 功能边界
+- ADR-008: 归档 Schema 版本管理
+- ADR-009: Failure Report 简化为纯日志
+- ADR-010: 保留轮询式调度
+- ADR-011: README 收缩
