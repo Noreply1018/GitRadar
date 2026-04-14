@@ -2,6 +2,11 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import { useAuth } from "./hooks/useAuth";
 import Layout from "./components/Layout";
 import SetupPage from "./pages/SetupPage";
+import DashboardPage from "./pages/DashboardPage";
+import HistoryPage from "./pages/HistoryPage";
+import ConfigPage from "./pages/ConfigPage";
+import FeedbackPage from "./pages/FeedbackPage";
+import LogsPage from "./pages/LogsPage";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { auth } = useAuth();
@@ -11,10 +16,6 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>;
-}
-
-function PlaceholderPage({ title }: { title: string }) {
-  return <h2 className="text-xl font-semibold">{title}</h2>;
 }
 
 export default function App() {
@@ -29,11 +30,11 @@ export default function App() {
             </AuthGuard>
           }
         >
-          <Route path="/" element={<PlaceholderPage title="Dashboard" />} />
-          <Route path="/history" element={<PlaceholderPage title="History" />} />
-          <Route path="/config" element={<PlaceholderPage title="Config" />} />
-          <Route path="/feedback" element={<PlaceholderPage title="Feedback" />} />
-          <Route path="/logs" element={<PlaceholderPage title="Logs" />} />
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/config" element={<ConfigPage />} />
+          <Route path="/feedback" element={<FeedbackPage />} />
+          <Route path="/logs" element={<LogsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
