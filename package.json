@@ -1,9 +1,12 @@
 {
   "name": "gitradar",
-  "version": "3.0.0",
+  "version": "1.0.0",
   "license": "MIT",
   "private": false,
   "description": "Minimal GitHub-native daily digest pipeline for open-source discovery.",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "generate:digest": "tsx src/commands/generate-daily-digest.ts",
     "generate:digest:send": "tsx src/commands/generate-daily-digest.ts --send",
