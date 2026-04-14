@@ -133,10 +133,6 @@ data/runtime/   运行状态
 - `GR_MODEL`
 - `GITRADAR_WECOM_WEBHOOK_URL`
 
-本地环境变量模板见：
-
-- `docs/examples/development.env.example`
-
 ## 工作方式
 
 - 优先保持仓库简单，不要为了“以后可能用到”重新引入已删除系统。

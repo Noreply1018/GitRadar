@@ -41,8 +41,6 @@ npm run runtime:github
 npm run typecheck
 ```
 
-如果需要本地环境变量模板，见 [`docs/examples/development.env.example`](./docs/examples/development.env.example)。
-
 ## 许可证
 
 GitRadar 使用 [MIT License](./LICENSE)。
